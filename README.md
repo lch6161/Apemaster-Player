@@ -40,7 +40,7 @@ ApeMaster player has a variety of authorized forms of online version, single -ma
 * The core technology has been granted national software invention patents and software copyrights.
 * VLC player and FFPLAY player are both open-source programs, suitable for commercial use.
 
-## 💽 Compatible Code
+## 💝 Compatible Code
 
 ApeMaster Player is a pure front-end solution. There's no need to consider whether the back-end code is in JAVA or .NET, nor whether the web server system is Windows or Linux. Simply install ApeMaster Player on the client computer, and the JavaScript calling interface of the web front-end page can be easily integrated into your project.
 
