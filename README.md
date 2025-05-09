@@ -6,7 +6,7 @@ ApeMaster Player is a playback program that directly plays RTSP video streams on
 
 ### 1. Download and install VLC player
 VLC Media Player:https://www.videolan.org/
-### 2. Download and install the ApeMaster Player
+### 2. Download and install ApeMaster Player
 Double click Installwrl.bat to install
 ### 3. Open the test website to experience
 test website:http://test.yuanmaster.com/player
