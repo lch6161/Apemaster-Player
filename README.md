@@ -2,6 +2,18 @@
 
 ApeMaster Player is a playback program that directly plays RTSP video streams on web pages without the need for server transcoding. Its principle is to use the embedded web patent technology provided by Ape Master, and the underlying VLC or FFPLAY controls can be called to achieve low latency and multi channel simultaneous playback of RTSP real-time video streams in high version browsers such as Chrome, Firefox, Edge, etc.
 
+## ✔ How to Experience
+
+### 1. Download and install VLC player
+VLC Media Player:https://www.videolan.org/
+### 2. Download and install the ApeMaster Player
+Double click Installwrl.bat to install
+### 3. Open the test website to experience
+test website:http://test.yuanmaster.com/player
+### 4. Integrated effect demonstration
+![微信图片_20211012162351](https://github.com/user-attachments/assets/96216fdd-f663-4727-9588-0d1c67b9cecb)
+
+
 ## 🚩 Why Apemaster Player
 
 ### 1. Supports most video and streaming:Support RTSP, RTMP, HLS, H.264, H.265, MP4....
