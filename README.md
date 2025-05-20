@@ -9,7 +9,7 @@ VLC Media Player:https://www.videolan.org/
 ### 2. Download and install ApeMaster Player
 Double click Installwrl.bat to install
 ### 3. Open the test website to experience
-test website:http://test.yuanmaster.com/player
+test website:[http://test.yuanmaster.com/enplayerjs](http://test.yuanmaster.com/enplayerjs/)
 ### 4. Integrated effect demonstration
 ![微信图片_20211012162351](https://github.com/user-attachments/assets/96216fdd-f663-4727-9588-0d1c67b9cecb)
 
