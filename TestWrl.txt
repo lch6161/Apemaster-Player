@@ -1,0 +1,236 @@
+ApeMaster Middleware Network Standard Edition - Cross-browser Native Applet System Function Test Instructions:  
+
+1. Please download the middleware network version installation package and execute the installation. Administrator privileges are required during installation. When installation is completed, the ApeMaster middleware service will start. The ZbaService.txt log file in the Data subdirectory under the installation directory outputs the running status.  
+
+2. Start Chrome or other browsers and open the webpage http://test.yuanmaster.com/ for testing (For HTTPS website testing, please open https://test.yuanmaster.com/, change the connection communication protocol from ws: to wss: before execution). If testing in an IE kernel webpage, if prompted to enable the ApeMaster WebSocket connection ActiveX control, please select "Yes".  
+
+3. Test connecting to the ApeMaster system service. Below are parameter descriptions:  
+sid is the unique connection session identifier (the applet service supports multiple simultaneous connections, needs unique identifier for differentiation)  
+pid is the unique identifier for connecting to the applet (defined by the PID value in the applet configuration file PluginConfig.json). Not passed means connecting to the main service.  
+flag is the connection control mask. 1 specifies output debug logs, 2 indicates communication data uses GZip compression (webpage JS needs synchronous processing), 3 represents 1+2, 4 starts with administrator privileges (limited to starting popup or embedded webpage applets).  
+Request connection to ApeMaster main service: ws://127.0.0.1:83?sid=123&flag=1 Clicking the connect button will output the connection result. In HTTP webpages, 127.0.0.1 can be replaced with localhost or wrl.zorrosoft.com (required for HTTPS websites) for connection. If port 83 on your computer is already occupied, the service listening port will automatically switch to 84. Then please modify the connection address to: ws://127.0.0.1:84?sid=123&flag=1;  
+
+Functions supported after connecting to the ApeMaster main service:  
+
+1) Get or compare version information  
+Mac 1 gets the local Mac address information. More gets more information (current logged-in user, keyboard and mouse idle time, current computer manufacturer and model, etc.). IP 1 gets the current network router IP address and local IP address. Router gets the timeout time (in seconds) for getting the current network router MAC address (0 means not get, 30 means 3 seconds timeout). Config 1 gets some configuration parameters of the middleware.  
+Note: Can be executed after connecting to the main service. Returns current software version, current system version, unique identifier, authorization validity period, authorized customer name, current system uptime, program running path, etc.;  
+Get version information example:  
+{"req":"Wrl_Version","rid":1,"para":{"Mac" : 1,"More" : 0,"Config" : 1,"Router" : 0,"IP" : 1}}  
+rid in the protocol represents this request sequence number (long integer). The returned result json will also carry this parameter. Because ws request and return are executed asynchronously, this ensures the one-to-one correspondence between requests and results. Same below.  
+Return: {"ret":0,"rid":1,"req":"Wrl_Version","data":{"Version":"2.2.16.5","ValidDay":"2024-12-31","AuthName":"Chengdu ApeMaster","Type":8,"OS":"10.0.18363.2","Win64":1,"UniID":"C69C5505AD73EFDD7A6BA38D83665889","Time":8103544,"TickCount":17184796,"Adv":1,"RunPath":"D:/Zorro/WRL/","Mac":[{"Card":"802.11n USB Wireless LAN Card","Mac":"38:B84:9E:2F:38:6A"}],"Router":["90:6F:AB:8F:BB:58"],"Config":{"NoService":0,"Localhost":1,"Delay":1,"Monitor":60,"Mac":1,"UDisk":0,"Lang":"CHS"}}}  
+
+Compare if there is a new version example:  
+{"req":"Wrl_Version","rid":1,"para":{"Version" : "2.2.16.1"}}  Given the new version number, determines if the current middleware version needs upgrading. Returns node field Update 1 means need upgrade, 0 no need.  
+{"req":"Wrl_Version","rid":1,"para":{"PID" : "F90B1CF0-8485-40ec-B4E8-B87598AAB35D","Version" : "2.2.16.1"}}  Specifies the applet's new version number for the given PID, determines if the applet needs upgrading. Returns node field Update 1 means need upgrade, 0 no need, 2 means applet not installed yet.  
+
+2) Specify browser to open specified Url:  
+Specify browser type Type (1 represents IE 2 represents Chrome 4 represents Firefox 8 represents Opera 16 represents Edge (Chromium kernel) 32 represents 360 Speed Browser 33 represents 360 Secure Browser 34 represents 360 Enterprise Secure Browser 50 represents QQ Browser 60 represents Sogou Browser) and Url address;  
+Flag meaning: 0 represents open in tab, 1 represents open in new window (360 etc. may not support);  
+Show display window type, default 1 normal display, 2 minimized display 3 maximized display.  
+This function is mainly used to force IE to open a specified webpage;  
+Example 1:  
+Force IE9 compatibility mode kernel browser to open http://www.yuanmaster.com/  
+9999 is IE9 standard mode 8888 is IE8 standard mode 8000 is IE8 compatibility mode 7000 is IE7. Detailed definitions refer to: https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/general-info/ee330730(v=vs.85)?redirectedfrom=MSDN#browser_emulation  
+{"req":"Wrl_OpenUrl","rid":2,"para":{"Type":"1","Url": "http://www.yuanmaster.com","Flag":"1","Version":"9000"}}  
+Example 2:  
+Chrome browser open http://www.yuanmaster.com/ in new window. Flag 1 new window open, otherwise new tab open.  
+{"req":"Wrl_OpenUrl","rid":3,"para":{"Type":"2","Url": "http://www.yuanmaster.com","Flag":"0"}}  
+Example 3, Request FireFox browser to open specified URL:  
+{"req":"Wrl_OpenUrl","rid":5,"para":{"Type":"4","Url": "http://www.yuanmaster.com"}}  
+Example 4, Request 360 Speed Browser to open specified URL:  
+{"req":"Wrl_OpenUrl","rid":6,"para":{"Type":"32","Url": "http://www.yuanmaster.com"}}  
+Example 5, Request 360 Secure Browser to open specified URL:  
+{"req":"Wrl_OpenUrl","rid":7,"para":{"Type":"33","Url": "http://www.yuanmaster.com"}}  
+Example 6, Request Edge new kernel browser to open specified URL:  
+{"req":"Wrl_OpenUrl","rid":8,"para":{"Type":"16","Url": "http://www.yuanmaster.com"}}  
+
+3) Request to open specified file using associated program:  
+Specify the full local file path, open using the default associated program on the local computer. Path uses backslash or double slash. If path has Chinese, etc., needs UrlEncode encoding first.  
+For security, files with these extensions are not supported: *.exe *.msi *.js *.jar *.inf *.com *.bat *.vbs *.py. If support for these files is really needed, please purchase separately released file operation applet authorization, contact customer service specifically.  
+Example:  
+{"req":"Wrl_OpenFile","rid":9,"para":{"File" : "F:/Zorro/Ver/TestWrl.txt"}}  
+Note: Can be executed after connecting to the main service;  
+
+4) Single select (Multi-select) disk file / Set file save location:  
+Can specify file selection dialog title, filter file type, maximum selectable file count, initialization path, etc.  
+Type operation mode 0 represents select file 1 represents set file save path  
+Single whether single selection. Valid when selecting files.  
+Ext file type, default is Image files (*.jpg;*.gif;*.bmp;*.png;*.tif)\r*.jpg;*.gif;*.bmp;*.png;*.tif;*.jpeg\rAll files (*.*)\r*.*  
+Title dialog title, default is Please select file  
+Name default name for file save. Invalid when selecting files.  
+BtnText button text. Invalid when setting file save location.  
+Path initialization display path, default is current user document directory.  
+Example:  
+Select file  
+{"req":"Wrl_SelectFile","rid":10,"para":{"Type" : 0,"Single" : 1,"Title" : "Single Select File","BtnText" : "OK(&O)","Ext" : "All files (*.*)\r*.*","Path" : "D:/Zorro/"}}  
+Set file save location  
+{"req":"Wrl_SelectFile","rid":11,"para":{"Type" : 1,"Title" : "Please select file save location","Ext" : "Text files (*.txt)\r*.txt","Path" : "D:/Zorro/","Name" : "Test"}}  
+Note: Can be executed after connecting to the main service. Because this request has a dialog blocking behavior, the result after execution is returned via event push, defined as follows:  
+{"event":"Wrl_SelectFile","rid":12,"data":[{"File":"E:/WRL/Test.txt"}]}  
+When canceled, push: {"event":"Wrl_SelectFile","rid":12,"err":"Canceled"}  
+
+5) Select directory:  
+Can specify dialog title and other parameters.  
+Title dialog title, default is Please select file  
+BtnText button text. Invalid when setting file save location.  
+Example:  
+{"req":"Wrl_SelectFolder","rid":13,"para":{"Title" : "Select Local Directory","BtnText" : "OK(&O)"}}  
+Note: Can be executed after connecting to the main service. Because this request has a dialog blocking behavior, the result after execution is returned via event push, defined as follows:  
+{"event":"Wrl_SelectFolder","rid":13,"data":[{"Folder":"E:/WRL/"}]}  
+When canceled, push: {"event":"Wrl_SelectFolder","rid":6,"err":"Canceled"}  
+
+6) Request to get specified file size, version, file attributes, MD5, creation time, modification time, etc.:  
+Specify the full local file path. Path uses backslash or double slash. If it's an image file, height and width information will also be returned.  
+Example:  
+{"req":"Wrl_GetFileInfo","rid":14,"para":{"File" : "D:/Zorro/test.png"}}  
+Note: Can be executed after connecting to the main service;  
+
+7) Request to re-register middleware or applet:  
+If PID is specified, it represents re-registering the specified applet. Otherwise, re-execute the middleware installation batch process (connection will be disconnected). May be used to repair this middleware usage configuration due to tools or manual deletion of registry, etc. For reconfiguring middleware official version, TK verification needs to be added. Specific rules refer to the document "Middleware Security Solution.pdf" in the SDK package. Requests with TK can be generated in the middleware maintenance of the packaging program ZbaPackage.exe in the SDK package.  
+Register applet, example:  
+{"req":"Wrl_RegCom","rid":15,"para":{"PID" : "A22E18F1-95F8-4FDB-99D2-188E5FB12B23"}}  
+Specify some parameters to re-register middleware, equivalent to reinstalling middleware.  
+NoService 1 represents reinstall middleware as non-system service. Localhost 0 represents using the actual local IP to listen, convenient for other LAN computers to access.  
+{"req":"Wrl_RegCom","rid":15,"para":{"NoService" : "1","Localhost" : "0"}}  
+Note: Can be executed after connecting to the main service;  
+
+8) Request current browser type, process ID, version, whether 64-bit, window handle, title, etc.:  
+Example:  
+{"req":"Wrl_BrowserInfo","rid":16,"para":{}}  
+Note: Can be executed after connecting to the main service;  
+Return: ret":0,"rid":16,"req":"Wrl_BrowserInfo","data":{"Type":2,"PID":21152,"BrowserWnd":200396,"DrawWnd":5111854,"X64":1,"Ver":"132.0.6834.84","Path":"C:/Program Files/Google/Chrome/Application/chrome.exe","Title":"PluginOK(%E7%89%9B%E6%8F%92)%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%98%AF%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%8E%B0%E7%BD%91%E9%A1%B5%E4%B8%8E%E6%9C%AC%E5%9C%B0%E7%A8%8B%E5%BA%8F%E9%97%B4%E5%8F%AF%E4%BA%92%E6%93%8D%E4%BD%9C%E7%9A%84%E4%BD%8E%E6%88%90%E"}}  
+Type is browser type, PID is current process ID, Ver is version, Path is browser program installation path, BrowserWnd is current browser main window handle, DrawWnd is drawing window handle, Title is the current window title after UrlEncode, can be used to determine if it's the current webpage loading before starting embedded webpage applet.  
+
+9) List currently authorized applets:  
+Example: {"req":"Plugin_Authed","rid":17,"para":{}}  
+Note: Can be executed after connecting to the main service, can get a list of all currently authorized applets;  
+
+10) List all installed applets:  
+Example: {"req":"Plugin_List","rid":18,"para":{"Detail" : 0}}  
+Note: Can be executed after connecting to the main service, can get information of all currently installed applets. Detail 1 returns the full path of the applet program;  
+
+11) Check if a certain applet already exists  
+Example: {"req":"Plugin_Exist","rid":19,"para":{"PID" : "A22E18F1-95F8-4FDB-99D2-188E5FB12B23"}}  
+Note: Can be executed after connecting to the main service, PID is the applet unique identifier;  
+
+12) Request to reload specified applet  
+Usage scenario: Scan for new applets without restarting the service; Or during applet debugging, when the program and configuration are updated and need reloading.  
+Example: {"req":"Plugin_Refresh","rid":20,"para":{"PID" : "A22E18F1-95F8-4FDB-99D2-188E5FB12B23"}}  
+Note: Can be executed after connecting to the main service, PID is the applet unique identifier;  
+
+13) Frontend request configuration parameters  
+UDisk whether to monitor USB disk dynamics  
+Adjust correction parameter, individual computers may have incorrect applet running position, needs separate configuration.  
+Monitor configures service no-response timeout time. Once exceeded, the service will automatically restart.  
+The above parameters can be configured simultaneously, or only one parameter.  
+Example: {"req":"Wrl_Config","rid":21,"para":{"Monitor" : 30,"Adjust" : 0,"UDisk" : 1}}  
+Note: Can be executed after connecting to the middleware main service;  
+
+14) Frontend request to start middleware. Click the following link in the webpage to start the middleware main program.  
+<a href="BrowserApplet://DeskRun">Click here to start ApeMaster Network Edition</a>  
+
+15) Install example applets  
+Please enter the following requests respectively in the input box, then click Send to complete the installation of four example applets:  
+... [Continued with the provided installation JSONs for the four applets] ...  
+
+16) Example applet upgrade requests:  
+... [Continued with the provided upgrade JSONs for the four applets] ...  
+
+17) Uninstall applet:  
+Official version requires adding TK verification. Specific rules refer to the document "Middleware Security Solution.pdf" in the SDK package. Requests with TK can be generated in the middleware maintenance of the packaging program ZbaPackage.exe in the SDK package.  
+Examples:  
+{"req":"Plugin_Remove","rid":50,"para":{"PID":"99225C6D-B7A3-441c-AEFB-3EE23ACA2209","Type":2}}  
+{"req":"Plugin_Remove","rid":51,"para":{"PID":"F90B1CF0-8485-40ec-B4E8-B87598AAB35D","Type":2}}  
+{"req":"Plugin_Remove","rid":52,"para":{"PID":"A22E18F1-95F8-4FDB-99D2-188E5FB12B23","Type":1}}  
+{"req":"Plugin_Remove","rid":53,"para":{"PID":"D10495F4-DF0F-44FA-8647-91275347214A","Type":1}}  
+
+18) Frontend request to uninstall middleware:  
+Official version requires adding TK verification. Specific rules refer to the document "Middleware Security Solution.pdf" in the SDK package. Requests with TK can be generated in the middleware maintenance of the packaging program ZbaPackage.exe in the SDK package.  
+Example:  
+{"req":"Wrl_Remove","rid":22,"para":{}}  
+Note: Can be executed after connecting to the main service;  
+
+19) Frontend request graphics card configuration information:  
+Example:  
+{"req":"Wrl_GetVideoCard","rid":23,"para":{}}  
+Return example: {"ret":0,"rid":23,"data":[{"HAL":1,"DID":8081,"Desc":"NVIDIA GeForce GTX 1650","VID":"4318","Revision":"161"},{"HAL":0,"DID":16027,"Desc":"Intel(R) UHD Graphics 630","VID":"32902","Revision":"0"}]}  
+HAL 1 in the return represents independent graphics card supporting hardware abstraction layer.  
+Note: Can be executed after connecting to the main service;  
+
+20) Frontend request whether the specified path exe program or specified OCX control exists:  
+PathType is the directory type. Reference definition: https://learn.microsoft.com/zh-cn/windows/win32/shell/csidl  
+Example:  
+Check if Microsoft Word program exists  
+{"req":"Wrl_CheckExistInfo","rid":25,"para":{"ExePath":"Microsoft Office/root/Office16/WINWORD.EXE","PathType":"38"}}  
+Return: {"ret":0,"rid":25,"req":"Wrl_CheckExistInfo","data":{"Info":[{"Type":1,"X64":1,"Ver":"16.0.18429.20132","Path":"C:/Program Files/Microsoft Office/root/Office16/WINWORD.EXE"}]}}  
+Check if VLC playback control exists, specify ClassID or PropID. Default gets 32-bit version. Specify Option 1 to prioritize getting 64-bit version.  
+{"req":"Wrl_CheckExistInfo","rid":26,"para":{"ClassID":"{9BE31822-FDAD-461B-AD51-BE1D1C159921}"}}  
+Return: {"ret":0,"rid":26,"req":"Wrl_CheckExistInfo","data":{"Info":[{"Type":1,"X64":1,"Ver":"3.0.3","Path":"D:/2.2.17/vlc3/axvlc.dll"}]}}  
+Get local file default opening program information  
+{"req":"Wrl_CheckExistInfo","rid":26,"para":{"File":"d:/zorro/test.pdf"}}  
+{"ret":0,"rid":26,"req":"Wrl_CheckExistInfo","data":{"Info":[{"Type":1,"X64":1,"Ver":"24.5.20421.0","Path":"C:/Program Files/Adobe/Acrobat DC/Acrobat/Acrobat.exe"}]}}  
+
+21) Remove local middleware authorization and uninstall program:  
+Official version requires adding TK verification. Specific rules refer to the document "Middleware Security Solution.pdf" in the SDK package. Requests with TK can be generated in the middleware maintenance of the packaging program ZbaPackage.exe in the SDK package.  
+Example:  
+{"req":"Wrl_RemoveAuth","rid":30,"para":{}}  
+Note: Can be executed after connecting to the main service;  
+
+22) Refresh middleware authorization request:  
+If the corresponding authorization on the server is updated, the frontend can request a forced fetch.  
+Example:  
+{"req":"Wrl_UpdateAuth","rid":32,"para":{}}  
+Note: Can be executed after connecting to the main service.  
+
+23) Import new SSL certificate into authorization file:  
+{"req":"Wrl_UpdateSslCert","rid":33,"para":{"Path" : "G:/SSL"}}  
+Note: Start the browser on the authorization server and open the webpage http://test.yuanmaster.com/, modify the WS connection address to something like: ws://*.*.*.*:800?sid=438140&flag=1, where *.*.*.*:800 is your authorization server's started IP and port. After clicking connect successfully, you can execute the Wrl_UpdateSslCert request. Remember to put the new SSL certificate in a separate subdirectory. Path in the command is the certificate directory. After executing this command, it returns the domain name bound by the SSL certificate upon success. Then go to the authorization server program directory, find the updated authorization file, replace it in the software package used by the terminal, and deploy it to new computers. Computers already deployed will automatically update the certificate as long as they can access the authorization server.  
+
+24) Frontend request list of software installed on the current system:  
+{"req":"Wrl_SysAppList","rid":34,"para":{}}  
+Return JSON array type data, containing software display name, version, uninstall string, etc.  
+Return example:  
+{"ret":0,"rid":27,"req":"Wrl_SysAppList","data":[{"Name":"7-Zip%2024.09%20(x64)","X64":1,"Ver":"24.09","InsDate":"","Publisher":"Igor%20Pavlov","Exe":"C:/Program%20Files/7-Zip/7zFM.exe","UnIns":"%22C:/Program%20Files/7-Zip/Uninstall.exe%22"}]  
+
+4. ApeMaster Middleware Upgrade Request:  
+1) Middleware program upgrade request:  
+... [Continued with the provided middleware upgrade JSON] ...  
+
+2) For HTTPS websites, SSL certificates are required. SSL certificates have an expiration date and need to import new SSL certificates periodically:  
+{"req":"Wrl_UpdateSslCert","rid":3,"para":{"Path" : "G:/SSL"}}  
+Note: Can be executed after connecting to the authorization server main service. Put the new SSL certificate in a separate subdirectory, then execute this command. Returns the domain name bound by the SSL certificate upon success. After the authorization server imports the new certificate, terminal computers can use it by periodically re-obtaining the authorization.  
+
+5. Request to start popup applet (C++ language) service, using IE control (ActiveX) as an example to demonstrate the call process and example:  
+1) Open the test webpage, enter the connection address:  
+ws://wrl.zorrosoft.com:83?sid=321&pid=PluginWinExe&flag=1  
+Execute connection, will directly start the PluginWinExe.exe program. The interface will return the port used by the applet, default 12800;  
+2) Open another test webpage, enter the connection address:  
+ws://wrl.zorrosoft.com:12800?sid=888&flag=1  
+Execute connection, the applet will prompt a new connection;  
+3) Request to open specified website:  
+Enter the following content in the test webpage:  
+{"req":"Demo_OpenUrl","rid":1,"para":{"url" : "http://www.baidu.com"}}  
+Then click Send, the PluginWinExe.exe applet will automatically open the specified webpage.  
+4) Replace the connection pid with PluginExeDemo to test the C# version implementation of a similar applet function. Default listening port is 12900.  
+
+6. Request to start no-window applet (C++ language) service:  
+1) Open the test webpage, enter the connection address:  
+ws://wrl.zorrosoft.com:83?sid=666&pid=C38672FA-B5C8-4D9D-89B5-2D71F0760661&flag=1  
+Connection request specifies the pid service;  
+2) Enter the following content in the send box and send, to set the file path:  
+{"req":"Demo_SetFilePath","rid":20,"para":{"Type" : 25}} Set file directory to desktop.  
+3) Enter the following content in the send box and send, to write content to the Notepad file in the My Documents directory:  
+{"req":"Demo_WriteFile","rid":20,"para":{"Name" : "File Applet.txt","Content" : "This is test write content!"}}  
+4) Enter the following content in the send box and send, to read the specified file content:  
+{"req":"Demo_ReadFile","rid":21,"para":{"Name" : "File Applet.txt"}}  
+
+7. Request to start no-window applet (C# language) service, connection address:  
+ws://wrl.zorrosoft.com:83?sid=666&pid=FCADA8A7-D975-42c6-B5D3-FA40F6FE1286&flag=1  
+Other steps refer to No-Window Applet (C++ language).  
+
+8. Request to start popup applet (C# language) service, connection address:  
+ws://wrl.zorrosoft.com:83?sid=666&pid=PluginExeDemo&flag=1  
+Other steps refer to Popup Applet (C++ language).  
+
+Request parameter JSON data packets must be UTF-8 unsigned encoding.

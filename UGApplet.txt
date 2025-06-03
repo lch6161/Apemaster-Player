@@ -1,0 +1,387 @@
+﻿UGCAD Web Component: Based on the cross-browser native applet system - ApeMaster Middleware Network Advanced Edition development, underlying calls to Siemens' JT2GO desktop program or OCX control to achieve programmatically driven online viewing, editing, etc., of jt and other 3D engineering drawings. Can embed the desktop program or OCX control window into a specified area of a webpage for operation and use.
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Speed/Secure, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qizhi Anxin, RedLotus, Dual-core and other low-version browsers, also compatible with the latest versions of these browsers.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a green version program package, please extract it to a disk directory, then double-click "InstallWrl.bat" to install;
+3) Upon completion of installation, the ApeMaster middleware service will start. The log file ZbaService.txt in the Data subdirectory under the installation directory outputs the running status.
+
+2. UG Web Component Control Related Interfaces:
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), specify the port number in the connection address.
+For front-end integration using ordinary JS scripts, please mainly refer to: http://test.yuanmaster.com/CadJS. The JS script programs needed for embedding are completely open source. For simple startup testing, you can refer to the following webpages:
+HTTP webpage online test: http://test.yuanmaster.com/UGCadfull.html HTTPS webpage online test: https://test.yuanmaster.com/UGCadframe.html
+If IE browser compatibility is also needed, in the network version test webpage <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+the CLSID needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Front-end integration can refer to the above test webpages. The HTML webpage needs to embed code similar to the following;
+A. Mark the display position and size of the applet
+.UGApplet {
+            margin: 20px 0 0 20px;
+            width: 480px;
+            height: 320px;
+            border: 1px solid blue;
+        }
+or
+.UGApplet {
+            width: 480px;
+            height: 320px;
+            top: 20px;
+            left: 20px;
+            border: 1px solid blue;
+        }
+If the applet's initial display position and size are not marked in the webpage Header area, please add the following parameters in the JSON parameters when starting the applet:
+"Left":20,"Top":20,"Width":480,"Height":320
+
+B. Embed elements in the webpage
+Supports IFrame:
+<iframe name="UGApplet" id="UGApplet" src="UGCadApplet3.html" frameborder="0" align="left" width="550" height="540" scrolling="no></iframe>
+or use directly
+<div id="UGApplet" class="UGApplet"</div>
+
+Additionally, the JS scripts needed for embedding are required. The script programs are completely open source.
+
+1) Request to start the UG web component to locally load xt, step, etc. documents for operation within the webpage:
+Type is the browser type, pass 0 for automatic judgment (prerequisite is that the current browser is started and displayed in the forefront, Flag must be 0 when the current page loads) Can forcibly specify browser type Type (1 represents IE, 2 represents Chrome, 4 represents Firefox, 5 represents Brave (English version), 8 represents Opera, 9 represents Vivaldi (English version), 10 represents Yandex, 16 represents Edge (Chromium kernel), 20 represents Electron, 32 represents 360 Speed Browser, 33 represents 360 Security Browser, 34 represents 360 Speed Browser, 35 represents 360 Enterprise Security Browser, 36 represents 360 Game Browser, 37 represents 360 AI Browser, 40 represents Lenovo Browser, 45 represents Dual-core Browser, 50 represents QQ Browser, 51 represents WeChat Webpage, 55 represents Qizhi Anxin Browser, 57 represents RedLotus Browser, 60 represents Sogou Browser, 61 represents Quark, 62 represents Maxthon Browser, 63 represents Liebao Browser, 66 represents Doubao, 70 represents Huawei Browser)
+When Type needs to specify the browser type, you can first obtain the current browser's type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title through the interface Wrl_BrowserInfo in the TestWrl.txt document. Determine whether to continue starting by judging if Title is the webpage that needs embedding. If continuing, setting the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters can speed up startup.
+Title: Keyword in the webpage title.
+Url: The actual address of the webpage loading the applet, specifying the applet's display position and size in the webpage. Not recommended for use anymore, suggest using Web parameter instead.
+Flag mask mark: 1 specifies new tab loading (if neither 1 nor 16 is specified, it loads in the current page), 2 shows the web component display window border, 4 does not automatically crop out-of-bounds windows, 8 automatically adapts to webpage height and width for display, 64 enables Web parameter, 128 prevents screenshots, 256 forces display to secondary screen, 512 allows multiple instances to be loaded on the same webpage.
+Web: Open configuration (new method), can replace Url. Flag value +64 uses this configuration. When using Web, the values of Left, Top, Width, Height must be specified.
+Parameter description in Web:
+	Edit represents edit permission: 1 read-only open, 4 prohibit save as, 8 prohibit print.
+	User represents the user name editing the drawing.
+	PW represents the password needed to open the drawing.
+	DataPath represents the default local save path for drawings.
+	Cookie When the document opened by Open is a Url address on the server, set Cookie for the network request Url to obtain download permission.
+	Auth When the document opened by Open is a Url address on the server, set Auth for the network request Url to obtain download permission.
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting, respectively.
+BarW and BarH are the reserved areas on the right side and bottom of the webpage, ScrollTop is the reserved height for top scrolling.
+The actual display of the web component will first be based on the coordinates and size specified in Url or Web, then corrected according to the values set by IframeX, IframeY, BarW, BarH.
+Option: 0: Start UG for online editing (not implemented yet), 1: Start JT2GO ActiveX control (old version) for online viewing, 2: Start JT2GO desktop program (supports latest version) for viewing. Can check in advance via interface Wrl_CADInfo if relevant software is installed on the current computer.
+Open: The document path that needs to be opened, use / for disk directory slashes.
+Note: If Open, Web contain special characters = & double quotes or Chinese, etc., they need to be URL encoded before passing.
+Example:
+Automatically recognize the current browser and start the Solidworks program to edit xt, step, etc. documents online.
+{"req":"Wrl_UGApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"D:/Zorro/test.jt"}}
+
+Automatically recognize the current browser and start the eDrawings program to view or convert xt, step documents online.
+{"req":"Wrl_UGApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"1","Open":"D:/Zorro/test.jt"}}
+
+Automatically recognize the current browser and start at a specified position, automatically adapting to the webpage area (recommended startup method):
+{"req":"Wrl_UGApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"D:/Zorro/test.jt"}}
+
+Automatically recognize the current browser and start the eDrawings program to view server documents online.
+{"req":"Wrl_UGApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet Full","Flag":72,"IframeX":0,"IframeY":0,"ScrollTop":0,"Web": {"DataPath":"c:/CadDoc"},"Open":"http://test.yuanmaster.com/Files/Test.jt","Option":1}}
+
+Current page specified position automatic adaptation webpage loading test.
+http://test.yuanmaster.com/UGCadframe.html
+
+After startup, three JSON data packets will be received sequentially.
+A、{"ret":0,"rid":8,"data":{"ID":7}}
+Represents the applet WS listening service is ready.
+B、{"event":"Wrl_Listen","aid":7,"rid":8,"data":{"SID":"123","PID":"UGApplet","port":1030}}
+The returned listening port allows establishing another Web Socket connection to call related functions within the applet, such as zooming the drawing.
+Represents the applet was created successfully, returns ID as the current applet running instance ID. Through this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C、{"event":"Wrl_AppletOK","aid":7,"rid":8,"data":{"SID":"123","PID":"UGApplet","Port":1030}}
+
+Explanation of interface Wrl_CADInfo:
+Request: {"req":"Wrl_CADInfo","rid":1,"para":{}}, return information example:
+{"ret":0,"rid":1,"req":"Wrl_CADInfo","data":{"Info":[{"Type":11,"Option":1,"X64":1,"Ver":"32.1.0.0076","Path":"C:/Program Files/Common Files/eDrawings2024/EModelViewer.exe"},{"Type":51,"Option":1,"X64":0,"Ver":"10.1.5.15282","Path":"F:/Soft/JT2Go/Program/VisJT2GoOCX.ocx"},{"Type":51,"Option":1,"X64":1,"Ver":"15.2.0.24313","Path":"F:/Soft/JT2Go/Products/JT2Go/VisView_NG.exe"}]}}
+Type equal to 51 represents the relevant installation information of the UG applet.
+
+2) Request to control the UG web component:
+When the front-end no longer needs the applet, it can be specified to close, or show/hide, full-screen display, etc.
+ID is the ID value returned in the JSON when starting the applet. Code represents the control type mask: 1 normal close, 128 force close immediately, 2 full-screen display, 4 auto hide, 8 restore display, 16 switch auto adapt webpage height and width display mode, 32 force hide. Among them, full-screen display 2 can be directly canceled via hotkey ESC. After hiding with 4 and 32, it can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll the UG web component:
+When the front-end captures a webpage scroll notification, this interface needs to be called to achieve scroll linkage between the applet and the webpage.
+ID is the ID value returned in the JSON when starting the applet.
+Code is the scroll direction: 1 is horizontal, 2 is vertical, 3 is simultaneous.
+Left is the horizontal scroll bar position, Top is the vertical scroll bar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change the display position or size of the UG web component:
+When the front-end webpage display area is scaled, the applet's display position or size can be dynamically modified.
+ID is the ID value returned in the JSON when starting the applet. Width and Height are the new width and height, respectively. X and Y are the new display positions. If not specified, remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or set the applet display starting coordinates simultaneously.
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical scroll, and horizontal scroll position:
+When the applet display area exceeds the current webpage, the display impact of scrollbars needs to be removed.
+ID is the ID value returned in the JSON when starting the applet. BarW is the reserved right width. BarH is the reserved bottom height.
+Code 1 represents having a horizontal scrollbar, 2 represents having a vertical scrollbar, 3 represents having both.
+ScrollTop vertical scrollbar position ScrollTop horizontal scrollbar position.
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to perform Alpha transparency processing on the applet window, facilitating the front-end to temporarily display menus, etc., covering the applet window:
+ID is the ID value returned when starting the applet with Wrl_UGApplet. Alpha is the transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to capture a screenshot of the applet window content:
+ID: The aid instance value returned in the JSON when starting the applet.
+File: Specifies the screenshot file save path or extension.
+Base64: Specifies whether to return BASE64 encoded image content. 1 for yes.
+Flag: If the embedded applet window (e.g., DirectUI or Direct3D drawn) captures abnormally, can additionally specify 1 to see the effect. Also, if multiple captures or area selection captures are needed, can add 2 or 4 to start the capture tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to scale the embedded webpage applet, used for browser webpage proportional scaling, generally not needed:
+ID is the ID value returned in the JSON when starting the applet. If Scale is not specified, get the current scaling percentage used by the applet, generally consistent with the system scaling ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Applet Installation, Upgrade, Uninstallation
+1) Request to install the UG web component.
+Please enter the following request in the test webpage input box, then click Send to complete installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"UG(NX) CAD Embedded Web Applet","PID":"UGApplet","Date":"2025-05-30","Desc":"ApeMaster-based cross-browser Siemens UG(NX) CAD embedded web component, supports embedding UG(NX) CAD and other programs in Chrome, Edge, Firefox, IE, Opera, 360, QQ, etc. latest version browser webpages for online editing, viewing, or reviewing 3D engineering drawings","DownAddr":"http://local.zorrosoft.com/Files/Net/UGApplet.pid","MD5":"4E7B766C790FD6A3DE91CF223D6E1779","Version":"2.2.17.6","Size":2260992,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"1D7D468FEB7235BEFBB0FE57B1C4792AA896AD7D6D2F8D19073B1A94E2BA0B159B8D0DCFB03C540C8DF62FCC1272B29D382DBCCEC01E2B1A51F86FC7FA9B06F9AA379D1BB6A0577272C12D8D64EC5F1D54A37A4BA15BB12177AD66D6603F8F4898B99C2285F8883A8855C0AF3405D9D4E4CEECB023ED52E6CAEF6B2DE02EF9D67124CD4E6B83984D4B0577A9805772AB5F4FE911CC3A014CC1D36EA1ECDD5291BE88FAEB2EA98FA8F918CA16EB1ECE6BD0E83F7B28888C2F270B738B5B31118307D5E1F1F2E54FE0F6E21264D809B27DB4C5CDAEFE9E2EF154331F04B4A8F9DE99A6221F06C6A1D9EF676E62FD6E3C9A0E7C41C6E967B00F018E926A680BFF7B"}}
+
+After starting the installation, installation progress will be continuously received until installation ends.
+When distributing, this applet directory files can also be packaged together with the middleware and released, no need for separate distribution.
+
+2) Request to upgrade the UG web component:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"UG(NX) CAD Embedded Web Applet","PID":"UGApplet","Date":"2025-05-30","Desc":"ApeMaster-based cross-browser Siemens UG(NX) CAD embedded web component, supports embedding UG(NX) CAD and other programs in Chrome, Edge, Firefox, IE, Opera, 360, QQ, etc. latest version browser webpages for online editing, viewing, or reviewing 3D engineering drawings","DownAddr":"http://local.zorrosoft.com/Files/Net/UGApplet_Update.pid","MD5":"B930A1120FAF4F851C2AC53523ACFD57","Version":"2.2.17.6","Size":2260992,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"229F509E4E91B430060AB5A9111970A14DB89509F6B5D15899447225915A6180E304243B1E7E12A4E902C5E8A773630D946C2C6E9F86F184A190A2DC13DE852AADB260658BA2B24FC7E3A3BAC895183A27905CDC59D38363265A8D7F5CF4019D8A565641A8121E64509DC572E6E11C2D36A0F49715E995A291B984DF1004CA93EA352BC8B0A618EC193DC095A61D9D1B427784C1D48005BDAAE7DC4A9BC757CD1A57D86F9A6BDA520561AB9C9FC21D9EC3777B61C47DEA0D87E7E7A68D88795726A04EB81A86BE48D4E55882F1C24ED658C54785453812D223EDB5640846BC53431862724B409A186CA04A4808D13EB629FF7D70FD0C85F06B73DDAF7EE13D8E"}}
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If encountering errors during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall the UG web component:
+The official version requires adding TK verification. For specific rules, please refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. You can generate requests with TK using the packaging program ZbaPackage.exe in the SDK package's middleware maintenance.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"UGApplet","Type":8}}
+
+4. UG Web Component calling JT2Go Control Interface. After starting according to the Wrl_UGApplet request and obtaining the returned port number, establish a new WebSocket connection to execute the following commands:
+A. Common Function Requests:
+
+1) Request to exit the applet. Suitable for JT2Go control.
+Normal applet closing procedure and method: First request this function in this WS connection. When the front-end receives the notification to close this connection, then close the WS connection to the middleware.
+{"req":"CAD_Exit","rid":1,"para":{}}
+No return.
+
+2) Request to close the currently opened document. Suitable for JT2Go control.
+{"req":"CAD_Close","rid":2,"para":{}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}} Ret 0 represents success.
+
+3) Request to open a document. Suitable for JT2Go control.
+Open the document path. If there are special characters or Chinese, URLCode encoding is needed first.
+{"req":"CAD_Open","rid":3,"para":{"Open":"D:/Zorro/Test.jt"}}
+{"req":"CAD_Open","rid":3,"para":{"Open":"http://test.yuanmaster.com/Files/Test.jt"}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}} Ret 0 represents success.
+
+6) Network file operations. Suitable for JT2Go control.
+Type 1 Upload file, 0 Download file.
+Asyn Default 0, specify 1 for asynchronous upload or download. Asynchronous upload requires separate use with the file operation applet.
+Agent, Cookie, and Auth Cookie can pass the browser's Cookie or obtain upload permission via Auth authorization verification. Default empty. If not empty, UrlEncode encoding is needed first.
+Local Local path of the file to upload or save path for download. If not specified, defaults to the currently opened document. UrlEncode encoding is needed.
+Url Address for upload or download. UrlEncode encoding is needed.
+When Type is 1, you can add parameter Para, corresponding to the param parameter that needs to be passed in the POST data packet. Default upload file name parameter is upfile, otherwise set your own file parameter name via NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, the hash value and size of the file to download, used to verify the integrity of the downloaded file. Can be empty or 0 by default.
+{"req":"CAD_NetFile","rid":9,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/CadDoc/test.jt","Url":"http://test.yuanmaster.com/Files/Test.jt"}}
+{"req":"CAD_NetFile","rid":9,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":35,"data":{"Ret":"0"}}
+
+8) Request to pop up a message dialog box within the embedded window area.
+Title is the popup title. If Chinese or special symbols, UrlEncode is needed first.
+Content is the popup content. If Chinese or special symbols, UrlEncode is needed first.
+Wait is how many seconds to wait before automatically disappearing. 0 means not automatic.
+Type represents the popup type. 0 is MB_OK. See https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox uType definition for specifics.
+{"req":"CAD_MsgBox","rid":52,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}
+
+30) Specifies the ID window overlays web rendering content. Supported normally on Windows 8 and above operating systems. Requires Microsoft Edge WebView2 Runtime installed locally.
+Url is the transparent webpage address. If there are special symbols, perform UrlEncode first. Setting to an empty string cancels the overlay.
+Alpha Transparency (0-255). Default 255 opaque. Windows 7 and below systems do not support transparency.
+Rect node sets the overlay window position and size. If not set, represents the entire area. E represents margin default 1. X/Y/W/H represent the starting point and width/height of the overlay window in the split window display. P is the display position type, greater than 0 replaces X and Y, 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right.
+{"req":"CAD_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"CAD_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":30,"data":{"Ret":0}}
+
+31) Specifies the ID window overlay webpage injected script to run.
+Script is the script content. Perform UrlEncode first. Setting to an empty string cancels the overlay.
+Init Initialize.
+{"req":"CAD_FloatWebInjectScript","rid":31,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}
+Return: {"ret":0,"rid":31,"data":{"Ret":0}}
+
+B. JT2GO OCX Control Specific Interfaces, Desktop Program Version Not Supported:
+101) Request to start automation
+{"req":"CADVIEW_StartAutomation","rid":101,"para":{}}
+Return: {"ret":0,"rid":101,"data":{"Ret":"0"}}
+
+102) Request to stop automation
+{"req":"CADVIEW_StopAutomation","rid":102,"para":{}}
+Return: {"ret":0,"rid":102,"data":{"Ret":"0"}}
+
+103) Request to get background type
+{"req":"CADVIEW_GetBackgroundType","rid":103,"para":{}}
+Return: {"ret":0,"rid":103,"data":{"Ret":"0","BackgroundType":"0"}}
+
+104) Request to set background type
+{"req":"CADVIEW_SetBackgroundType","rid":104,"para":{"BackgroundType":"0"}}
+Return: {"ret":0,"rid":104,"data":{"Ret":"0"}}
+
+105) Request to set control license
+{"req":"CADVIEW_SetUserLicenseKey","rid":105,"para":{"LicenseKey":""}}
+Return: {"ret":0,"rid":105,"data":{"Ret":"0"}}
+
+106) Request to get camera position
+{"req":"CADVIEW_GetCameraPosition","rid":106,"para":{}}
+Return: {"ret":0,"rid":106,"data":{"Ret":"0","CameraPosition":""}}
+
+107) Request to set camera position
+{"req":"CADVIEW_SetCameraPosition","rid":107,"para":{"CameraPosition":""}}
+Return: {"ret":0,"rid":107,"data":{"Ret":"0"}}
+
+108) Request to get image
+xSize and ySize are the width and height to get, default 0 represents the entire display area.
+{"req":"CADVIEW_GetBitmapImage","rid":108,"para":{"xSize":0,"ySize":0}}
+Return: {"ret":0,"rid":108,"data":{"Ret":"0","Image":""}}
+
+109) Request to get visibility state
+Index Sequence number, default 1.
+{"req":"CADVIEW_GetVisibilityState","rid":109,"para":{"Index":1}}
+Return: {"ret":0,"rid":109,"data":{"Ret":"0","VisibilityState":0}}
+
+110) Request to show About
+{"req":"CADVIEW_AboutBox","rid":110,"para":{}}
+Return: {"ret":0,"rid":110,"data":{"Ret":"0"}}
+
+The following are generic request methods for functions not separately encapsulated as VBA interfaces.
+181) Request to set property
+Name Specifies property name. If setting sub-interface properties, append the sub-interface name, supports multiple levels.
+{"req":"CADVIEW_PutProperty","rid":181,"para":{"Name":"Visible","Val":"-1"}}
+{"req":"CADVIEW_PutProperty","rid":181,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Return: {"ret":0,"rid":181,"data":{"Ret":0}}
+
+182) Request method with no input parameters
+Name Specifies method name. If calling sub-interface methods, append the sub-interface name, supports multiple levels, e.g., use playlist.play for VLC playlist play method name. Same below.
+DID Can also specify method sequence number.
+{"req":"CADVIEW_Invoke0","rid":182,"para":{"Name":"ScreenRefresh"}}
+{"req":"CADVIEW_Invoke0","rid":182,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":182,"data":{"Ret":0,"Val":""}}
+
+183) Request method with only 1 input parameter
+Name Specifies method name. If calling sub-interface methods, append the sub-interface name, supports multiple levels, e.g., use playlist.add for VLC playlist add method name. Same below.
+DID Can also specify method sequence number.
+Para1 Corresponding parameter value.
+{"req":"CADVIEW_Invoke1","rid":183,"para":{"Name":"CleanString","Para1":"Test"}}
+{"req":"CADVIEW_Invoke1","rid":183,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":183,"data":{"Ret":0,"Val":""}}
+
+184) Request method with only 2 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1 and Para2 correspond to parameter 1 and 2 values. If values can be omitted, can pass only Para1. Same below.
+{"req":"CADVIEW_Invoke2","rid":184,"para":{"Name":"KeyString","Para1":"","Para2":""}}
+{"req":"CADVIEW_Invoke2","rid":184,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":184,"data":{"Ret":0,"Val":""}}
+
+185) Request method with only 3 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values.
+{"req":"CADVIEW_Invoke3","rid":185,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}
+Return: {"ret":0,"rid":185,"data":{"Ret":0,"Val":""}}
+
+186) Request method with only 4 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values.
+{"req":"CADVIEW_Invoke4","rid":186,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}
+Return: {"ret":0,"rid":186,"data":{"Ret":0,"Val":""}}
+
+187) Request method with only 5 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values.
+{"req":"CADVIEW_Invoke5","rid":187,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":187,"data":{"Ret":0,"Val":""}}
+
+188) Request method with only 6 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values.
+{"req":"CADVIEW_Invoke6","rid":188,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":188,"data":{"Ret":0,"Val":""}}
+
+189) Request method with only 7 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values.
+{"req":"CADVIEW_Invoke7","rid":189,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":189,"data":{"Ret":0,"Val":""}}
+
+190) Request method with only 8 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values.
+{"req":"CADVIEW_Invoke8","rid":190,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":190,"data":{"Ret":0,"Val":""}}
+
+191) Request method with only 9 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values.
+{"req":"CADVIEW_Invoke9","rid":191,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":191,"data":{"Ret":0,"Val":""}}
+
+192) Request method with only 10 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values.
+{"req":"CADVIEW_InvokeA","rid":192,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":192,"data":{"Ret":0,"Val":""}}
+
+193) Request method with only 11 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values.
+{"req":"CADVIEW_InvokeB","rid":193,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":193,"data":{"Ret":0,"Val":""}}
+
+194) Request method with only 12 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values.
+{"req":"CADVIEW_InvokeC","rid":194,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":194,"data":{"Ret":0,"Val":""}}
+
+195) Request method with only 13 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values.
+{"req":"CADVIEW_InvokeD","rid":195,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":195,"data":{"Ret":0,"Val":""}}
+
+196) Request method with only 14 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values.
+{"req":"CADVIEW_InvokeE","rid":196,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":196,"data":{"Ret":0,"Val":""}}
+
+197) Request method with only 15 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values.
+{"req":"CADVIEW_InvokeF","rid":197,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":197,"data":{"Ret":0,"Val":""}}
+
+198) Request method with only 16 input parameters
+Name Specifies method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values.
+{"req":"CADVIEW_InvokeG","rid":198,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":198,"data":{"Ret":0,"Val":""}}
+
+5. Event Notifications:
+A、
+
+B. Supported Event Notifications:
+
+1) Whether the applet responded to the hotkey full screen
+{"event":"CAD_FullScreen","data":{"FullScreen":0}} FullScreen is the current full screen mark.
+
+2) Wrl_AppletExit Applet exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+6. Others
+The JSON data packets for request parameters must be UTF-8 encoding without BOM.
+For more interface request descriptions, please refer to the document TestWrl.txt in the installation directory, "Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.

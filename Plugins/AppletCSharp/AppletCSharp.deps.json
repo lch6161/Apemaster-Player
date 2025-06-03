@@ -1,0 +1,67 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v6.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "AppletCSharp/3.2.17": {
+        "dependencies": {
+          "Interop.ZbaApplet": "2.0.0.0",
+          "Interop.ZbaBase": "1.0.0.0",
+          "Interop.ZbaEngine": "2.0.0.0"
+        },
+        "runtime": {
+          "AppletCSharp.dll": {}
+        }
+      },
+      "Interop.ZbaApplet/2.0.0.0": {
+        "runtime": {
+          "Interop.ZbaApplet.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "Interop.ZbaBase/1.0.0.0": {
+        "runtime": {
+          "Interop.ZbaBase.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Interop.ZbaEngine/2.0.0.0": {
+        "runtime": {
+          "Interop.ZbaEngine.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AppletCSharp/3.2.17": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Interop.ZbaApplet/2.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Interop.ZbaBase/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Interop.ZbaEngine/2.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "COM": "MSOfficePlugin.dll,X64/MSOfficePlugin.dll",
+  "PORT": 950,
+  "AutoSave" : 0,
+  "SaveClosed" : 0,
+  "CloseExist" : 0,
+  "SelfProc" : 0,
+  "EmbedWindow" : 0,
+  "ThreadSize" : 3,
+  "MaxThread" : 6,
+  "ThreadPrior" : 0,
+  "InitTop" : 1,
+  "FullPath" : 1
+}

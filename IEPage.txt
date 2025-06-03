@@ -1,0 +1,255 @@
+﻿IE Control Embedded Web Applet: Developed based on the cross-browser native applet system - ApeMaster Middleware Network Premium Edition. The underlying layer calls the IE kernel's ActiveX control to achieve a programmatically driven dual-kernel browser.  
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Extreme/Security, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qizhi Trust, Red Lotus, dual-core, and other low-version browsers, also compatible with the latest versions of these browsers.  
+
+1. Installation of ApeMaster Middleware:  
+1) If it is an exe installer, please run it directly;  
+2) If it is a portable package, decompress it to a disk directory and double-click "InstallWrl.bat" to install;  
+3) Upon completion of installation, the ApeMaster middleware service will start, and the operation status will be output in the log file ZbaService.txt in the Data subdirectory of the installation directory.  
+
+2. IE Control Applet Control Interfaces:  
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (refer to the document "ApeMaster Developer Manual.pdf" in the SDK package for configuring the listening port), specify the port number in the connection address.  
+HTTP webpage online test: http://test.yuanmaster.com/iefull.html  
+HTTPS webpage online test: https://test.yuanmaster.com/iepage.html  
+If IE browser compatibility is required, replace the CLSID in the online test webpage:  
+<object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>  
+with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A  
+Front-end integration can refer to the above test webpages. The HTML webpage needs to embed code similar to the following:  
+A. Mark the display position and size of the applet:  
+.IEApplet {  
+            margin: 20px 0 0 20px;  
+            width: 480px;  
+            height: 320px;  
+            border: 1px solid blue;  
+        }  
+Or  
+.IEApplet {  
+            width: 480px;  
+            height: 320px;  
+            top: 20px;  
+            left: 20px;  
+            border: 1px solid blue;  
+        }  
+If the initial display position and size of the applet are not marked in the webpage Header area, add the following parameters in the JSON parameters when starting the applet:  
+"Left":20,"Top":20,"Width":480,"Height":320  
+
+B. Embed elements in the webpage:  
+Supports IFrame:  
+<iframe name="IEApplet" id="IEApplet" src="IEApplet3.html" frameborder="0" align="left" width="550" height="540" scrolling="no">  
+Or directly use:  
+<div id="IEApplet" class="IEApplet"></div>  
+
+Additionally, embed the required JS scripts. The script programs are fully open source.  
+
+1) Request to start the IE control applet to load IE kernel webpages locally in the webpage:  
+Type is the browser type. Pass 0 for automatic judgment (prerequisite: the current browser is started and displayed in the foreground, Flag must be 0 when loading the current page). Can forcibly specify browser Type (1: IE, 2: Chrome, 4: Firefox, 5: Brave (English), 8: Opera, 9: Vivaldi (English), 10: Yandex, 16: Edge (Chromium kernel), 20: Electron, 32: 360 Extreme Browser, 33: 360 Security Browser, 34: 360 Extreme Browser, 35: 360 Enterprise Security Browser, 36: 360 Gaming Browser, 37: 360 AI Browser, 40: Lenovo Browser, 45: Dual-core Browser, 50: QQ Browser, 51: WeChat Webpage, 55: Qizhi Trust Browser, 57: Red Lotus Browser, 60: Sogou Browser, 61: Quark, 62: Maxthon Browser, 63: Liebao Browser, 66: Doubao, 70: Huawei Browser).  
+When Type needs to specify the browser type, first use the interface Wrl_BrowserInfo in the TestWrl.txt document to obtain the current browser Type, main window handle BrowserWnd, drawing window handle DrawWnd, and current webpage title Title. Determine whether to continue starting by checking if Title matches the current webpage to be embedded. If continuing, set the obtained parameters Type, BrowserWnd, DrawWnd in the current request parameters to speed up startup.  
+Title: Keyword in the webpage title.  
+Url: The actual address of the webpage where the applet is loaded. Used to specify the display position and size of the applet in the webpage. Not recommended; use Web parameter instead.  
+Flag mask mark: 1: Load in new tab (current page load if neither 1 nor 16 is specified), 2: Applet display window border, 4: Do not automatically clip out-of-bound windows, 8: Automatically adapt to webpage height and width display, 128: Anti-screenshot.  
+Version: Specify the IE version to load. 0: Not specified. E.g., 9999: IE9 standard mode, 8888: IE8 standard mode, 8000: IE8 compatibility mode, 7000: IE7. Detailed definitions: https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/general-info/ee330730(v=vs.85)?redirectedfrom=MSDN#browser_emulation  
+Web: Webpage configuration. Enables sharing Cookies between Chrome and other browsers' webpages and IE kernel webpages for automatic login. When Web is specified, the Url parameter is not needed. The display position and size of the applet must be set, corresponding to parameters Left, Top, Width, Height, etc.  
+Option: 1: Start 64-bit version.  
+Open: The URL address or local webpage address that needs to be opened with the IE kernel.  
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting.  
+BarW and BarH are the reserved areas on the right and bottom of the webpage. ScrollTop is the reserved height for top scrolling.  
+The actual display of the applet is first based on the coordinates and size specified in Url or Web, then corrected according to the values set in IframeX, IframeY, BarW, BarH.  
+Note: Special characters in Open and Web such as =, &, double quotes, or Chinese must be URL-encoded before passing.  
+Example:  
+Automatically recognize the current browser and start at the specified position and size:  
+{"req":"Wrl_IEPage","rid":2,"para":{"Type":"0","Title":"IE Applet","Flag":2,"Version":"0","Option":"0","IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Url": "http://local.zorrosoft.com/IEApplet.html","Open":"http://www.yuanmaster.com"}}  
+
+Automatically recognize the current browser and start at the specified position and size (specify shared Cookie, no Url needed):  
+{"req":"Wrl_IEPage","rid":2,"para":{"Type":"0","Title":"IE Applet","Flag":66,"Left":20,"Top":230,"Width":480,"Height":320,"Version":"0","Option":"0","Left":20,"Top":230,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Open":"http://www.yuanmaster.com","Web":"UID=zorro;Cur=2"}}  
+
+Automatically recognize the current browser and start at the specified position with automatic adaptation to webpage size:  
+{"req":"Wrl_IEPage","rid":2,"para":{"Type":"0","Title":"IE Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"Version":"0","Option":"0","IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Open":"http://www.yuanmaster.com","Web":"UID=zorro;Cur=2"}}  
+
+Current page specified position automatic adaptation webpage load test:  
+http://test.yuanmaster.com/ieframe.html  
+
+After startup, three JSON data packets will be received in sequence:  
+A. {"ret":0,"rid":2,"data":{"ID":3}}  
+Indicates the applet WS listening service is ready.  
+B. {"event":"Wrl_Listen","aid":3,"rid":2,"data":{"SID":"123","PID":"IEApplet","port":985}}  
+Returns the listening port. A new Web Socket connection can be established to call related functions in the applet, such as opening a new webpage.  
+Indicates the applet was created successfully. Returns ID as the current applet instance ID. Commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed using this ID.  
+C. {"event":"Wrl_AppletOK","aid":3,"rid":2,"data":{"SID":"123","PID":"IEApplet","Port":985}}  
+
+2) Request to control the IE control applet:  
+When the front-end no longer needs the applet, it can be closed, or shown/hidden, full screen display, etc.  
+ID is the ID value returned when starting the applet. Code represents the control type mask: 1: Normal close, 128: Force close quickly, 2: Full screen display, 4: Auto hide, 8: Restore display, 16: Toggle auto-adapt to webpage height and width display mode, 32: Force hide. Among them, full screen display (2) can be canceled directly via ESC hotkey. After hiding with 4 or 32, it can be restored with 8.  
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}  
+
+3) Request to scroll the IE control applet:  
+When the front-end captures a webpage scroll notification, this interface needs to be called to achieve scroll linkage between the applet and the webpage.  
+ID is the ID value in the JSON returned when starting the applet.  
+Code is the scroll direction: 1: Horizontal, 2: Vertical, 3: Both.  
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.  
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}  
+
+4) Request to change the display position or size of the IE control applet:  
+When the front-end webpage display area is zoomed, the applet's display position or size can be dynamically modified.  
+ID is the ID value in the JSON returned when starting the applet. Width and Height are the new width and height. X and Y are the new display positions. If not specified, they remain unchanged. If specified, the originally set IframeX and IframeY become invalid.  
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}  
+Or set the applet display start coordinates simultaneously:  
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}  
+
+5) Request to set the webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:  
+When the applet display area exceeds the current webpage, the display impact of scrollbars needs to be removed.  
+ID is the ID value in the JSON returned when starting the applet. BarW is the reserved right width. BarH is the reserved bottom height.  
+Code: 1: Horizontal scrollbar exists, 2: Vertical scrollbar exists, 3: Both exist.  
+ScrollTop: Vertical scrollbar position. ScrollLeft: Horizontal scrollbar position.  
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}  
+
+6) Request to apply Alpha transparency to the applet window, facilitating temporary display of menus over the applet window:  
+ID is the ID value returned by Wrl_IEPage when starting the applet. Alpha is the transparency percentage, 1-100.  
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}  
+
+7) Request to take a screenshot of the applet window content:  
+ID: The aid instance value in the JSON returned when starting the applet.  
+File: Specify the screenshot file save path or extension.  
+Base64: Specify 1 to return the image content in BASE64 encoding.  
+Flag: If the screenshot of the embedded applet window (e.g., DirectUI or Direct3D drawing) is abnormal, additionally specify 1 to see the effect. Also, if multiple screenshots or selection screenshots are needed, overlay 2 or 4 to start the screenshot tool separately.  
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}  
+
+8) Request to scale the embedded webpage applet, used for browser webpage proportional scaling. Generally not needed:  
+ID is the ID value in the JSON returned when starting the applet. If Scale is not specified, get the current scaling percentage used by the applet, generally consistent with the system scaling ratio.  
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}  
+
+3. Applet Installation, Upgrade, Uninstallation:  
+1) Request to install the IE control applet:  
+Enter the following request in the test webpage input box, then click Send to complete installation:  
+{"req":"Plugin_Install","rid":1,"para":{"Name":"IE控件小程序","PID":"IEApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的IE内核网页小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌使用","DownAddr":"http://local.zorrosoft.com/Files/Net/IEPage.pid","MD5":"2DCCB776BC85B1ABBBA698DD891EDF43","Version":"2.2.17.6","Size":851968,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"A07E3A62729F0D3B2C81E10CE2CB0986B7BF7355DE97D90D0A72938EE5602D2F6BBA267296B47F5CEF8BF23D02551544DEEE9ECD1C0074FD82305FD4EBE9CD09B2818F2AF6CC7C9B1B51121715F7BBFB0F15C085E5E9DFE012BA14BAA37143289CD146D1C4B22EEDECC8606E64E89946D87BE2CDCDAD820EE246617A97B9CDA5EFCC5045F646D75BED429F14CBD48024D7E7841E16FB801060BCA73ABD3EEC35CFD2461AAD0715D52F3EBED7AC75E31D652C12771151061874F8E4CB85F5B6999760C2FB16C2D28A5F3DD62539929E7BA1A42ADAF684E16758843142BEFFB927BA9BF35C94C3A0FB2F8655B0308F8599EEF8856F60D81B61C1E89A5A0F449C7B"}}  
+
+After starting the installation, installation progress will be continuously received until completion.  
+When distributing, this applet directory files can also be packaged with the middleware for release, no need for separate distribution.  
+
+2) Request to upgrade the IE kernel embedded applet:  
+{"req":"Plugin_Update","rid":1,"para":{"Name":"IE控件小程序","PID":"IEApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的IE内核网页小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌使用","DownAddr":"http://local.zorrosoft.com/Files/Net/IEPage_Update.pid","MD5":"1DDB095C72DE8D51C58EF5553665D8BC","Version":"2.2.17.6","Size":851968,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"5D27840A0B2B43D8D288766CACE8FFE9F969C4703A037E2E9CE499D7CA5E1A851CB50260D5BD774A66520B9D46D9D951349937997AB1E66A3DB855152BB4ADB32C460AE3B30FF8FA26F8F028A51E4354195253368010C4CB654B9B1474B8FAC05840FB9BF48F812139B1191E4C9FD9A38EB52ED6A23D43659A933890BA5AFF4AEC26ED0F5E33C2D551E8C520F9D7ECDF9410644BE22FDF6FF87873B724A81A5318130B29B45B94B2AD19AD70663483F6588329DF6E60B51135A6ACA13473D0C9242943EBEEF5F982BF152F919FAEBA28DCAAC10AC2D2F5F0CF1B0DD40A81652CEE09738ADBFAA14DB6571B8AA7055CAAAC18E1F746A11AFF36150F0345D06E9E"}}  
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If errors occur during installation or upgrade, contact customer service for the latest request packet.  
+
+3) Request to uninstall the IE control applet:  
+The official version requires adding TK verification. Specific rules refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. Use the middleware maintenance in the packaging program ZbaPackage.exe in the SDK package to generate requests with TK.  
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"IEApplet","Type":8}}  
+
+4. IE Control Applet Forwarding to ActiveX Interface:  
+After establishing a new WebSocket connection based on the port number returned by the Wrl_IEPage request, execute the following commands:  
+A. Common Function Requests:  
+1) Stop  
+Request: {"req":"IE_Stop","rid":50,"para":{}}  
+Return: {"ret":0,"rid":50,"data":{"Ret":"0"}}  
+ret is the request return value. 0: Normal, non-zero: Abnormal. If abnormal, refer to the error description err at the same level as ret. Same below.  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+2) Refresh Webpage  
+Request: {"req":"IE_Refresh","rid":51,"para":{"Loop":"1"}}  
+Return: {"ret":0,"rid":51,"data":{"Ret":"0"}}  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+3) Go Back  
+Request: {"req":"IE_GoBack","rid":52,"para":{}}  
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+4) Go Forward  
+Request: {"req":"IE_GoForward","rid":53,"para":{}}  
+Return: {"ret":0,"rid":53,"data":{"Ret":"0"}}  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+5) Navigate to Homepage  
+Request: {"req":"IE_GoHome","rid":54,"para":{}}  
+Return: {"ret":0,"rid":54,"data":{"Ret":"0"}}  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+6) Navigate to Specified Webpage  
+Url is the webpage address, which needs URLEncode encoding. If Type is additionally specified as 0 or a specific browser type, it means open with a non-IE browser in a new tab.  
+Cookies: Cookies used for navigation, need URLEncode encoding.  
+Referer: Referer used for navigation, need URLEncode encoding.  
+Request: {"req":"IE_Navigate","rid":55,"para":{"Url":"http://www.baidu.com","Cookies":"","Referer":""}}  
+Return: {"ret":0,"rid":55,"data":{"Ret":"0"}}  
+Ret is the return value of the corresponding ActiveX function call. 0: Normal.  
+
+7) Request to Execute Script (must wait for document loading to complete)  
+Code is the script content to execute.  
+Language: Script type.  
+Request: {"req":"IE_ExecScript","rid":56,"para":{"Code":"alert(\"hello\");","Language":"javascript"}}  
+Return: {"ret":0,"rid":56,"data":{"Ret":"0","ScriptRet":""}}  
+Ret is the call return value. 0: Normal.  
+ScriptRet: Script execution return content. Only character type is supported. Non-character types should be BASE64 encoded first.  
+
+8) Request to Inject Script (must wait for document loading to complete)  
+Code is the script content to inject.  
+Request: {"req":"IE_AddScript","rid":57,"para":{"Code":"alert(\"hello\");"}}  
+Return: {"ret":0,"rid":57,"data":{"Ret":"0"}}  
+Ret is the call return value. 0: Normal.  
+
+9) Request to Call Script (in the opened webpage, must wait for document loading to complete)  
+FuncName: Script function name.  
+Para: Function parameters.  
+Request: {"req":"IE_InvokeScript","rid":58,"para":{"FuncName":"HelloWord","Para":["My","Name"]}}  
+Return: {"ret":0,"rid":58,"data":{"Ret":"0","FuncRet":""}}  
+Ret is the call return value. 0: Normal.  
+FuncRet: Call function return content. Only character type is supported. Non-character types should be BASE64 encoded first.  
+
+10) Zoom Webpage (must wait for document loading to complete)  
+Scale: Zoom percentage.  
+Request: {"req":"IE_Zoom","rid":59,"para":{"Scale":100}}  
+Return: {"ret":0,"rid":59,"data":{"Ret":"0"}}  
+Ret is the call return value. 0: Normal.  
+
+11) Specify ID window to overlay rendering content in webpage. Works normally on Windows 8 and above. Requires Microsoft Edge WebView2 Runtime installed locally.  
+Url is the transparent webpage address. If there are special symbols, perform UrlEncode first. Set to empty string to cancel overlay.  
+Alpha: Transparency (0-255). Default 255: Opaque. Windows 7 and below do not support transparency.  
+Rect node sets overlay window position and size. If not set, it represents the entire area. E: Margin, default 1. X/Y/W/H represent the start point and width/height of the overlay window displayed in the split-screen window. P: Display position type. If greater than 0, it replaces X and Y. 1: Top-left, 2: Top-right, 3: Bottom-left, 4: Bottom-right.  
+{"req":"IE_FloatWebInfo","rid":60,"para":{"Url":"https://output.jsbin.com/dopavun"}}  
+{"req":"IE_FloatWebInfo","rid":60,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}  
+Return: {"ret":0,"rid":60,"data":{"Ret":0}}  
+
+12) Request to Exit Applet  
+If not connected to the applet listening WS port, simply close the connection to the middleware.  
+Request: {"req":"IE_Exit","rid":61,"para":{}}  
+No return.  
+
+5. Event Notifications:  
+A. IE Control Events  
+1) IE_BeforeNavigate Preparing to open new URL  
+{"event":"IE_BeforeNavigate","data":{"Url":""}} Url is the new URL address.  
+
+2) IE_NavigateComplete URL opened completely  
+{"event":"IE_NavigateComplete","data":{"Url":""}} Url is the URL address.  
+
+3) IE_DocumentComplete URL document loaded completely  
+{"event":"IE_DocumentComplete","data":{"Url":""}} Url is the URL address.  
+
+4) IE_NewNavigate New window opens specified URL  
+{"event":"IE_NewNavigate","data":{"Url":"","Ret":0}} Url is the new URL address. Ret is the opening result.  
+
+5) IE_ProgressChange Progress bar progress notification  
+{"event":"IE_ProgressChange","data":{"Progress":0,"Max":0}} Progress: Current progress. Max: Progress maximum value.  
+
+6) IE_SetSecureLockIcon Set security lock icon  
+{"event":"IE_SetSecureLockIcon","data":{"SecureLockIcon":0}}  
+
+7) IE_StatusTextChange Status change  
+{"event":"IE_StatusTextChange","data":{"Status":""}} Status: Text description of status.  
+
+8) IE_TitleChange Title change  
+{"event":"IE_TitleChange","data":{"Title":""}} Title: Title.  
+
+9) IE_WindowClosing Window closing  
+{"event":"IE_WindowClosing","data":{"ChildWindow":0}} ChildWindow: Whether it's a child window.  
+
+10) IE_CommandStateChange Command state change  
+{"event":"IE_CommandStateChange","data":{"Command":0,"Enable":0}} Command: Command ID. Enable: Whether enabled.  
+
+B. Supported Event Notifications:  
+1) IE_FullScreen Whether the applet responded to fullscreen hotkey  
+{"event":"IE_FullScreen","data":{"FullScreen":0}} FullScreen: Current fullscreen flag.  
+
+2) Wrl_AppletExit Applet exit notification  
+{"event":"Wrl_AppletExit","data":{"ID":1}}  
+
+6. Others  
+Ensure JSON data packets for request parameters are UTF-8 encoded without BOM.  
+For more interface request descriptions, refer to the document "TestWrl.txt" in the installation directory, "ApeMaster Developer Manual.pdf" and "ApeMaster Middleware Security Solution.pdf" in the SDK package.  

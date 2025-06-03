@@ -1,0 +1,692 @@
+﻿SWCAD Webpage Component: Developed based on the cross-browser native applet system - ApeMaster Middleware Network Premium Edition. The underlying layer calls Dassault Systemes' Solidworks software 2014 and above automation interface, eDrawings viewer OCX control, and Composer Player to achieve programmatically driven online viewing/editing of xt, step, sldprt, and other 3D engineering drawings. It can embed and control Solidworks, eDrawings, and Composer Player software windows in specified areas of webpages.  
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Extreme/Security, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qizhi Trust, Red Lotus, dual-core, and other low-version browsers, also compatible with the latest versions of these browsers.  
+
+1. Installation of ApeMaster Middleware:  
+1) If it is an exe installer, please run it directly;  
+2) If it is a portable package, decompress it to a disk directory and double-click "InstallWrl.bat" to install;  
+3) Upon completion of installation, the ApeMaster middleware service will start, and the operation status will be output in the log file ZbaService.txt in the Data subdirectory of the installation directory.  
+
+2. SWCAD Webpage Component Control Interfaces:  
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (refer to the document "ApeMaster Developer Manual.pdf" in the SDK package for configuring the listening port), specify the port number in the connection address.  
+When using ordinary JS scripts for front-end integration, refer to: http://test.yuanmaster.com/CadJS. The embedded JS script programs are fully open source. For simple startup testing, refer to:  
+HTTP webpage online test: http://test.yuanmaster.com/SWCadfull.html  
+HTTPS webpage online test: https://test.yuanmaster.com/SWCadframe.html  
+If IE browser compatibility is required, replace the CLSID in the online test webpage:  
+<object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>  
+with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A  
+Front-end integration can refer to the above test webpages. The HTML webpage needs to embed code similar to the following:  
+A. Mark the display position and size of the applet:  
+.SWCadApplet {  
+            margin: 20px 0 0 20px;  
+            width: 480px;  
+            height: 320px;  
+            border: 1px solid blue;  
+        }  
+Or  
+.SWCadApplet {  
+            width: 480px;  
+            height: 320px;  
+            top: 20px;  
+            left: 20px;  
+            border: 1px solid blue;  
+        }  
+If the initial display position and size of the applet are not marked in the webpage Header area, add the following parameters in the JSON parameters when starting the applet:  
+"Left":20,"Top":20,"Width":480,"Height":320  
+
+B. Embed elements in the webpage:  
+Supports IFrame:  
+<iframe name="SWCadApplet" id="SWCadApplet" src="SWCadApplet3.html" frameborder="0" align="left" width="550" height="540" scrolling="no></iframe>  
+Or directly use:  
+<div id="SWCadApplet" class="SWCadApplet"></div>  
+
+Additionally, embed the required JS scripts. The script programs are fully open source.  
+
+1) Request to start the SWCAD webpage component to load and operate xt, step, etc., documents locally in the webpage:  
+Type is the browser type. Pass 0 for automatic judgment (prerequisite: the current browser is started and displayed in the foreground, Flag must be 0 when loading the current page). Can forcibly specify browser Type (1: IE, 2: Chrome, 4: Firefox, 5: Brave (English), 8: Opera, 9: Vivaldi (English), 10: Yandex, 16: Edge (Chromium kernel), 20: Electron, 32: 360 Extreme Browser, 33: 360 Security Browser, 34: 360 Extreme Browser, 35: 360 Enterprise Security Browser, 36: 360 Gaming Browser, 37: 360 AI Browser, 40: Lenovo Browser, 45: Dual-core Browser, 50: QQ Browser, 51: WeChat Webpage, 55: Qizhi Trust Browser, 57: Red Lotus Browser, 60: Sogou Browser, 61: Quark, 62: Maxthon Browser, 63: Liebao Browser, 66: Doubao, 70: Huawei Browser).  
+When Type needs to specify the browser type, first use the interface Wrl_BrowserInfo in the TestWrl.txt document to obtain the current browser Type, main window handle BrowserWnd, drawing window handle DrawWnd, and current webpage title Title. Determine whether to continue starting by checking if Title matches the current webpage to be embedded. If continuing, set the obtained parameters Type, BrowserWnd, DrawWnd in the current request parameters to speed up startup.  
+Title: Keyword in the webpage title.  
+Url: The actual address of the webpage where the applet is loaded. Used to specify the display position and size of the applet in the webpage. Not recommended; use Web parameter instead.  
+Flag mask mark: 1: Load in new tab (current page load if neither 1 nor 16 is specified), 2: Webpage component display window border, 4: Do not automatically clip out-of-bound windows, 8: Automatically adapt to webpage height and width display, 64: Enable Web parameter, 128: Anti-screenshot, 256: Force display to secondary screen, 512: Allow multiple instances in the same webpage.  
+Web: Opening configuration (new method), can replace Url. Use this configuration when Flag value +64. When using Web, Left, Top, Width, Height values must be specified.  
+Parameters in Web:  
+	Edit represents edit permission: 1: Read-only open, 4: Disable save as, 8: Disable print.  
+	User represents the user name editing the drawing.  
+	PW represents the password needed to open the drawing.  
+	DataPath represents the default local save path for drawings.  
+	Cookie: When the document opened by Open is a URL address on the server, set Cookie for the network request URL to obtain download permission.  
+	Auth: When the document opened by Open is a URL address on the server, set Auth for the network request URL to obtain download permission.  
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting.  
+BarW and BarH are the reserved areas on the right and bottom of the webpage. ScrollTop is the reserved height for top scrolling.  
+The actual display of the webpage component is first based on the coordinates and size specified in Url or Web, then corrected according to the values set in IframeX, IframeY, BarW, BarH.  
+Option: 0: Start Solidworks for online editing (recommended 2015 and above, can be customized according to specific versions), 1: Start eDrawings for online viewing. Can first check if related software is installed via interface Wrl_CADInfo.  
+Open: The document path to open. Use / for disk directory slashes.  
+Note: Special characters in Open, Web such as =, &, double quotes, or Chinese must be URL-encoded before passing.  
+Example:  
+Automatically recognize the current browser and start Solidworks program for online editing of xt, step, etc., documents:  
+{"req":"Wrl_SWCadApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"D:/Zorro/test.xt"}}  
+
+Automatically recognize the current browser and start eDrawings program for online viewing or converting xt, step documents:  
+{"req":"Wrl_SWCadApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"1","Open":"D:/Zorro/test.xt"}}  
+
+Automatically recognize the current browser and start at specified position with automatic adaptation to webpage area (recommended startup method):  
+{"req":"Wrl_SWCadApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"D:/Zorro/test.xt"}}  
+
+Automatically recognize the current browser and start eDrawings program to view server documents:  
+{"req":"Wrl_SWCadApplet","rid":6,"para":{"Type":"0","Title":"Solidworks Applet Full","Flag":72,"IframeX":0,"IframeY":0,"ScrollTop":0,"Web": {"DataPath":"c:/CadDoc"},"Open":"http://test.yuanmaster.com/Files/Test.sldprt","Option":1}}  
+
+Current page specified position automatic adaptation webpage load test:  
+http://test.yuanmaster.com/SWCadframe.html  
+
+After startup, three JSON data packets will be received:  
+A. {"ret":0,"rid":8,"data":{"ID":7}}  
+Indicates the applet WS listening service is ready.  
+B. {"event":"Wrl_Listen","aid":7,"rid":8,"data":{"SID":"123","PID":"SWCadApplet","port":1010}}  
+Returns the listening port. A new Web Socket connection can be established to call related functions in the applet, such as zooming the drawing.  
+Indicates the applet was created successfully. Returns ID as the current applet instance ID. Commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed using this ID.  
+C. {"event":"Wrl_AppletOK","aid":7,"rid":8,"data":{"SID":"123","PID":"SWCadApplet","Port":1010}}  
+
+About interface Wrl_CADInfo:  
+Request: {"req":"Wrl_CADInfo","rid":1,"para":{}}, Return example:  
+{"ret":0,"rid":1,"req":"Wrl_CADInfo","data":{"Info":[{"Type":11,"Option":1,"X64":1,"Ver":"32.1.0.0076","Path":"C:/Program Files/Common Files/eDrawings2024/EModelViewer.exe"}]}}  
+Type equal to 11 represents installation information related to the Solidworks applet.  
+
+2) Request to control the SWCAD webpage component:  
+When the front-end no longer needs the applet, it can be closed, or shown/hidden, full screen display, etc.  
+ID is the ID value in the JSON returned when starting the applet. Code represents the control type mask: 1: Normal close, 128: Force close quickly, 2: Full screen display, 4: Auto hide, 8: Restore display, 16: Toggle auto-adapt to webpage height and width display mode, 32: Force hide. Among them, full screen display (2) can be canceled directly via ESC hotkey. After hiding with 4 or 32, it can be restored with 8.  
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}  
+
+3) Request to scroll the SWCAD webpage component:  
+When the front-end captures a webpage scroll notification, this interface needs to be called to achieve scroll linkage between the applet and the webpage.  
+ID is the ID value in the JSON returned when starting the applet.  
+Code is the scroll direction: 1: Horizontal, 2: Vertical, 3: Both.  
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.  
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}  
+
+4) Request to change the display position or size of the SWCAD webpage component:  
+When the front-end webpage display area is zoomed, the applet's display position or size can be dynamically modified.  
+ID is the ID value in the JSON returned when starting the applet. Width and Height are the new width and height. X and Y are the new display positions. If not specified, they remain unchanged. If specified, the originally set IframeX and IframeY become invalid.  
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}  
+Or set the applet display start coordinates simultaneously:  
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}  
+
+5) Request to set the webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:  
+When the applet display area exceeds the current webpage, the display impact of scrollbars needs to be removed.  
+ID is the ID value in the JSON returned when starting the applet. BarW is the reserved right width. BarH is the reserved bottom height.  
+Code: 1: Horizontal scrollbar exists, 2: Vertical scrollbar exists, 3: Both exist.  
+ScrollTop: Vertical scrollbar position. ScrollLeft: Horizontal scrollbar position.  
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}  
+
+6) Request to apply Alpha transparency to the applet window, facilitating temporary display of menus over the applet window:  
+ID is the ID value returned by Wrl_SWCadApplet when starting the applet. Alpha is the transparency percentage, 1-100.  
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}  
+
+7) Request to take a screenshot of the applet window content:  
+ID: The aid instance value in the JSON returned when starting the applet.  
+File: Specify the screenshot file save path or extension.  
+Base64: Specify 1 to return the image content in BASE64 encoding.  
+Flag: If the screenshot of the embedded applet window (e.g., DirectUI or Direct3D drawing) is abnormal, additionally specify 1 to see the effect. Also, if multiple screenshots or selection screenshots are needed, overlay 2 or 4 to start the screenshot tool separately.  
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}  
+
+8) Request to scale the embedded webpage applet, used for browser webpage proportional scaling. Generally not needed:  
+ID is the ID value in the JSON returned when starting the applet. If Scale is not specified, get the current scaling percentage used by the applet, generally consistent with the system scaling ratio.  
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}  
+
+3. Applet Installation, Upgrade, Uninstallation:  
+1) Request to install the SWCAD webpage component:  
+Enter the following request in the test webpage input box, then click Send to complete installation:  
+{"req":"Plugin_Install","rid":1,"para":{"Name":"SWCAD网页组件","PID":"SWCadApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的网页内嵌Solidworks软件实现在线编辑三维工程图小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌Solidworks等程序进行在线编辑、查看或审阅三维工程图","DownAddr":"http://local.zorrosoft.com/Files/Net/SWCadApplet.pid","MD5":"1DE95DB6D3DF45218C3980791DC96298","Version":"2.2.17.6","Size":2392064,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"20AE3E9D1602DF1D10738B8CC5BD39066F1AA18AC2344E26262B9813FE356EDCCDD780D27141C54B5C81E9FF215DC724BC11BDB55D88EDADBD05A1AED610D9EA6EDCB5E9C7C5E1E9A2675F53874679F33D77DE395794F858FE85608BF17F7567552105841B5A8E91A987F47D3D031F533BDDB11B3E3270E0C6CD36BAD16CA1903A478994EC8C6FF80A77BC8450A9FE1940E47AB165352B955EFC4B375CA3471BB7554393A084C3F28E8174264D80B3B508ABDF9FD4BF3F005496CE74FF3B77EF0F4F6AA037EEB6786D227B680DAAF48B17D67459E00B0CA42846C9C971A249FC5F251DFA456A9631F1DF8D93272C06A780067A9D6FCC8A11FFCBB1CB521F9443"}}  
+
+After starting the installation, installation progress will be continuously received until completion.  
+When distributing, this applet directory files can also be packaged with the middleware for release, no need for separate distribution.  
+
+2) Request to upgrade the SWCAD webpage component:  
+{"req":"Plugin_Update","rid":1,"para":{"Name":"SWCAD网页组件","PID":"SWCadApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的网页内嵌Solidworks软件实现在线编辑三维工程图小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌Solidworks等程序进行在线编辑、查看或审阅三维工程图","DownAddr":"http://local.zorrosoft.com/Files/Net/SWCadApplet_Update.pid","MD5":"8C965B30D086C3CF83CAA70B312C31A5","Version":"2.2.17.6","Size":2392064,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"7584D2E294B2243392B098D2E02826B7AE8EEDE915E25419A5B5CFD9D6B15CD783E7ACC8C275F083D3576F7CCC6B80F8AEAFD08284E7ADD003C3C013A4BF91C3AD46914FE729830232C53D50C64A229CC68FECF9F6181C4A9829581D152FDE66A7770251139F7562EFBEA13AAFAAF47071B598E76F0CA4069D3B0F9A77C36E2F05D37CADEC6182A7ABA3FA9CC552686A4507CA84A870F0C0FA13E941D34631333848D1ACCCAD24E77D13CAB696C30653EAB435C70C1CF3774C176007EF874943477B48F7F24D1570B2F3D29918A12EB8BC41871DD704B4D09C3FEB90DECD3EFB8B313D2A37B2FD30C487F2714FC30951C57D7C5A993214265AFCE1AFFE162AB5"}}  
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If errors occur during installation or upgrade, contact customer service for the latest request packet.  
+
+3) Request to uninstall the SWCAD webpage component:  
+The official version requires adding TK verification. Specific rules refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. Use the middleware maintenance in the packaging program ZbaPackage.exe in the SDK package to generate requests with TK.  
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"SWCadApplet","Type":8}}  
+
+4. SWCAD Webpage Component Forwarding to Solidworks Automation Interface and eDrawings OCX Control Interface:  
+After establishing a new WebSocket connection based on the port number returned by the Wrl_SWCadApplet request, execute the following commands:  
+A. Common Function Requests:  
+1) Request to Exit Applet (Applies to Solidworks software and eDrawings control)  
+Normal applet closing procedure and method: First request this function in this WS connection. When the front-end receives a notification to close this connection, then close the connection to the middleware.  
+{"req":"CAD_Exit","rid":1,"para":{}}  
+No return.  
+
+2) Request to Close Currently Opened Document (Applies to Solidworks software and eDrawings control)  
+{"req":"CAD_Close","rid":2,"para":{}}  
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}} Ret 0: Success.  
+
+3) Request to Open Document (Applies to Solidworks software and eDrawings control)  
+Open: Document path to open. Perform URLEncode if containing special characters or Chinese. PW: Opening password. Read: 1: Open read-only.  
+{"req":"CAD_Open","rid":3,"para":{"Open":"D:/Zorro/Test.sldprt","PW":"","Read":0}}  
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}} Ret 0: Success.  
+
+4) Request to Save. If it's a new document, a temporary filename will be created for saving. (Applies to Solidworks software)  
+If parameters like Url in CAD_NetFile are specified, it means saving locally while uploading to the server.  
+{"req":"CAD_Save","rid":4,"para":{}}  
+{"req":"CAD_Save","rid":4,"para":{"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}  
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","FilePath":""}} FilePath: Actual save path.  
+
+5) Request to Save As. NewFile: Path to save as. Perform URLEncode if containing Chinese or special characters. (Applies to Solidworks software)  
+Supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.  
+If parameters like Url in CAD_NetFile are specified, it means saving locally while uploading to the server.  
+{"req":"CAD_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/testSA.sldprt"}}  
+{"req":"CAD_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/upload.sldprt","Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}  
+Return: {"ret":0,"rid":5,"data":{"Ret":"0","FilePath":""}} FilePath: Actual save path.  
+
+6) Network File Operations  
+Type: 1: Upload file, 0: Download file.  
+Asyn: Default 0. Specify 1 for asynchronous upload/download. Asynchronous upload requires a separate file operation applet to be used.  
+Agent, Cookie, and Auth: Cookie can pass browser cookies or Auth for upload permission verification. Default empty. If not empty, URLEncode first.  
+Local: Local path of file to upload or save path for download. If not specified, use the currently opened document by default. URLEncode required.  
+Url: Upload or download address. URLEncode required.  
+When Type is 1, additional parameter Para can be added, corresponding to the param in POST data packets. Default upload filename is upfile. Otherwise, set your own file parameter name via NodeName.  
+When Type is 0, additional parameters MD5 and FileSize can be added. Hash and size of the file to download, used to verify file integrity. Can be empty or 0 by default.  
+{"req":"CAD_NetFile","rid":9,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/CadDoc/test.sldprt","Url":"http://test.yuanmaster.com/Files/Test.sldprt"}}  
+{"req":"CAD_NetFile","rid":9,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}  
+Return: {"ret":0,"rid":35,"data":{"Ret":"0"}}  
+
+7) Toggle Full Screen Editing State  
+{"req":"CAD_SwitchFullScreen","rid":6,"para":{}}  
+Return: {"ret":0,"rid":6,"data":{"Ret":"0"}}  
+
+8) Request to Pop Up a Message Dialog Box in the Embedded Window Area  
+Title: Popup title. Perform URLEncode if Chinese or special symbols.  
+Content: Popup content. Perform URLEncode if Chinese or special symbols.  
+Wait: Wait seconds before auto-disappearing. 0: Do not disappear automatically.  
+Type: Popup type. 0: MB_OK. Refer to uType definition: https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox  
+{"req":"CAD_MsgBox","rid":52,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}  
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}  
+
+30) Specify ID window to overlay rendering content in webpage. Works normally on Windows 8 and above. Requires Microsoft Edge WebView2 Runtime installed locally.  
+Url is the transparent webpage address. If there are special symbols, perform UrlEncode first. Set to empty string to cancel overlay.  
+Alpha: Transparency (0-255). Default 255: Opaque. Windows 7 and below do not support transparency.  
+Rect node sets overlay window position and size. If not set, it represents the entire area. E: Margin, default 1. X/Y/W/H represent the start point and width/height of the overlay window displayed in the split-screen window. P: Display position type. If greater than 0, it replaces X and Y. 1: Top-left, 2: Top-right, 3: Bottom-left, 4: Bottom-right.  
+{"req":"CAD_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun"}}  
+{"req":"CAD_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}  
+Return: {"ret":0,"rid":30,"data":{"Ret":0}}  
+
+31) Specify ID window to overlay webpage injected script execution  
+Script: Script content. Perform URLEncode first. Set to empty string to cancel overlay.  
+Init: Initialize.  
+{"req":"CAD_FloatWebInjectScript","rid":31,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}  
+Return: {"ret":0,"rid":31,"data":{"Ret":0}}  
+
+Below are generic request methods not specifically encapsulating VBA interface functions:  
+80) Request to Get Property Value  
+Name: Specify property name. Application exists as top-level by default. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., get current document name: ActiveDocument.Name. Same below.  
+{"req":"CAD_GetProperty","rid":80,"para":{"Name":"Version"}}  
+{"req":"CAD_GetProperty","rid":80,"para":{"Name":"ActiveDocument.Name"}}  
+Return: {"ret":0,"rid":80,"data":{"Ret":0,"Val":""}}  
+
+81) Request to Set Property  
+Name: Specify property name. For sub-interfaces, append the sub-interface name. Supports multi-level.  
+{"req":"CAD_PutProperty","rid":81,"para":{"Name":"Visible","Val":"-1"}}  
+{"req":"CAD_PutProperty","rid":81,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}  
+Return: {"ret":0,"rid":81,"data":{"Ret":0}}  
+
+82) Request Method with No Input Parameters  
+Name: Specify method name. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., call VLC playlist play method name: playlist.play. Same below.  
+DID: Can also specify method sequence number.  
+{"req":"CAD_Invoke0","rid":82,"para":{"Name":"ScreenRefresh"}}  
+{"req":"CAD_Invoke0","rid":82,"para":{"Name":"ActiveDocument.PrintPreview"}}  
+Return: {"ret":0,"rid":82,"data":{"Ret":0,"Val":""}}  
+
+83) Request Method with Only 1 Input Parameter  
+Name: Specify method name. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., call VLC playlist add method name: playlist.add. Same below.  
+DID: Can also specify method sequence number.  
+Para1: Corresponding parameter value.  
+{"req":"CAD_Invoke1","rid":83,"para":{"Name":"CleanString","Para1":"Test"}}  
+{"req":"CAD_Invoke1","rid":83,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}  
+Return: {"ret":0,"rid":83,"data":{"Ret":0,"Val":""}}  
+
+84) Request Method with Only 2 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1 and Para2: Corresponding parameter 1 and 2 values. Omissible values can be omitted, e.g., only pass Para1. Same below.  
+{"req":"CAD_Invoke2","rid":84,"para":{"Name":"KeyString","Para1":"","Para2":""}}  
+{"req":"CAD_Invoke2","rid":84,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}  
+Return: {"ret":0,"rid":84,"data":{"Ret":0,"Val":""}}  
+
+85) Request Method with Only 3 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3: Corresponding parameter 1, 2, and 3 values.  
+{"req":"CAD_Invoke3","rid":85,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}  
+Return: {"ret":0,"rid":85,"data":{"Ret":0,"Val":""}}  
+
+86) Request Method with Only 4 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4: Corresponding parameter 1, 2, 3, and 4 values.  
+{"req":"CAD_Invoke4","rid":86,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}  
+Return: {"ret":0,"rid":86,"data":{"Ret":0,"Val":""}}  
+
+87) Request Method with Only 5 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5: Corresponding parameter 1, 2, 3, 4, and 5 values.  
+{"req":"CAD_Invoke5","rid":87,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}  
+Return: {"ret":0,"rid":87,"data":{"Ret":0,"Val":""}}  
+
+88) Request Method with Only 6 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6: Corresponding parameter 1, 2, 3, 4, 5, and 6 values.  
+{"req":"CAD_Invoke6","rid":88,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}  
+Return: {"ret":0,"rid":88,"data":{"Ret":0,"Val":""}}  
+
+89) Request Method with Only 7 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7: Corresponding parameter 1, 2, 3, 4, 5, 6, and 7 values.  
+{"req":"CAD_Invoke7","rid":89,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}  
+Return: {"ret":0,"rid":89,"data":{"Ret":0,"Val":""}}  
+
+90) Request Method with Only 8 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, and 8 values.  
+{"req":"CAD_Invoke8","rid":90,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}  
+Return: {"ret":0,"rid":90,"data":{"Ret":0,"Val":""}}  
+
+91) Request Method with Only 9 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values.  
+{"req":"CAD_Invoke9","rid":91,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}  
+Return: {"ret":0,"rid":91,"data":{"Ret":0,"Val":""}}  
+
+92) Request Method with Only 10 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values.  
+{"req":"CAD_InvokeA","rid":92,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}  
+Return: {"ret":0,"rid":92,"data":{"Ret":0,"Val":""}}  
+
+93) Request Method with Only 11 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values.  
+{"req":"CAD_InvokeB","rid":93,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}  
+Return: {"ret":0,"rid":93,"data":{"Ret":0,"Val":""}}  
+
+94) Request Method with Only 12 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values.  
+{"req":"CAD_InvokeC","rid":94,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}  
+Return: {"ret":0,"rid":94,"data":{"Ret":0,"Val":""}}  
+
+95) Request Method with Only 13 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values.  
+{"req":"CAD_InvokeD","rid":95,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}  
+Return: {"ret":0,"rid":95,"data":{"Ret":0,"Val":""}}  
+
+96) Request Method with Only 14 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values.  
+{"req":"CAD_InvokeE","rid":96,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}  
+Return: {"ret":0,"rid":96,"data":{"Ret":0,"Val":""}}  
+
+97) Request Method with Only 15 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values.  
+{"req":"CAD_InvokeF","rid":97,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}  
+Return: {"ret":0,"rid":97,"data":{"Ret":0,"Val":""}}  
+
+98) Request Method with Only 16 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values.  
+{"req":"CAD_InvokeG","rid":98,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}  
+Return: {"ret":0,"rid":98,"data":{"Ret":0,"Val":""}}  
+
+B. eDrawings OCX Control Specific Interfaces:  
+101) Corresponds to OCX property FileName. Request to get filename.  
+{"req":"CADVIEW_GetFileName","rid":101,"para":{}}  
+Return: {"ret":0,"rid":101,"data":{"Ret":"0","FileName":""}}  
+
+102) Corresponds to OCX property FileName. Request to set filename.  
+{"req":"CADVIEW_SetFileName","rid":102,"para":{"FileName":""}}  
+Return: {"ret":0,"rid":102,"data":{"Ret":"0"}}  
+
+103) Corresponds to OCX property UserName. Request to set username.  
+{"req":"CADVIEW_SetUserName","rid":103,"para":{"UserName":""}}  
+Return: {"ret":0,"rid":103,"data":{"Ret":"0"}}  
+
+104) Corresponds to OCX property Password. Request to set password.  
+{"req":"CADVIEW_SetPassword","rid":104,"para":{"Password":""}}  
+Return: {"ret":0,"rid":104,"data":{"Ret":"0"}}  
+
+105) Corresponds to OCX property SheetCount. Request to get sheet count.  
+{"req":"CADVIEW_GetSheetCount","rid":105,"para":{}}  
+Return: {"ret":0,"rid":105,"data":{"Ret":"0","SheetCount":""}}  
+
+106) Corresponds to OCX property CurrentSheetIndex. Request to get current sheet index.  
+{"req":"CADVIEW_GetCurrentSheetIndex","rid":106,"para":{}}  
+Return: {"ret":0,"rid":106,"data":{"Ret":"0","SheetIndex":""}}  
+
+107) Corresponds to OCX property ConfigurationCount. Request to get configuration count.  
+{"req":"CADVIEW_GetConfigurationCount","rid":107,"para":{}}  
+Return: {"ret":0,"rid":107,"data":{"Ret":"0","ConfigCount":""}}  
+
+108) Corresponds to OCX property EnableFeatures. Request to get EnableFeatures.  
+{"req":"CADVIEW_GetEnableFeatures","rid":108,"para":{}}  
+Return: {"ret":0,"rid":108,"data":{"Ret":"0","EnableFeatures":""}}  
+
+109) Corresponds to OCX method GetIsMarkupModified. Request to get IsMarkupModified.  
+{"req":"CADVIEW_GetIsMarkupModified","rid":109,"para":{}}  
+Return: {"ret":0,"rid":109,"data":{"Ret":"0","IsMarkupModified":""}}  
+
+110) Corresponds to OCX properties Width and Height. Request to get width and height.  
+{"req":"CADVIEW_GetSize","rid":110,"para":{}}  
+Return: {"ret":0,"rid":110,"data":{"Ret":"0","Width":"","Height":""}}  
+
+111) Corresponds to OCX property CurrentConfigurationIndex. Request to get current configuration index.  
+{"req":"CADVIEW_GetCurrentConfigurationIndex","rid":111,"para":{}}  
+Return: {"ret":0,"rid":111,"data":{"Ret":"0","ConfigIndex":""}}  
+
+112) Corresponds to OCX properties SheetWidth and SheetHeight. Request to get sheet width and height.  
+{"req":"CADVIEW_GetSheetSize","rid":112,"para":{}}  
+Return: {"ret":0,"rid":112,"data":{"Ret":"0","SheetWidth":"","SheetHeight":""}}  
+
+113) Corresponds to OCX property SheetName. Request to get sheet name of specified index.  
+{"req":"CADVIEW_GetSheetName","rid":113,"para":{"Index":"1"}}  
+Return: {"ret":0,"rid":113,"data":{"Ret":"0","SheetName":""}}  
+
+114) Corresponds to OCX method GetTooltipID. Request to get TooltipID of specified index.  
+{"req":"CADVIEW_GetTooltipID","rid":114,"para":{"Index":"1"}}  
+Return: {"ret":0,"rid":114,"data":{"Ret":"0","TooltipID":""}}  
+
+115) Corresponds to OCX property ConfigurationName. Request to get configuration name of specified index.  
+{"req":"CADVIEW_GetConfigurationName","rid":115,"para":{"Index":"1"}}  
+Return: {"ret":0,"rid":115,"data":{"Ret":"0","ConfigName":""}}  
+
+116) Corresponds to OCX property EnableFeatures. Request to set EnableFeatures.  
+{"req":"CADVIEW_SetEnableFeatures","rid":116,"para":{"EnableFeatures":""}}  
+Return: {"ret":0,"rid":116,"data":{"Ret":"0"}}  
+
+117) Corresponds to OCX property PostUploadPath. Request to set upload path.  
+{"req":"CADVIEW_SetPostUploadPath","rid":117,"para":{"UploadPath":""}}  
+Return: {"ret":0,"rid":117,"data":{"Ret":"0"}}  
+
+118) Corresponds to OCX property ViewOperator. Request to set ViewOperator.  
+{"req":"CADVIEW_SetViewOperator","rid":118,"para":{"Operator":""}}  
+Return: {"ret":0,"rid":118,"data":{"Ret":"0"}}  
+
+119) Corresponds to OCX property ViewOrientation. Request to set ViewOrientation.  
+{"req":"CADVIEW_SetViewOrientation","rid":119,"para":{"Orientation":""}}  
+Return: {"ret":0,"rid":119,"data":{"Ret":"0"}}  
+
+120) Corresponds to OCX method ShowConfiguration. Request to show configuration of specified index.  
+{"req":"CADVIEW_ShowConfiguration","rid":120,"para":{"Index":""}}  
+Return: {"ret":0,"rid":120,"data":{"Ret":"0"}}  
+
+121) Corresponds to OCX method ShowSheet. Request to show sheet of specified index.  
+{"req":"CADVIEW_ShowSheet","rid":121,"para":{"Index":""}}  
+Return: {"ret":0,"rid":121,"data":{"Ret":"0"}}  
+
+122) Corresponds to OCX method Animate. Request animation of specified type.  
+{"req":"CADVIEW_Animate","rid":122,"para":{"Animating":""}}  
+Return: {"ret":0,"rid":122,"data":{"Ret":"0"}}  
+
+123) Corresponds to OCX method GetEnableFeature. Request to check if feature function is enabled.  
+{"req":"CADVIEW_GetEnableFeature","rid":123,"para":{"Feature":""}}  
+Return: {"ret":0,"rid":123,"data":{"Ret":"0","Enable":"1"}}  
+
+124) Corresponds to OCX method SetEnableFeature. Request to enable/disable feature function.  
+{"req":"CADVIEW_SetEnableFeature","rid":124,"para":{"Feature":"","Enable":"1"}}  
+Return: {"ret":0,"rid":124,"data":{"Ret":"0"}}  
+
+125) Corresponds to OCX method ShowHelp. Request to show help.  
+{"req":"CADVIEW_ShowHelp","rid":125,"para":{}}  
+Return: {"ret":0,"rid":125,"data":{"Ret":"0"}}  
+
+126) Corresponds to OCX method ShowSend. Request to show send.  
+{"req":"CADVIEW_ShowSend","rid":126,"para":{}}  
+Return: {"ret":0,"rid":126,"data":{"Ret":"0"}}  
+
+127) Corresponds to OCX method Refresh. Request to refresh.  
+{"req":"CADVIEW_Refresh","rid":127,"para":{}}  
+Return: {"ret":0,"rid":127,"data":{"Ret":"0"}}  
+
+128) Corresponds to OCX method OpenMarkupFile. Request to open Markup file.  
+{"req":"CADVIEW_OpenMarkupFile","rid":128,"para":{"File":""}}  
+Return: {"ret":0,"rid":128,"data":{"Ret":"0"}}  
+
+129) Corresponds to OCX method CreateTooltip. Request to create Tooltip.  
+{"req":"CADVIEW_CreateTooltip","rid":129,"para":{"Title":"","Text":"","XCoordinate":"","YCoordinate":"","ShowAtMousePosition":""}}  
+Return: {"ret":0,"rid":129,"data":{"Ret":"0","TooltipID":"1"}}  
+
+130) Corresponds to OCX methods: 0:HideTooltip 1:ShowTooltip 2:HideAllTooltips 3:ShowAllTooltips. Request to control Tooltips.  
+Flag 1 and 2 require specifying ID.  
+{"req":"CADVIEW_ControlTooltip","rid":130,"para":{"Flag":"","ID":"0"}}  
+Return: {"ret":0,"rid":130,"data":{"Ret":"0"}}  
+
+131) Corresponds to OCX method SetTipTitle. Request to set TipTitle of specified ID.  
+{"req":"CADVIEW_SetTipTitle","rid":131,"para":{"ID":"1","TipTitle":""}}  
+Return: {"ret":0,"rid":131,"data":{"Ret":"0"}}  
+
+132) Corresponds to OCX method GetTipTitle. Request to get TipTitle of specified ID.  
+{"req":"CADVIEW_GetTipTitle","rid":132,"para":{"ID":"1"}}  
+Return: {"ret":0,"rid":132,"data":{"Ret":"0","TipTitle":""}}  
+
+133) Corresponds to OCX method SetTipText. Request to set TipText of specified ID.  
+{"req":"CADVIEW_SetTipText","rid":133,"para":{"ID":"1","TipText":""}}  
+Return: {"ret":0,"rid":133,"data":{"Ret":"0"}}  
+
+134) Corresponds to OCX method GetTipText. Request to get TipText of specified ID.  
+{"req":"CADVIEW_GetTipText","rid":134,"para":{"ID":"1"}}  
+Return: {"ret":0,"rid":134,"data":{"Ret":"0","TipText":""}}  
+
+135) Corresponds to OCX method SetShowTipAtMousePosition. Request to set MousePosition of specified ID.  
+{"req":"CADVIEW_SetShowTipAtMousePosition","rid":135,"para":{"ID":"1","ShowTipAtMousePosition":""}}  
+Return: {"ret":0,"rid":135,"data":{"Ret":"0"}}  
+
+136) Corresponds to OCX method GetShowTipAtMousePosition. Request to get MousePosition of specified ID.  
+{"req":"CADVIEW_GetShowTipAtMousePosition","rid":136,"para":{"ID":"1"}}  
+Return: {"ret":0,"rid":136,"data":{"Ret":"0","ShowTipAtMousePosition":""}}  
+
+137) Corresponds to OCX method SetTipXCoordinate. Request to set TipXCoordinate of specified ID.  
+{"req":"CADVIEW_SetTipXCoordinate","rid":137,"para":{"ID":"1","XCoordinate":""}}  
+Return: {"ret":0,"rid":137,"data":{"Ret":"0"}}  
+
+138) Corresponds to OCX method GetTipXCoordinate. Request to get TipXCoordinate of specified ID.  
+{"req":"CADVIEW_GetTipXCoordinate","rid":138,"para":{"ID":"1"}}  
+Return: {"ret":0,"rid":138,"data":{"Ret":"0","XCoordinate":""}}  
+
+139) Corresponds to OCX method SetTipYCoordinate. Request to set TipYCoordinate of specified ID.  
+{"req":"CADVIEW_SetTipYCoordinate","rid":139,"para":{"ID":"1","YCoordinate":""}}  
+Return: {"ret":0,"rid":139,"data":{"Ret":"0"}}  
+
+140) Corresponds to OCX method GetTipYCoordinate. Request to get TipYCoordinate of specified ID.  
+{"req":"CADVIEW_GetTipYCoordinate","rid":140,"para":{"ID":"1"}}  
+Return: {"ret":0,"rid":140,"data":{"Ret":"0","YCoordinate":""}}  
+
+141) Corresponds to OCX method GetViewState. Request to get ViewState of specified state.  
+{"req":"CADVIEW_GetViewState","rid":141,"para":{"State":"1"}}  
+Return: {"ret":0,"rid":141,"data":{"Ret":"0","ViewState":""}}  
+
+142) Corresponds to OCX method SetViewState. Request to set ViewState of specified ID.  
+{"req":"CADVIEW_SetViewState","rid":142,"para":{"State":"1","Flag":""}}  
+Return: {"ret":0,"rid":142,"data":{"Ret":"0"}}  
+
+143) Corresponds to OCX method GetComponentState. Request to get specified ComponentState.  
+{"req":"CADVIEW_GetComponentState","rid":143,"para":{"State":"1","Name":""}}  
+Return: {"ret":0,"rid":143,"data":{"Ret":"0","ComponentState":""}}  
+
+144) Corresponds to OCX method SetComponentState. Request to set specified ComponentState.  
+{"req":"CADVIEW_SetComponentState","rid":144,"para":{"State":"1","Name":"","ComponentState":""}}  
+Return: {"ret":0,"rid":144,"data":{"Ret":"0"}}  
+
+145) Corresponds to OCX method GetComponentCount. Request to get specified ComponentCount.  
+{"req":"CADVIEW_GetComponentCount","rid":145,"para":{"Config":"1"}}  
+Return: {"ret":0,"rid":145,"data":{"Ret":"0","ComponentCount":""}}  
+
+146) Corresponds to OCX method GetComponentName. Request to get specified ComponentName.  
+{"req":"CADVIEW_GetComponentName","rid":146,"para":{"Index":"1","Config":"1"}}  
+Return: {"ret":0,"rid":146,"data":{"Ret":"0","ComponentName":""}}  
+
+147) Corresponds to OCX method GetMassProperty. Request to get specified MassProperty.  
+{"req":"CADVIEW_GetMassProperty","rid":147,"para":{"Property":""}}  
+Return: {"ret":0,"rid":147,"data":{"Ret":"0","MassProperty":""}}  
+
+148) Corresponds to OCX method GetMaterialPropertyName. Request to get MaterialPropertyName.  
+{"req":"CADVIEW_GetMaterialPropertyName","rid":148,"para":{}}  
+Return: {"ret":0,"rid":148,"data":{"Ret":"0","MaterialPropertyName":""}}  
+
+Below are generic request methods not specifically encapsulating VBA interface functions:  
+180) Request to Get Property Value  
+Name: Specify property name. Application exists as top-level by default. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., get current document name: ActiveDocument.Name. Same below.  
+{"req":"CADVIEW_GetProperty","rid":180,"para":{"Name":"Version"}}  
+{"req":"CADVIEW_GetProperty","rid":180,"para":{"Name":"ActiveDocument.Name"}}  
+Return: {"ret":0,"rid":180,"data":{"Ret":0,"Val":""}}  
+
+181) Request to Set Property  
+Name: Specify property name. For sub-interfaces, append the sub-interface name. Supports multi-level.  
+{"req":"CADVIEW_PutProperty","rid":181,"para":{"Name":"Visible","Val":"-1"}}  
+{"req":"CADVIEW_PutProperty","rid":181,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}  
+Return: {"ret":0,"rid":181,"data":{"Ret":0}}  
+
+182) Request Method with No Input Parameters  
+Name: Specify method name. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., call VLC playlist play method name: playlist.play. Same below.  
+DID: Can also specify method sequence number.  
+{"req":"CADVIEW_Invoke0","rid":182,"para":{"Name":"ScreenRefresh"}}  
+{"req":"CADVIEW_Invoke0","rid":182,"para":{"Name":"ActiveDocument.PrintPreview"}}  
+Return: {"ret":0,"rid":182,"data":{"Ret":0,"Val":""}}  
+
+183) Request Method with Only 1 Input Parameter  
+Name: Specify method name. For sub-interfaces, append the sub-interface name. Supports multi-level, e.g., call VLC playlist add method name: playlist.add. Same below.  
+DID: Can also specify method sequence number.  
+Para1: Corresponding parameter value.  
+{"req":"CADVIEW_Invoke1","rid":183,"para":{"Name":"CleanString","Para1":"Test"}}  
+{"req":"CADVIEW_Invoke1","rid":183,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}  
+Return: {"ret":0,"rid":183,"data":{"Ret":0,"Val":""}}  
+
+184) Request Method with Only 2 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1 and Para2: Corresponding parameter 1 and 2 values. Omissible values can be omitted, e.g., only pass Para1. Same below.  
+{"req":"CADVIEW_Invoke2","rid":184,"para":{"Name":"KeyString","Para1":"","Para2":""}}  
+{"req":"CADVIEW_Invoke2","rid":184,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}  
+Return: {"ret":0,"rid":184,"data":{"Ret":0,"Val":""}}  
+
+185) Request Method with Only 3 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3: Corresponding parameter 1, 2, and 3 values.  
+{"req":"CADVIEW_Invoke3","rid":185,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}  
+Return: {"ret":0,"rid":185,"data":{"Ret":0,"Val":""}}  
+
+186) Request Method with Only 4 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4: Corresponding parameter 1, 2, 3, and 4 values.  
+{"req":"CADVIEW_Invoke4","rid":186,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}  
+Return: {"ret":0,"rid":186,"data":{"Ret":0,"Val":""}}  
+
+187) Request Method with Only 5 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5: Corresponding parameter 1, 2, 3, 4, and 5 values.  
+{"req":"CADVIEW_Invoke5","rid":187,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}  
+Return: {"ret":0,"rid":187,"data":{"Ret":0,"Val":""}}  
+
+188) Request Method with Only 6 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6: Corresponding parameter 1, 2, 3, 4, 5, and 6 values.  
+{"req":"CADVIEW_Invoke6","rid":88,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}  
+Return: {"ret":0,"rid":88,"data":{"Ret":0,"Val":""}}  
+
+189) Request Method with Only 7 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7: Corresponding parameter 1, 2, 3, 4, 5, 6, and 7 values.  
+{"req":"CADVIEW_Invoke7","rid":189,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}  
+Return: {"ret":0,"rid":189,"data":{"Ret":0,"Val":""}}  
+
+190) Request Method with Only 8 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, and 8 values.  
+{"req":"CADVIEW_Invoke8","rid":190,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}  
+Return: {"ret":0,"rid":190,"data":{"Ret":0,"Val":""}}  
+
+191) Request Method with Only 9 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values.  
+{"req":"CADVIEW_Invoke9","rid":191,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}  
+Return: {"ret":0,"rid":191,"data":{"Ret":0,"Val":""}}  
+
+192) Request Method with Only 10 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values.  
+{"req":"CADVIEW_InvokeA","rid":192,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}  
+Return: {"ret":0,"rid":192,"data":{"Ret":0,"Val":""}}  
+
+193) Request Method with Only 11 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values.  
+{"req":"CADVIEW_InvokeB","rid":193,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}  
+Return: {"ret":0,"rid":193,"data":{"Ret":0,"Val":""}}  
+
+194) Request Method with Only 12 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values.  
+{"req":"CADVIEW_InvokeC","rid":194,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}  
+Return: {"ret":0,"rid":194,"data":{"Ret":0,"Val":""}}  
+
+195) Request Method with Only 13 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values.  
+{"req":"CADVIEW_InvokeD","rid":195,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}  
+Return: {"ret":0,"rid":195,"data":{"Ret":0,"Val":""}}  
+
+196) Request Method with Only 14 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values.  
+{"req":"CADVIEW_InvokeE","rid":196,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}  
+Return: {"ret":0,"rid":196,"data":{"Ret":0,"Val":""}}  
+
+197) Request Method with Only 15 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values.  
+{"req":"CADVIEW_InvokeF","rid":197,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}  
+Return: {"ret":0,"rid":197,"data":{"Ret":0,"Val":""}}  
+
+198) Request Method with Only 16 Input Parameters  
+Name: Specify method name.  
+DID: Can also specify method sequence number.  
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16: Corresponding parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values.  
+{"req":"CADVIEW_InvokeG","rid":198,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}  
+Return: {"ret":0,"rid":198,"data":{"Ret":0,"Val":""}}  
+
+5. Event Notifications:  
+A.  
+B. Supported Event Notifications:  
+1) Whether the applet responded to fullscreen hotkey  
+{"event":"CAD_FullScreen","data":{"FullScreen":0}} FullScreen: Current fullscreen flag.  
+
+2) Wrl_AppletExit Applet exit notification  
+{"event":"Wrl_AppletExit","data":{"ID":1}}  
+
+6. Others  
+Ensure JSON data packets for request parameters are UTF-8 encoded without BOM.  
+For more interface request descriptions, refer to the document "TestWrl.txt" in the installation directory, "Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.  

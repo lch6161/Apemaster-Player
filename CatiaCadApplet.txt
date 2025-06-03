@@ -1,0 +1,356 @@
+﻿CatiaCAD Web Component: Based on a cross-browser native applet system - developed with ApeMaster middleware network advanced edition, it calls Dassault Systèmes' Catia software automation interface at the bottom layer to achieve programmatically driven online viewing, editing, etc., of 3D engineering drawings. It can embed and run the Catia software window within a specified area of a webpage and control it.
+Compatible with low versions of browsers such as Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Speed/Secure, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, QAX, Red Lotus, Dual-core, etc., and also compatible with the latest versions of these browsers.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installer, please run it directly for installation;
+2) If it is a green version package, please extract it to a directory on the disk, then double-click "InstallWrl.bat" to install;
+3) After installation is complete, the ApeMaster middleware service will start. The operation status is output in the log file ZbaService.txt under the Data subdirectory in the installation directory.
+
+2. CatiaCAD Web Component Control Related Interfaces:
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (refer to the document "ApeMaster Developer Manual.pdf" in the SDK package for how to configure the listening port), specify the port number in the connection address.
+For frontend integration using ordinary JS scripts, please refer to: http://test.yuanmaster.com/CadJS. The JS script programs needed for embedding are completely open source. For simple startup testing, you can refer to the following webpages:
+HTTP webpage online test: http://test.yuanmaster.com/CatiaCadfull.html HTTPS webpage online test: https://test.yuanmaster.com/CatiaCadframe.html
+If IE browser compatibility is also required, in the network version test webpage, the CLSID in <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Frontend integration can refer to the above test webpages. The HTML webpage needs to embed code similar to the following;
+A. Mark the display position and size of the applet
+.CatiaCadApplet {
+            margin: 20px 0 0 20px;
+            width: 480px;
+            height: 320px;
+            border: 1px solid blue;
+        }
+or
+.CatiaCadApplet {
+            width: 480px;
+            height: 320px;
+            top: 20px;
+            left: 20px;
+            border: 1px solid blue;
+        }
+If the initial display position and size of the applet are not marked in the webpage Header area, add the following parameters to the JSON parameters when starting the applet:
+"Left":20,"Top":20,"Width":480,"Height":320
+
+B. Embed elements in the webpage
+Supporting IFrame:
+<iframe name="CatiaCadApplet" id="CatiaCadApplet" src="CatiaCadApplet3.html" frameborder="0" align="left" width="550" height="540" scrolling="no></iframe>
+Or use directly
+<div id="CatiaCadApplet" class="CatiaCadApplet"</div>
+
+Additionally, the JS scripts needed for embedding are required; the script programs are completely open source.
+
+1) Request to start the CatiaCAD web component to load CATPart documents locally within the webpage for operation:
+Type is the browser type, pass 0 for automatic judgment (prerequisite: the current browser is started and displayed in the foreground, Flag must be 0 when the current page loads) Can forcibly specify browser type Type (1 represents IE, 2 represents Chrome, 4 represents Firefox, 5 represents Brave (English version), 8 represents Opera, 9 represents Vivaldi (English version), 10 represents Yandex, 16 represents Edge (Chromium kernel), 20 represents Electron, 32 represents 360 Speed Browser, 33 represents 360 Secure Browser, 34 represents 360 Speed Browser, 35 represents 360 Enterprise Secure Browser, 36 represents 360 Game Browser, 37 represents 360 AI Browser, 40 represents Lenovo Browser, 45 represents Dual-core Browser, 50 represents QQ Browser, 51 represents WeChat Webpage, 55 represents QAX Browser, 57 represents Red Lotus Browser, 60 represents Sogou Browser, 61 represents Quark, 62 represents Maxthon Browser, 63 represents Liebao Browser, 66 represents Doubao, 70 represents Huawei Browser)
+When Type needs to specify the browser type, you can first obtain the current browser's type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title through the interface Wrl_BrowserInfo in the TestWrl.txt document. Decide whether to continue startup by judging if the Title is the webpage that needs embedding. If continuing startup, set the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters to speed up startup.
+Title: Keyword in the webpage title
+Url: The actual webpage address where the applet is loaded. It specifies the display position and size of the applet in the webpage. Not recommended anymore; suggest using the Web parameter instead.
+Flag mask flag: 1 specifies new tab loading (when neither 1 nor 16 is specified, it's current page loading) 2 shows the applet window border 4 does not automatically crop out-of-bound windows 8 automatically adapts to webpage height and width for display 64 enables Web parameter 128 anti-screenshot 256 forces display to secondary screen 512 allows loading multiple instances on the same webpage
+Web: Open configuration (new method), can be used instead of Url. Flag value +64 uses this configuration. When using Web, the values of Left, Top, Width, Height must be specified.
+Parameter description in Web:
+	Edit represents editing permission 1 read-only open 4 disable save as 8 disable print
+	User represents the user name editing the drawing
+	PW represents the password needed to open the drawing
+	DataPath represents the default local save path for drawings
+	Cookie When the document opened by Open is a Url address on the server, set Cookie for the network request Url to obtain download permission.
+	Auth When the document opened by Open is a Url address on the server, set Auth for the network request Url to obtain download permission.
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting respectively.
+BarW and BarH are reserved areas on the right and bottom of the webpage, ScrollTop is the reserved height for top scrolling.
+The actual display of the web component is first based on the coordinates and size specified in Url or Web, then corrected according to the values set by IframeX, IframeY, BarW, BarH.
+Option: 0 starts Catia for online editing. You can check in advance via the interface Wrl_CADInfo whether the relevant software is installed on the current computer.
+Open: The document path to be opened, use / for directory slashes.
+Note: If Open, Web contain special characters = & double quotes or Chinese, etc., they need to be URL encoded before passing.
+Example:
+{"req":"Wrl_CatiaApplet","rid":6,"para":{"Type":"0","Title":"Catia Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"http://test.yuanmaster.com/Files/test.CATPart"}}
+
+Automatically identify the current browser and adapt to the specified position in the webpage area to start (recommended startup method):
+{"req":"Wrl_CatiaApplet","rid":6,"para":{"Type":"0","Title":"Catia Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web":{"DataPath":"c:/CadDoc"},"Option":"0","Open":"D:/Zorro/test.CATPart"}}
+Current page specified position automatic adaptation webpage loading test
+http://test.yuanmaster.com/CatiaCadframe.html
+
+After startup, three JSON data packets are received sequentially:
+A. {"ret":0,"rid":8,"data":{"ID":7}}
+Represents the applet WS listening service is ready.
+B. {"event":"Wrl_Listen","aid":7,"rid":8,"data":{"SID":"123","PID":"CatiaCadApplet","port":1020}}
+The returned listening port. You can establish another Web Socket connection to call related functions in the applet, such as zooming the drawing.
+Represents the applet was created successfully. The returned ID is the current applet running instance ID. Through this ID, you can execute commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize.
+C. {"event":"Wrl_AppletOK","aid":7,"rid":8,"data":{"SID":"123","PID":"CatiaCadApplet","Port":1020}}
+
+Description of interface Wrl_CADInfo:
+Request: {"req":"Wrl_CADInfo","rid":1,"para":{}}, return information example:
+{"ret":0,"rid":1,"req":"Wrl_CADInfo","data":{"Info":[{"Type":21,"Option":0,"X64":0,"Ver":"5.21.0.11063","Path":"F:/Soft/DSB21/intel_a/code/bin/CNEXT.exe"},{"Type":21,"Option":1,"X64":1,"Ver":"6.419.4.16354","Path":"F:/Soft/3D XML Player/win_b64/code/bin/3DXMLPlayer.exe"}]}}
+Type equal to 21 represents Catia applet installation information.
+
+2) Request to control the CatiaCAD web component:
+When the frontend no longer needs the applet, you can specify to close it, or show/hide, full screen display, etc.
+ID is the ID value returned in the JSON when starting the applet. Code represents the control type mask: 1 normal close 128 force close quickly 2 full screen display 4 auto hide 8 restore display 16 toggle auto adapt to webpage height and width display mode 32 force hide. Among them, full screen display 2, can be directly exited by hotkey ESC or cancel. Hidden by 4 and 32 can be restored by 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll the CatiaCAD web component:
+When the frontend intercepts a webpage scroll notification, it needs to call this interface to achieve scroll linkage between the applet and the webpage.
+ID is the ID value returned in the JSON when starting the applet.
+Code is the scroll direction: 1 horizontal, 2 vertical, 3 both.
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change the display position or size of the CatiaCAD web component:
+When the frontend webpage display area is zoomed, you can dynamically modify the display position or size of the applet.
+ID is the ID value returned in the JSON when starting the applet. Width and Height are the new width and height respectively. X and Y are the new display positions. If not specified, they remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or simultaneously set the applet display start coordinates:
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical scroll and horizontal scroll position:
+When the applet display area exceeds the current webpage, the impact of the scrollbar display needs to be removed.
+ID is the ID value returned in the JSON when starting the applet. BarW is the reserved right width. BarH is the reserved bottom height.
+Code 1 represents having horizontal scrollbar, 2 represents having vertical scrollbar, 3 represents having both.
+ScrollTop vertical scrollbar position ScrollLeft horizontal scrollbar position.
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to apply Alpha transparency to the applet window, facilitating the frontend to temporarily display menus, etc., covering the applet window:
+ID is the ID value returned by Wrl_CatiaApplet when starting the applet. Alpha is the transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to take a screenshot of the applet window content:
+ID: The aid instance value returned in the JSON when starting the applet.
+File: Specify the screenshot file save path or extension.
+Base64: Specify as 1 to return BASE64 encoded image content.
+Flag: If the screenshot of the embedded applet window (e.g., DirectUI or Direct3D drawn) is abnormal, you can additionally specify Flag as 1 to see the effect. Furthermore, if multiple screenshots or area selection screenshots are needed, you can overlay 2 or 4 to start the screenshot tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to zoom the embedded webpage applet, used for browser webpage proportional zooming, generally not needed:
+ID is the ID value returned in the JSON when starting the applet. If Scale is not specified, get the current zoom percentage used by the applet, generally consistent with the system zoom ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Applet Installation, Upgrade, Uninstallation
+1) Request to install CatiaCAD web component
+Please enter the following request in the test webpage input box, then click send to complete installation:
+{"req":"Plugin_Install","rid":1,"para":{"Name":"CatiaCAD Embedded Web Component","PID":"CatiaCadApplet","Date":"2025-05-30","Desc":"Cross-browser CatiaCAD embedded web component based on ApeMaster, supporting embedding Catia and other programs in the latest versions of browsers like Chrome, Edge, Firefox, IE, Opera, 360, QQ for online editing, viewing, or reviewing 3D engineering drawings","DownAddr":"http://local.zorrosoft.com/Files/Net/CatiaCadApplet.pid","MD5":"B6E32F08D805F2F4659D8AA1AA3DD105","Version":"2.2.17.6","Size":2293760,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"57F546F4AE15E2F33A2AF2F7ED2B983A28EC34C8B9CE8667B24213E28A53FD43E58BB703EBC63CCF1659E002FEF2BF398DF5FD4BB915F827E9CCF920EBC39BEDF542E1EDF1E1B811FDA8D3F7DCC584B1E9C1E98DFBDC53CDAEBF3133160C0E6A65C1C3264806043EAE21AA5718AA2719C302D245E84B3ECE935818E100CDED039B42FE45E947F979A8BB6075D002342BB60884C7E2FACAC2A60C126DF87506BFDF1C5DD0A9BB6755C44007DF86EAD462A0C0D2FCBC84F5F4F53675AEE20DAD73C3D06132C18A9F52DA297E586FE93FFA85264371793A88A38948C503F7A7FA020A6F810AAC353A45469DE831CEEA1DECFA059F2FCB0CA0F84D4B756C5194A2EC"}}
+
+After starting installation, you will continuously receive installation progress until installation ends.
+When distributing, you can also package this applet directory files together with the middleware for release, without separate distribution.
+
+2) Request to upgrade CatiaCAD web component:
+{"req":"Plugin_Update","rid":1,"para":{"Name":"CatiaCAD Embedded Web Component","PID":"CatiaCadApplet","Date":"2025-05-30","Desc":"Cross-browser CatiaCAD embedded web component based on ApeMaster, supporting embedding Catia and other programs in the latest versions of browsers like Chrome, Edge, Firefox, IE, Opera, 360, QQ for online editing, viewing, or reviewing 3D engineering drawings","DownAddr":"http://local.zorrosoft.com/Files/Net/CatiaCadApplet_Update.pid","MD5":"3CA6FBC074C0EBA7F7DBC42860C3A8C0","Version":"2.2.17.6","Size":2293760,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"6D7447B31BDB0436F18A944B4D1D4397E3AD645124147CFEBB62C65B3E02E4E51577694DAF43BB74CBF6CD75FA42D94CE3F93A94D2827437BFB4C3E76CAC6AB5AB78AB862446FA8B6DF71DF6F888562C595847F6C27D134458A6EB628F85FBF708825BAB8AFE00C6D1D7DE2ED153CF4BB27DD975142AF9B95DA3195FFFA9686B9EC6B35D0B0E1F40BBB933F98EBB127EB7C577840BD386A141E655CDABE5538185EC17D6629D749818AAADD3EFC1C393A7A3DCE72C4D6C5F4946CBF5411642529B2ED4C9472DA5DB64497768FC756FCA49883B383DC633E7215E879BD2C407C27171548D59DCFACA56D8CC684455D8BFD59B5F549581ED06CDFEFF05726BF3D9"}}
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If errors occur during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall CatiaCAD web component:
+The official version requires adding TK verification. Specific rules refer to the document "ApeMaster Middleware Security Solution.pdf" in the SDK package. You can generate the request with TK using the packaging program ZbaPackage.exe's middleware maintenance in the SDK package.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"CatiaCadApplet","Type":8}}
+
+4. CatiaCAD Web Component Indirect Call Software Automation Interface. First, based on the port number returned after starting with the Wrl_CatiaApplet request, establish a new WebSocket connection to execute the following commands:
+A. Common function requests:
+
+1) Request to exit the applet
+Normal applet close procedure and method: First request this function in this WS connection. When the frontend receives the notification to close this connection, then close the WS connection to the middleware.
+{"req":"CAD_Exit","rid":1,"para":{}}
+No return.
+
+2) Request to close the currently open document
+{"req":"CAD_Close","rid":2,"para":{}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}} Ret 0 represents success.
+
+3) Request to open document
+Open the document path. If it contains special characters or Chinese, URL encode it first. PW is the open password. Read 1 represents read-only open.
+{"req":"CAD_Open","rid":3,"para":{"Open":"D:/Zorro/Test.CATPart","PW":"","Read":0}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}} Ret 0 represents success.
+
+4) Request to save. If it's a new document, a temporary filename will be created for saving. Applicable to CATIA software.
+If parameters like Url in the CAD_NetFile interface are specified, it represents saving locally and uploading to the server simultaneously.
+{"req":"CAD_Save","rid":4,"para":{}}
+{"req":"CAD_Save","rid":4,"para":{"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","FilePath":""}} FilePath is the actual save path.
+
+5) Request to save as. NewFile is the save as path. If it contains Chinese or special characters, etc., URL encode it. Applicable to CATIA software.
+Supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+If parameters like Url in the CAD_NetFile interface are specified, it represents saving locally and uploading to the server simultaneously.
+{"req":"CAD_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/testSA.CATPart"}}
+{"req":"CAD_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/upload.CATPart","Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":5,"data":{"Ret":"0","FilePath":""}} FilePath is the actual save path.
+
+6) Network file operation Applicable to CATIA control
+Type 1 upload file 0 download file
+Asyn Default 0. Specify 1 for asynchronous upload or download. Asynchronous upload requires a separate file operation applet to be used.
+Agent, Cookie, and Auth. Cookie can pass the browser's Cookie or authorize via Auth for upload permission. Default empty. If not empty, URL encode first.
+Local Local path of the file to upload or save path for download. If not specified, the currently open document is used by default. URL encode needed.
+Url Address for upload or download. URL encode needed.
+When Type is 1, you can add the parameter Para, corresponding to the param parameter in the POST data packet. The default uploaded file name is upfile. Otherwise, set your own file parameter name via NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, the hash value and size of the downloaded file, used to verify the integrity of the downloaded file. Can be default empty or 0.
+{"req":"CAD_NetFile","rid":6,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/CadDoc/test.sldprt","Url":"http://test.yuanmaster.com/Files/Test.sldprt"}}
+{"req":"CAD_NetFile","rid":6,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":6,"data":{"Ret":"0"}}
+
+7) Toggle full-screen editing state
+{"req":"CAD_SwitchFullScreen","rid":7,"para":{}}
+Return: {"ret":0,"rid":7,"data":{"Ret":"0"}}
+
+8) Request to pop up a message dialog box within the embedded window area
+Title is the popup title. If it contains Chinese or special symbols, URL encode it first.
+Content is the popup content. If it contains Chinese or special symbols, URL encode it first.
+Wait is the number of seconds to wait before automatically disappearing. 0 means no auto-disappear.
+Type represents the popup type. 0 is MB_OK. See uType definition at: https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox
+{"req":"CAD_MsgBox","rid":7,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
+Return: {"ret":0,"rid":7,"data":{"Ret":"0"}}
+
+9) Overlay webpage rendering content on the specified ID window. Supported normally on Windows 8 and above operating systems. Microsoft Edge WebView2 Runtime needs to be installed locally.
+Url is the transparent webpage address. If it contains special symbols, URL encode it first. Setting it to an empty string cancels the overlay.
+Alpha Transparency (0-255) Default 255 opaque. Windows 7 and below systems do not support transparency.
+The Rect node sets the overlay window position and size. If not set, it represents the entire area. E represents margin, default 1. X/Y/W/H represent the starting point and width/height of the overlay window within the split-screen window. P is the display position type. If greater than 0, it replaces X and Y. 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right.
+{"req":"CAD_FloatWebInfo","rid":9,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"CAD_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":9,"data":{"Ret":0}}
+
+10) Overlay webpage inject script to run on the specified ID window
+Script is the script content. URL encode it first. Setting it to an empty string cancels the overlay.
+Init Initialize
+{"req":"CAD_FloatWebInjectScript","rid":10,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}
+Return: {"ret":0,"rid":10,"data":{"Ret":0}}
+
+The following are general request methods not separately encapsulating VBA interface functions.
+80) Request to get property value
+Name specifies the property name. Application defaults as the top level. If encountering sub-interfaces, add the sub-interface name to the name. Supports multiple levels. For example, to get the current document name, use ActiveDocument.Name. The same applies below.
+{"req":"CAD_GetProperty","rid":80,"para":{"Name":"Version"}}
+{"req":"CAD_GetProperty","rid":80,"para":{"Name":"ActiveDocument.Name"}}
+Return: {"ret":0,"rid":100,"data":{"Ret":0,"Val":""}}
+
+81) Request to set property
+Name specifies the property name. If setting a sub-interface, add the sub-interface name to the name. Supports multiple levels.
+{"req":"CAD_PutProperty","rid":81,"para":{"Name":"Visible","Val":"-1"}}
+{"req":"CAD_PutProperty","rid":81,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Return: {"ret":0,"rid":101,"data":{"Ret":0}}
+
+82) Request method with no input parameters
+Name specifies the method name. If calling a sub-interface, add the sub-interface name to the name. Supports multiple levels. For example, to call the VLC playlist play method, use playlist.play. The same applies below.
+DID can also specify the method number.
+{"req":"CAD_Invoke0","rid":82,"para":{"Name":"ScreenRefresh"}}
+{"req":"CAD_Invoke0","rid":82,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":102,"data":{"Ret":0,"Val":""}}
+
+83) Request method with only 1 input parameter
+Name specifies the method name. If calling a sub-interface, add the sub-interface name to the name. Supports multiple levels. For example, to call the VLC playlist add method, use playlist.add. The same applies below.
+DID can also specify the method number.
+Para1 corresponds to the parameter value.
+{"req":"CAD_Invoke1","rid":83,"para":{"Name":"CleanString","Para1":"Test"}}
+{"req":"CAD_Invoke1","rid":83,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":103,"data":{"Ret":0,"Val":""}}
+
+84) Request method with only 2 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1 and Para2 correspond to parameter 1 and 2 values respectively. Optional values can be omitted. For example, only pass Para1. The same applies below.
+{"req":"CAD_Invoke2","rid":84,"para":{"Name":"KeyString","Para1":"","Para2":""}}
+{"req":"CAD_Invoke2","rid":84,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":104,"data":{"Ret":0,"Val":""}}
+
+85) Request method with only 3 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values respectively.
+{"req":"CAD_Invoke3","rid":85,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}
+Return: {"ret":0,"rid":85,"data":{"Ret":0,"Val":""}}
+
+86) Request method with only 4 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values respectively.
+{"req":"CAD_Invoke4","rid":86,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}
+Return: {"ret":0,"rid":86,"data":{"Ret":0,"Val":""}}
+
+87) Request method with only 5 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values respectively.
+{"req":"CAD_Invoke5","rid":87,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":87,"data":{"Ret":0,"Val":""}}
+
+88) Request method with only 6 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values respectively.
+{"req":"CAD_Invoke6","rid":88,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":88,"data":{"Ret":0,"Val":""}}
+
+89) Request method with only 7 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values respectively.
+{"req":"CAD_Invoke7","rid":89,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":89,"data":{"Ret":0,"Val":""}}
+
+90) Request method with only 8 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values respectively.
+{"req":"CAD_Invoke8","rid":90,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":90,"data":{"Ret":0,"Val":""}}
+
+91) Request method with only 9 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values respectively.
+{"req":"CAD_Invoke9","rid":91,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":91,"data":{"Ret":0,"Val":""}}
+
+92) Request method with only 10 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values respectively.
+{"req":"CAD_InvokeA","rid":92,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":92,"data":{"Ret":0,"Val":""}}
+
+93) Request method with only 11 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values respectively.
+{"req":"CAD_InvokeB","rid":93,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":93,"data":{"Ret":0,"Val":""}}
+
+94) Request method with only 12 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values respectively.
+{"req":"CAD_InvokeC","rid":94,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":94,"data":{"Ret":0,"Val":""}}
+
+95) Request method with only 13 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values respectively.
+{"req":"CAD_InvokeD","rid":95,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":95,"data":{"Ret":0,"Val":""}}
+
+96) Request method with only 14 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values respectively.
+{"req":"CAD_InvokeE","rid":96,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":96,"data":{"Ret":0,"Val":""}}
+
+97) Request method with only 15 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values respectively.
+{"req":"CAD_InvokeF","rid":97,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":97,"data":{"Ret":0,"Val":""}}
+
+98) Request method with only 16 input parameters
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values respectively.
+{"req":"CAD_InvokeG","rid":98,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":98,"data":{"Ret":0,"Val":""}}
+
+5. Event Notifications:
+A.
+
+B. Supported event notifications:
+
+1) Whether the applet responded to the hotkey full screen
+{"event":"CAD_FullScreen","data":{"FullScreen":0}} FullScreen is the current full screen flag.
+
+2) Wrl_AppletExit Applet exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+6. Other
+Ensure the JSON data packets for request parameters are encoded in UTF-8 without BOM.
+For more interface request descriptions, refer to the document TestWrl.txt in the installation directory, "ApeMaster Developer Manual.pdf" and "ApeMaster Middleware Security Solution.pdf" in the SDK package.

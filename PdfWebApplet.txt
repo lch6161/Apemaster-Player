@@ -1,0 +1,457 @@
+﻿PDF Web Applet: Based on the cross-browser native applet system - ApeMaster middleware network advanced edition development. The underlying layer calls Adobe's ActiveX control or Foxit OFD format office suite to implement PDF document reading and editing. Requires installation of software such as Adobe PDF Reader or Foxit OFD Format Office Suite. 
+Compatible with low versions of Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Extreme/Safe, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qianxin, Red Lotus, dual-core, and other browsers. Also compatible with the latest versions of these browsers.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a green version program package, please unzip it to a disk directory, then double-click "InstallWrl.bat" to install;
+3) When the installation is completed, the ApeMaster middleware service will start. The log file ZbaService.txt in the Data subdirectory under the installation directory outputs the operation status.
+
+2. PDF Web Applet Control Related Interfaces:
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), please specify the port number in the connection address.
+When using ordinary JS scripts for front-end integration, please refer to: http://test.yuanmaster.com/OfficeJS. The JS script programs that need to be embedded are completely open source. For VUE framework, please refer to http://test.yuanmaster.com/Office. For simple startup testing, you can refer to the following webpages:
+HTTP webpage online test: http://test.yuanmaster.com/pdffull.html       HTTPS webpage online test: https://test.yuanmaster.com/pdfframe.html
+If compatibility with IE browser is needed, in the network version test webpage, the CLSID in <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Front-end integration can refer to the above test webpages. The JS scripts that need to be embedded are completely open source.
+
+1) Request to start PDF web applet:
+Type is the browser type. Pass 0 for automatic judgment (precondition: the current browser has started and is displayed in the foreground. Flag must be 0 when the current page loads). Can forcibly specify browser type Type (1 represents IE, 2 represents Chrome, 4 represents Firefox, 5 represents Brave (English version), 8 represents Opera, 9 represents Vivaldi (English version), 10 represents Yandex, 16 represents Edge (Chromium kernel), 20 represents Electron, 32 represents 360 Extreme Browser, 33 represents 360 Safe Browser, 34 represents 360 Extreme Browser, 35 represents 360 Enterprise Security Browser, 36 represents 360 Game Browser, 37 represents 360 AI Browser, 40 represents Lenovo Browser, 45 represents Dual-core Browser, 50 represents QQ Browser, 51 represents WeChat Webpage, 55 represents Qianxin Browser, 57 represents Red Lotus Browser, 60 represents Sogou Browser, 61 represents Quark, 62 represents Maxthon Browser, 63 represents Liebao Browser, 66 represents Doubao, 70 represents Huawei Browser)
+When Type needs to specify the browser type, you can first use the interface Wrl_BrowserInfo in the TestWrl.txt document to obtain the current browser's type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title. Determine whether to continue startup by judging whether Title is the webpage that needs embedding. If continuing startup, set the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters to speed up startup.
+Title: Keyword in the webpage title, used to identify the specified embedded webpage.
+Url: The actual address of the webpage where the applet is loaded. Specifies the display position and size of the applet in the webpage. Not recommended for use anymore. Suggest switching to Web parameter instead.
+Flag: Mask flag. 1 specifies new tab loading (when neither 1 nor 16 is specified, it is current page loading). 2 applet display window border. 4 do not automatically crop out-of-bounds windows. 8 automatically adapt to webpage height and width for display. 64 enable Web parameter. 128 anti-screenshot. 256 force display to secondary screen. 512 allow multiple instances to be loaded on the same webpage.
+Web: Open configuration (new method), can replace Url. Flag value +64 uses this configuration. When using Web, the values of Left, Top, Width, Height must be specified.
+Parameter description in Web:
+	Edit represents editing permission. 1 read-only open.
+	DataPath represents the default local save path for drawings.
+	Cookie When the document opened by Open is a Url address on the server, set Cookie in the network request Url to obtain download permission.
+	Auth When the document opened by Open is a Url address on the server, set Auth in the network request Url to obtain download permission.
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting.
+BarW and BarH are the reserved areas on the right and bottom of the webpage respectively. ScrollTop is the reserved height for top scrolling.
+The actual display of the applet is first based on the coordinates and size specified in Url or Web, and then corrected according to the values set by IframeX, IframeY, BarW, BarH.
+Option: Default 0 is Adobe PDF Reader. 1: Call Foxit OFD Format Office Suite.
+Open: Path of the multimedia that needs to be played. Use / for directory slashes.
+Note: If Open, Web, and Url contain special characters = & double quotes or Chinese, etc., they need to be URL encoded before transmission.
+Example:
+Automatically identify the current browser to start at the specified position and size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"PDF网页小程序","NodeName":"PdfApplet","PID":"PdfWebApplet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":210,"BarW":0,"BarH":0,"Option":"0","Option":"0","Web":{"DataPath":"c:/OfficeDoc"},"Open":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+
+Automatically identify the current browser to start automatically adapting to webpage size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"PDF网页小程序","NodeName":"PdfApplet","PID":"PdfWebApplet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"Option":"0","Option":"0","Zoom":100,"ScrollTop":0,"Web":{"DataPath":"c:/OfficeDoc"},"Open":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+
+Current page specified position automatic adaptation webpage loading test
+http://test.yuanmaster.com/pdfframe.html
+
+After startup, three JSON data packets will be received in sequence:
+A、{"ret":0,"rid":2,"data":{"ID":2}}
+Represents the applet WS listening service is ready.
+B、{"event":"Wrl_Listen","aid":2,"rid":2,"data":{"SID":"123","PID":"PdfWebApplet","port":970}}
+Returns the listening port. After establishing another Web Socket connection, you can call related functions in the applet, such as playing a new Flash.
+Represents the applet was successfully created. Returns ID as the current applet running instance ID. Through this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C、{"event":"Wrl_AppletOK","aid":2,"rid":2,"data":{"SID":"123","PID":"PdfWebApplet","Port":970}}
+
+2) Request to control PDF web applet:
+When the front-end no longer needs the applet, it can specify to close, or show/hide, full screen display, etc.
+ID is Wrl_PdfWebApplet or the ID value returned in the JSON when starting the applet by specifying PdfWebApplet via Wrl_AppletStart. Code represents the control type mask: 1 normal close, 128 force close immediately, 2 full screen display, 4 auto hide, 8 restore display, 16 switch auto adapt to webpage height and width display mode, 32 force hide. Among them, full screen display 2, can be directly canceled via hotkey ESC. After hiding with 4 and 32, it can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll the PDF web applet in the webpage:
+When the front-end intercepts webpage scroll notifications, this interface needs to be called to achieve scroll linkage between the applet and the webpage.
+ID is the ID value returned when starting the applet.
+Code is the scroll direction. 1 is horizontal, 2 is vertical, 3 is both.
+Left is the horizontal scrollbar position. Top is the vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change the display position or size of the PDF web applet in the webpage:
+When the webpage display area zooms, the display position or size of the applet can be dynamically modified.
+ID is Wrl_PdfWebApplet or the ID value returned in the JSON when starting the applet by specifying PdfWebApplet via Wrl_AppletStart. Width and Height are the new width and height respectively.
+X and Y are the new display positions. When not specified, remain unchanged. When specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or, modify the applet display starting coordinates simultaneously:
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical scroll and horizontal scroll position:
+When the applet display area exceeds the current webpage, the display impact of the scrollbar needs to be removed.
+ID is Wrl_PdfWebApplet or the ID value returned in the JSON when starting the applet by specifying PdfWebApplet via Wrl_AppletStart. BarW is reserved right width. BarH is reserved bottom height.
+Code 1 represents horizontal scrollbar exists, 2 represents vertical scrollbar exists, 3 represents both exist.
+ScrollTop vertical scrollbar position. ScrollLeft horizontal scrollbar position.
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to perform Alpha transparency processing on the applet window, convenient for the front-end to temporarily display menus, etc., covering the applet window:
+ID is Wrl_PdfWebApplet or the ID value returned in the JSON when starting the applet by specifying PdfWebApplet via Wrl_AppletStart. Alpha is the transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to take a screenshot of the applet window content:
+ID: The aid instance value returned when starting the applet.
+File: Specify the screenshot file save path or extension.
+Base64: When specified as 1, it means to return the BASE64 encoded image content.
+Flag: If the screenshot of the embedded applet window (e.g., DirectUI or Direct3D drawing) is abnormal, you can additionally specify it as 1 to see the effect. Furthermore, if multiple screenshots or frame-selected screenshots are needed, you can add 2 or 4 to start the screenshot tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to scale the embedded web applet, used for browser webpage proportional scaling, generally no need to handle:
+ID is Wrl_PdfWebApplet or the ID value returned in the JSON when starting the applet by specifying PdfWebApplet via Wrl_AppletStart. When Scale is not specified, get the current scaling percentage used by the applet, generally consistent with the system scaling ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Applet Installation, Upgrade, Uninstallation
+1) Request to install PDF web applet
+Please enter the following request in the test webpage input box, then click Send to complete installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"PDF网页小程序","PID":"PdfWebApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的PDF内嵌网页小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌PDF阅读及编辑器","DownAddr":"http://local.zorrosoft.com/Files/Net/PdfWebApplet.pid","MD5":"5312732783E31DDFF1FD8302F4697ED9","Version":"2.2.17.6","Size":917504,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"3216090211BD7C66C7D591DEF791BEB42ABEA07175E9F0B28A81FF259D9641600110512086D60CF5E2D1524ECDCACA31CEDFBDB07597FF5DBD848E9786AAF5A3317B0D02EE3FC47249746F4C9ECAD475066AC04953C8CDD54DF51B4AE6A51C036C884A5B2D46FACC8CB9E35A40E28B65C37BB0B1EDD32197A77D51B72F90B5A5E020161E3667E5B0C37911E2AEDAEF3194F76174F36383C3876E55A0BBC7CB92134B51EB27255AE8217871009532E3D381100716D658960B65874791FC56258390EE18B0AA6D31C4677F37DC46F3208C4408EE3D750F860D3A5CA66B30C629A9A04E920EEAB03B9BD7B9A494229EEFA71E780316F9A0A855989F88E963E46FBD"}}
+
+After starting the installation, the installation progress will be continuously received until the installation ends.
+
+2) Request to upgrade PDF web applet:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"PDF网页小程序","PID":"PdfWebApplet","Date":"2025-05-30","Desc":"猿大师之上跨浏览器的PDF内嵌网页小程序，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中内嵌PDF阅读及编辑器","DownAddr":"http://local.zorrosoft.com/Files/Net/PdfWebApplet_Update.pid","MD5":"631FBCC28D34948BE1AD71DE8A04B432","Version":"2.2.17.6","Size":917504,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"71F2FC04DD6632465443E6D191ADF3FD1C637BFABD4C19ED6B058D510A3C0DB1033A952AFB4C2AFAB4CD548ACAE69A7FC167190694AC8F663338AF13D98BC8A55847A5EA34FE403F6CDD4CD83A92749076ED32565947C67A905562FF9008699E4F723EDE6EFA46A6333C45EDBB8C9C63EC4E62F44461865044E5243DC6C48E9AC6D86365D451441E9361152BA46DB2CDB75DA836EFF1F73B0E93E824B4B35E104B4E8881DD81CEECDEBE7AC1C920AB3663C5C0E4421510472DCC788DF178E45BBE3550B666AD55AAFEAF0B83D85D8C6A6E6B38B046E3FFB5F415A37F37ED90FE90F84DFF0BFA89241FA71B026CF01CD96E487859BD6B428510707974FA565990"}}
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If errors occur during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall PDF web applet:
+The official version requires adding TK verification. Specific rules please refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. The packaged program ZbaPackage.exe in the SDK package can generate requests with TK in middleware maintenance.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"PdfWebApplet","Type":8}}
+
+4. PDF Web Applet transfers calls to Adobe's ActiveX or Foxit OFD Format Office Suite control interface. First, after starting the request by specifying PdfWebApplet via Wrl_PdfWebApplet or Wrl_AppletStart, obtain the returned port number. After establishing a new WebSocket connection, the following commands can be executed:
+A、Common function requests:
+1) Specify PDF file to load and open. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+File Local file path, \ slash replaced with backslash /. Special characters or Chinese should be UrlEncode encoded first.
+Request: {"req":"PDF_LoadFile","rid":50,"para":{"File":"d:/Zorro/PluginOK.pdf"}}
+Return: {"ret":0,"rid":50,"data":{"Ret":"0"}}
+ret is the request return value, 0 is normal, non-zero is abnormal. When abnormal, take the error description err at the same level as ret. Same below.
+
+2) Set open source, generally used to open server documents. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_SetSrc","rid":51,"para":{"Src":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+Return: {"ret":0,"rid":51,"data":{"Ret":"0"}}
+Ret is the return value of calling the corresponding ActiveX function, 0 represents normal.
+
+3) Get open source. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GetSrc","rid":52,"para":{}}
+Return: {"ret":0,"rid":52,"data":{"Ret":"0","Src":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+
+4) Get version information. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GetVersion","rid":53,"para":{}}
+Return: {"ret":0,"rid":53,"data":{"Ret":"0","Version":""}}
+
+5) Set whether to display toolbar. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_SetShowToolbar","rid":54,"para":{"Toolbar":1}}
+Return: {"ret":0,"rid":54,"data":{"Ret":"0"}}
+
+6) Get whether toolbar is displayed. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GetShowToolbar","rid":55,"para":{}}
+Return: {"ret":0,"rid":55,"data":{"Toolbar":1}}
+
+7) Set whether to display scrollbar. Only Adobe ActiveX supports.
+Request: {"req":"PDF_SetShowScrollbar","rid":56,"para":{"Scrollbar":1}}
+Return: {"ret":0,"rid":56,"data":{"Ret":"0"}}
+
+8) Get whether scrollbar is displayed. Only Adobe ActiveX supports.
+Request: {"req":"PDF_GetShowScrollbar","rid":57,"para":{}}
+Return: {"ret":0,"rid":57,"data":{"Scrollbar":1}}
+
+9) Set zoom percentage. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Percent Percentage
+Left Horizontal scroll amount. Optional. Scrolls the page view horizontally and vertically according to the specified amount. Only Adobe ActiveX supports.
+Top Vertical scroll amount. Optional. Only Adobe ActiveX supports.
+Request: {"req":"PDF_SetZoom","rid":58,"para":{"Percent":100,"Left":0,"Top":0}}
+Return: {"ret":0,"rid":58,"data":{"Ret":"0"}}
+
+10) Get zoom percentage. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GetZoom","rid":59,"para":{}}
+Return: {"ret":0,"rid":59,"data":{"Percent":100}}
+
+11) Set page mode. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+ Corresponds to setDisPlayMode in Foxit OFD Format Office Suite. Mode is a number.
+Request: {"req":"PDF_SetPageMode","rid":60,"para":{"Mode":"None"}}
+Request: {"req":"PDF_SetPageMode","rid":60,"para":{"Mode":"thumbs"}}
+Request: {"req":"PDF_SetPageMode","rid":60,"para":{"Mode":"Bookmarks"}}
+Return: {"ret":0,"rid":60,"data":{"Ret":"0"}}
+
+12) Set layout mode. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Corresponds to setZoomMode in Foxit OFD Format Office Suite. Mode is a number.
+Request: {"req":"PDF_SetLayoutMode","rid":61,"para":{"Mode":"SinglePage"}}
+Request: {"req":"PDF_SetLayoutMode","rid":61,"para":{"Mode":"onecolumn"}}
+Request: {"req":"PDF_SetLayoutMode","rid":61,"para":{"Mode":"twocolumnleft"}}
+Request: {"req":"PDF_SetLayoutMode","rid":61,"para":{"Mode":"twocolumnright"}}
+Request: {"req":"PDF_SetLayoutMode","rid":61,"para":{"Mode":"dontcare"}}
+Return: {"ret":0,"rid":61,"data":{"Ret":"0"}}
+
+13) Set view mode. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Corresponds to setReadMode in Foxit OFD Format Office Suite. Mode is a number.
+Mode View mode: "Fit": fits the entire page within the window both vertically and horizontally. "FitH": fits the entire width of the page within the window. "FitV": fits the entire height of the page within the window. "FitB": fits the bounding box within the window both vertically and horizontally. "FitBH": fits the entire width of the bounding box within the window. "FitBV": fits the entire height of the bounding box within the window.
+Offset Optional parameter. According to the view mode, the page either scrolls to the right or scrolls by the amount specified by the offset.
+Request: {"req":"PDF_SetViewMode","rid":62,"para":{"Mode":"Fit","Offset":0}}
+Return: {"ret":0,"rid":62,"data":{"Ret":"0"}}
+
+14) Set view area. Only Adobe ActiveX supports.
+Left Top are the starting horizontal and vertical coordinates respectively.
+Width Height are the width and height respectively.
+Request: {"req":"PDF_SetViewRect","rid":63,"para":{"Left":0,"Top":0,"Width":300,"Height":300}}
+Return: {"ret":0,"rid":63,"data":{"Ret":"0"}}
+
+15) Change the page view to the specified target in the specified string. Only Adobe ActiveX supports.
+Request: {"req":"PDF_SetNamedDest","rid":64,"para":{"NamedDest":""}}
+Return: {"ret":0,"rid":64,"data":{"Ret":"0"}}
+
+16) Execute command. Only Adobe ActiveX supports.
+Request: {"req":"PDF_ExecCommand","rid":65,"para":{"Command":""}}
+Return: {"ret":0,"rid":65,"data":{"Ret":"0"}}
+
+17) Jump to first page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GotoFirstPage","rid":66,"para":{}}
+Return: {"ret":0,"rid":66,"data":{"Ret":"0"}}
+
+18) Jump to last page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GotoLastPage","rid":67,"para":{}}
+Return: {"ret":0,"rid":67,"data":{"Ret":"0"}}
+
+19) Jump to next page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GotoNextPage","rid":68,"para":{}}
+Return: {"ret":0,"rid":68,"data":{"Ret":"0"}}
+
+20) Jump to previous page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_GotoPrePage","rid":69,"para":{}}
+Return: {"ret":0,"rid":69,"data":{"Ret":"0"}}
+
+21) Set current page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_SetCurPage","rid":70,"para":{"Page":1}}
+Return: {"ret":0,"rid":70,"data":{"Ret":"0"}}
+
+22) If the next view exists, go to the next view in the view stack. The next view may be in another document. Only Adobe ActiveX supports.
+Request: {"req":"PDF_GotoForwardStack","rid":71,"para":{}}
+Return: {"ret":0,"rid":71,"data":{"Ret":"0"}}
+
+23) If the previous view exists, go to the previous view on the view stack. The previous view may be in a different document. Only Adobe ActiveX supports.
+Request: {"req":"PDF_GotoBackwardStack","rid":72,"para":{}}
+Return: {"ret":0,"rid":72,"data":{"Ret":"0"}}
+
+24) Highlight the text selection in the specified boundary rectangle on the current page. Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+a b c d Specify parameters. Foxit OFD Format Office Suite corresponds to calling setFormHighlightColor.
+Request: {"req":"PDF_SetCurHighlight","rid":73,"para":{"a":0,"b":0,"c":100,"d":100}}
+Return: {"ret":0,"rid":73,"data":{"Ret":"0"}}
+
+25) Print the document according to the options selected in the user dialog. These options include embedded printing (printing within one boundary rectangle on a given page), and interactive printing to a specified printer.
+WithDialog 1 pops up print dialog, 0 does not pop up.
+Supports Adobe ActiveX and Foxit OFD Format Office Suite.
+Request: {"req":"PDF_Print","rid":74,"para":{"WithDialog":0}}
+Return: {"ret":0,"rid":74,"data":{"Ret":"0"}}
+
+26) Print the entire document without displaying a user dialog. If necessary, pages are shrunk to fit the imaginable area of the page in the printer. Uses the default printer, page settings, and job settings.
+ShrinkToFit Optional parameter. 1 auto adapt zoom, 0 no auto adapt. Only Adobe ActiveX supports.
+Request: {"req":"PDF_PrintAll","rid":75,"para":{"ShrinkToFit":0}}
+Return: {"ret":0,"rid":75,"data":{"Ret":"0"}}
+
+27) Call to print specified pages. Does not display user dialog. Uses default printer, page settings, and job settings. Only Adobe ActiveX supports.
+From 1 Start page
+To 2 End page
+ShrinkToFit Optional parameter. 1 auto adapt zoom, 0 no auto adapt.
+Request: {"req":"PDF_PrintPages","rid":75,"para":{"From":1,"To":2}}
+Return: {"ret":0,"rid":75,"data":{"Ret":"0"}}
+
+28) Call save. Only Foxit OFD Format Office Suite supports.
+Url Background document receiving address. Needs UrlEncode first.
+SaveFormData Whether to save FormData.
+Request: {"req":"PDF_SaveFile","rid":76,"para":{"Url":"","SaveFormData":0}}
+Return: {"ret":0,"rid":76,"data":{"Ret":"0"}}
+
+29) Network file operation
+Type 1 Upload file, 0 Download file
+Asyn Default 0, specify 1 for asynchronous upload or download. Asynchronous upload requires separate use with the file operation applet to be usable.
+Agent, Cookie, and Auth Cookie can pass the browser's Cookie or use Auth authorization to verify upload permission. Default is empty. If not empty, UrlEncode encoding is needed first.
+Local Upload file local path or download file save path. If not specified, the currently opened document is used by default. UrlEncode encoding is needed.
+Url Upload or download address. UrlEncode encoding is needed.
+When Type is 1, parameter Para can be added, corresponding to the param parameter that needs to be passed in the POST data packet. Default upload file name is upfile. Otherwise, you can set your own file parameter name via NodeName.
+When Type is 0, parameters MD5 and FileSize can be added. Hash value and size of the downloaded file, used to verify the integrity of the downloaded file. Can be default empty or 0.
+{"req":"PDF_NetFile","rid":77,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/CadDoc/test.dwg","Url":"http://test.yuanmaster.com/Files/test.dwg"}}
+{"req":"PDF_NetFile","rid":77,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":77,"data":{"Ret":"0"}}
+
+30) Specify ID window overlay rendering content in webpage. Windows 8 and above operating systems support normally. This machine needs to install Microsoft Edge WebView2 Runtime.
+Url is the transparent webpage address. If there are special symbols, please UrlEncode first. Set to empty string to cancel overlay.
+Alpha Transparency (0-255). Default 255 opaque. Windows 7 and below systems do not support transparency.
+Rect node sets overlay window position and size. When not set, represents the entire area. E represents margin default 1. X/Y/W/H represent the starting point and width/height of the overlay window displayed in the split screen window. P is the display position type. When greater than 0, replaces X and Y. 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right.
+{"req":"PDF_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"PDF_FloatWebInfo","rid":30,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":30,"data":{"Ret":0}}
+
+31) Request to exit applet
+When not connected to the applet listening WS port, directly close the connection to the middleware WS.
+Request: {"req":"PDF_Exit","rid":31,"para":{}}
+No return
+
+The following are general request methods for VBA interface functions not separately encapsulated:
+80) Request to get property value
+Name Specify property name. The control interface exists as top-level by default. If encountering sub-interface access, add the sub-interface name to the name. Supports multiple levels. For example, to get the name of the current document, use ActiveDocument.Name. Same below.
+{"req":"PDF_GetProperty","rid":80,"para":{"Name":"Version"}}
+{"req":"PDF_GetProperty","rid":80,"para":{"Name":"ActiveDocument.Name"}}
+Return: {"ret":0,"rid":100,"data":{"Ret":0,"Val":""}}
+
+81) Request to set property
+Name Specify property name. If setting a sub-interface, add the sub-interface name to the name. Supports multiple levels.
+{"req":"PDF_PutProperty","rid":81,"para":{"Name":"Visible","Val":"-1"}}
+{"req":"PDF_PutProperty","rid":81,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Return: {"ret":0,"rid":101,"data":{"Ret":0}}
+
+82) Request method with no incoming parameters
+Name Specify method name. If calling a sub-interface, add the sub-interface name to the name. Supports multiple levels. For example, to call the VLC playlist play method, use playlist.play. Same below.
+DID Can also specify method sequence number.
+{"req":"PDF_Invoke0","rid":82,"para":{"Name":"ScreenRefresh"}}
+{"req":"PDF_Invoke0","rid":82,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":102,"data":{"Ret":0,"Val":""}}
+
+83) Request method with only 1 incoming parameter
+Name Specify method name. If calling a sub-interface, add the sub-interface name to the name. Supports multiple levels. For example, to call the VLC playlist add method, use playlist.add. Same below.
+DID Can also specify method sequence number.
+Para1 Corresponding parameter value.
+{"req":"PDF_Invoke1","rid":83,"para":{"Name":"CleanString","Para1":"Test"}}
+{"req":"PDF_Invoke1","rid":83,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":103,"data":{"Ret":0,"Val":""}}
+
+84) Request method with only 2 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1 and Para2 correspond to parameter 1 and 2 values respectively. If a value can be omitted, it may not be passed. For example, only pass Para1. Same below.
+{"req":"PDF_Invoke2","rid":84,"para":{"Name":"KeyString","Para1":"","Para2":""}}
+{"req":"PDF_Invoke2","rid":84,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":104,"data":{"Ret":0,"Val":""}}
+
+85) Request method with only 3 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values respectively.
+{"req":"PDF_Invoke3","rid":85,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}
+Return: {"ret":0,"rid":85,"data":{"Ret":0,"Val":""}}
+
+86) Request method with only 4 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values respectively.
+{"req":"PDF_Invoke4","rid":86,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}
+Return: {"ret":0,"rid":86,"data":{"Ret":0,"Val":""}}
+
+87) Request method with only 5 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values respectively.
+{"req":"PDF_Invoke5","rid":87,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":87,"data":{"Ret":0,"Val":""}}
+
+88) Request method with only 6 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values respectively.
+{"req":"PDF_Invoke6","rid":88,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":88,"data":{"Ret":0,"Val":""}}
+
+89) Request method with only 7 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values respectively.
+{"req":"PDF_Invoke7","rid":89,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":89,"data":{"Ret":0,"Val":""}}
+
+90) Request method with only 8 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values respectively.
+{"req":"PDF_Invoke8","rid":90,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":90,"data":{"Ret":0,"Val":""}}
+
+91) Request method with only 9 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values respectively.
+{"req":"PDF_Invoke9","rid":91,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":91,"data":{"Ret":0,"Val":""}}
+
+92) Request method with only 10 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values respectively.
+{"req":"PDF_InvokeA","rid":92,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":92,"data":{"Ret":0,"Val":""}}
+
+93) Request method with only 11 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values respectively.
+{"req":"PDF_InvokeB","rid":93,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":93,"data":{"Ret":0,"Val":""}}
+
+94) Request method with only 12 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values respectively.
+{"req":"PDF_InvokeC","rid":94,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":94,"data":{"Ret":0,"Val":""}}
+
+95) Request method with only 13 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values respectively.
+{"req":"PDF_InvokeD","rid":95,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":95,"data":{"Ret":0,"Val":""}}
+
+96) Request method with only 14 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values respectively.
+{"req":"PDF_InvokeE","rid":96,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":96,"data":{"Ret":0,"Val":""}}
+
+97) Request method with only 15 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values respectively.
+{"req":"PDF_InvokeF","rid":97,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":97,"data":{"Ret":0,"Val":""}}
+
+98) Request method with only 16 incoming parameters
+Name Specify method name.
+DID Can also specify method sequence number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values respectively.
+{"req":"PDF_InvokeG","rid":98,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":98,"data":{"Ret":0,"Val":""}}
+
+5. Notifications received by the PDF web applet:
+These notifications must be received by connecting to the port listened by this applet via WebSocket.
+A、ActiveX events, Foxit OFD Format Office Suite supports:
+1) PDF_OnOpenFile Open file result notification
+{"event":"PDF_OnOpenFile","data":{"ErrorCode":0}} ErrorCode 0 represents normal.
+
+2) PDF_OnPagenumchaged Page number change notification
+{"event":"PDF_OnPagenumchaged","data":{"Index":0}} Index page number.
+
+3) PDF_OnPageScaleChange Page zoom notification
+{"event":"PDF_OnPageScaleChange","data":{"Scale":0}} Scale zoom ratio.
+
+4) PDF_OnPrintStatus Print status notification
+{"event":"PDF_OnPrintStatus","data":{"Status":0}} Status print status.
+
+5) PDF_OnSaveFile Save file notification
+{"event":"PDF_OnSaveFile","data":{"Error":0}} Error error code 0 is normal.
+
+6) PDF_OnSignFile Sign notification
+{"event":"PDF_OnSignFile","data":{"Error":0}} Error error code 0 is normal.
+
+7) PDF_OnToolbarClick Toolbar click notification
+{"event":"PDF_OnToolbarClick","data":{"Name":""}} Name name.
+
+8) PDF_OnPrintSetting Print setting notification
+{"event":"PDF_OnPrintSetting","data":{"Status":""}} Status status.
+
+9) PDF_OnOpenfilePath Open file notification
+{"event":"PDF_OnOpenfilePath","data":{"Path":""}} Path file full path.
+
+10) PDF_OnPDFtoOFD PDF to OFD notification
+{"event":"PDF_OnPDFtoOFD","data":{"Path":""}} Path file full path.
+
+B、Supported event notifications:
+
+1) PDF_FullScreen Whether the applet responded to the hotkey full screen
+{"event":"PDF_FullScreen","data":{"FullScreen":0}} FullScreen is the current full screen flag.
+
+2) Wrl_AppletExit Applet exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+6、Other
+The JSON data packet for request parameters must be UTF-8 without BOM encoding.
+For more interface request instructions, please refer to the document TestWrl.txt in the installation directory and "ApeMaster Developer Manual.pdf" in the SDK package.

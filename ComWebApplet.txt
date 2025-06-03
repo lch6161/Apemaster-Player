@@ -1,0 +1,237 @@
+COM Automation Component Web Applet, developed based on the cross-browser native applet system - ApeMaster Middleware Network Standard Edition, provides proxy invocation services for COM components implementing the IDispatch or IDispatchEx automation interface without requiring UI interaction. Usable in all browsers supporting WebSocket connections, including IE8 and above.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a portable package, please extract it to a disk directory, then double-click "InstallWrl.bat" for installation;
+3) Upon completion of installation, the ApeMaster Middleware service will start. The operation status is output in the ZbaService.txt log file in the Data subdirectory under the installation directory;
+4) This applet cannot run under system services. It is necessary to modify NoService to 1 in ZbaConfig.json before installation. If this configuration file in the data directory already exists, it needs to be modified accordingly.
+
+2. Installation Upgrade Test:
+1. Install COM Automation Component Web Applet
+Please enter the following request in the test webpage input box, then click Send to complete the installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"ComWebApplet","PID":"ComWebApplet","Date":"2025-05-30","Desc":"Com Web Applet","DownAddr":"http://local.zorrosoft.com/Files/Net/ComWebApplet.pid","MD5":"1B6A237C869B463E69F06A7732A7219C","Version":"2.2.17.6","Size":753664,"HideIns":0,"Type":2,"Cookie":"","Auth":"","TK":"38DDAF3561A79BC3BB03508000A675E4D48F2D7864022D5ECC36702F133AD6075BA818A94018C283414FF4B1655D7594FF53889F16C65F18A0010723591B02E78E284618967F1DA37B31AC8E3F84386E5C66050255A3C1382F92F9B50C2FAB1B239354304EDE2AEE81A5E17110A9CD4BA72E4ABB5119B61E3CE643E7B67E8EEDDBE7984D30CEFE7468FE3107E7D66E575CCD1DB873153EA8B72ACC5B461EF437E01CE8A522B6217EE63D947176EEC03056E7AEC626B2B55A63CE112F852DEDFDFE08FA5412DE9C8F7732F0BC19A99D955D9C97C82EE65234AFE299536A15DF43BAB5D32EECDA0C4FE9B0F5B2F34365E5F68627EDD536F128459BA0DAE17F3F45"}}
+
+3. Request to upgrade COM Automation Component Web Applet:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"ComWebApplet","PID":"ComWebApplet","Date":"2025-05-30","Desc":"Com Web Applet","DownAddr":"http://local.zorrosoft.com/Files/Net/ComWebApplet_Update.pid","MD5":"3A18A6B8E2018B1ADA9BD581EDC67FAB","Version":"2.2.17.6","Size":753664,"HideIns":0,"Type":2,"Cookie":"","Auth":"","TK":"8F24F00C047C478C9859A461EE8A71AB837BB371108FDC58641C15CF961AA7B25403EB0E4BA64C7950A50D409126149AA95F393063F895A096CA86E250767C4A53309D28EA193226675BB11EA630323F9D0BEF7C55AFB534BA19DA93DAA65D8EE9F906437CC7302869833D4FB0094928311D677D2508A3660363B365A8D02F082E3D0A36EDE826A4AC57C7469D148E929A398DE0420476A31C0CC92E3946DF03E911C89DDF12996FE0728B2CAF0B2F9F30D84BCE50077BD58C56E7F1D0AC5FFE9602CD46299BA44CB75968B2751F665B3C49250C3AE4524A401224108E2A478E661CC42699FC7C5580A5B90B2F8BE02D4B1C16F91BF4E6ED58306AE01D2BEE32"}}
+
+4. Uninstall the applet:
+The official version requires adding TK verification. Specific rules please refer to the document "Middleware Security Solution.pdf" in the SDK package. You can use the packaging program ZbaPackage.exe in the SDK package's middleware maintenance to generate requests with TK.
+Example:
+{"req":"Plugin_Remove","rid":50,"para":{"PID":"ComWebApplet","Type":2}}
+
+5. Frontend request to uninstall the middleware:
+The official version requires adding TK verification. Specific rules please refer to the document "Middleware Security Solution.pdf" in the SDK package. You can use the packaging program ZbaPackage.exe in the SDK package's middleware maintenance to generate requests with TK.
+Example:
+{"req":"Wrl_Remove","rid":22,"para":{}}
+Note: Can be executed after connecting to the main service;
+
+6. Connect to request COM Automation Component Web Applet service:
+Note: The following functions can be executed after establishing a Web Socket connection. If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), please specify the port number in the connection address.
+HTTP webpage online test: http://test.yuanmaster.com/   HTTPS webpage online test: https://test.yuanmaster.com/
+Taking launching a hidden instance of Microsoft Office Word automation as an example, pid is a fixed value. The actual automation instance to be launched is achieved by specifying ProgID or ClassID.
+Open the test webpage, input the address:
+ws://localhost:83?sid=112&pid=ComWebApplet&ProgID=Word.Application&flag=1
+or use
+ws://localhost:83?sid=112&pid=ComWebApplet&ClassID={000209FF-0000-0000-C000-000000000046}&flag=1
+Click Connect to start. After starting, receive a notification of the current instance's listening port number, as shown below:
+
+1) Supported protocol functions:
+A. Request to exit the applet
+Normal shutdown procedure and method: First request this function in this WS connection. After the frontend receives the notification to close this connection, then close the WS connection to the middleware.
+{"req":"COM_Exit","rid":1,"para":{}}
+No return
+
+B. Add event reception notification
+EventID event interface UUID
+EventList list of event IDs to be notified
+EventID examples for Word application events (may vary by version):
+ApplicationEvents4 : 00020A01-0000-0000-C000-000000000046
+ApplicationEvents3 : 00020A00-0001-0000-C000-000000000046
+ApplicationEvents2 : 000209FE-0001-0000-C000-000000000046
+ApplicationEvents : 000209F7-0000-0000-C000-000000000046
+{"req":"COM_AddEvent","rid":2,"para":{"EventID":"{00020A01-0000-0000-C000-000000000046}","EventList":[2,3,4,5,6]}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}}
+
+C. Remove event reception notification
+EventList list of event IDs to be notified
+Example for Word application:
+{"req":"COM_RemoveEvent","rid":3,"para":{"EventList":[2,3]}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}}
+
+D. Get the program file version of the COM automation component
+{"req":"COM_Version","rid":4,"para":{}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","Version":"3.0.3"}}
+
+E. Network file operation
+Type 1 upload file 0 download file
+Asyn Default 0, specify 1 for asynchronous upload or download. Asynchronous upload requires separate use with the file operation applet.
+Agent, Cookie, and Auth Cookie can pass the browser's Cookie or Auth authorization to verify upload permissions. Default is empty. If not empty, UrlEncode encoding must be performed first.
+Local Local path for upload file or save path for download file. If not specified, uses the currently opened document by default. Requires UrlEncode encoding.
+Url Address for upload or download. Requires UrlEncode encoding.
+When Type is 1, the parameter Para can be added, corresponding to the param parameter to be passed in the POST data packet. The default uploaded file name is upfile. Otherwise, use NodeName to set your own file parameter name.
+When Type is 0, parameters MD5 and FileSize can be added, representing the hash value and size of the downloaded file, used to verify the integrity of the downloaded file. Can be empty or 0 by default.
+{"req":"COM_NetFile","rid":5,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/PdfDoc/test.pdf","Url":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+{"req":"COM_NetFile","rid":5,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://www.yuanmaster.com"}}
+Return: {"ret":0,"rid":5,"data":{"Ret":"0"}}
+
+2) Supported automation interface function requests
+A. Request to get property value
+Name specifies the property name. If accessing a sub-interface, append the sub-interface name, supporting multiple levels. For example, to get the currently selected text content, use Selection.Text (same below).
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"Version"}}
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"ActiveDocument.Name"}}
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"Selection.Text"}}
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"Selection.Start"}}
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"Selection.End"}}
+{"req":"COM_GetProperty","rid":11,"para":{"Name":"Selection.Information","Para1":"2"}}
+Return: {"ret":0,"rid":11,"data":{"Ret":0,"Val":""}}
+If an automation interface is returned, the Val value is like this: playlist={CatchDispatch}. When continuing to call properties or methods of this automation interface, specify the parameter {CatchDispatch} in subsequent requests. Otherwise, the main interface of the control is called by default. (Same below)
+
+B. Request to set property
+Name specifies the property name. If setting a sub-interface, append the sub-interface name, supporting multiple levels.
+Val specifies the property value. Strings are enclosed in "". If the string contains \ or ", escape characters \ are needed. Numeric types do not use "". For BOOL type, set to -1 for true.
+When needing to release a cached automation interface, Name can be specified as something like playlist={CatchDispatch}, Val set to 0 or empty.
+Set whether the application window is visible
+{"req":"COM_PutProperty","rid":12,"para":{"Name":"Visible","Val":"-1"}}
+Set whether the WORD document is saved
+{"req":"COM_PutProperty","rid":12,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Set PPT slide show interface to enable laser pointer
+{"req":"COM_PutProperty","rid":12,"para":{"Name":"ActivePresentation.SlideShowWindow.View.PointerType","Val":"2"}}
+Return: {"ret":0,"rid":12,"data":{"Ret":0}}
+
+C. Request method with no input parameters
+Name specifies the method name. If calling a sub-interface, append the sub-interface name, supporting multiple levels. For example, the name for the current document print preview is ActiveDocument.PrintPreview (same below).
+DID can also specify the method ID.
+{"req":"COM_Invoke0","rid":13,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":13,"data":{"Ret":0,"Val":""}}
+
+D. Request method with only 1 input parameter
+Name specifies the method name. If calling a sub-interface, append the sub-interface name, supporting multiple levels. For example, setting compatibility mode for the current document uses ActiveDocument.SetCompatibilityMode (same below).
+DID can also specify the method ID.
+Para1 corresponds to the parameter value.
+{"req":"COM_Invoke1","rid":14,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":14,"data":{"Ret":0,"Val":""}}
+
+E. Request method with only 2 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1 and Para2 correspond to parameter 1 and 2 values respectively. Optional values can be omitted, e.g., only pass Para1. (Same below)
+{"req":"COM_Invoke2","rid":15,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":15,"data":{"Ret":0,"Val":""}}
+
+F. Request method with only 3 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values respectively.
+{"req":"COM_Invoke3","rid":16,"para":{"Name":"printPagesFit","Para1":"1","Para2":"2","Para3":"0"}}
+Return: {"ret":0,"rid":16,"data":{"Ret":0,"Val":""}}
+
+G. Request method with only 4 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values respectively.
+{"req":"COM_Invoke4","rid":17,"para":{"Name":"setCurrentHighlight","Para1":255,"Para2":0,"Para3":255,"Para4":0}}
+Return: {"ret":0,"rid":17,"data":{"Ret":0,"Val":""}}
+
+H. Request method with only 5 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values respectively.
+Foxit OFD Office Suite OCX call to open document
+{"req":"COM_Invoke5","rid":18,"para":{"Name":"openFile","Para1":"d:/zorro/test.pdf","Para2":"0","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":18,"data":{"Ret":0,"Val":""}}
+
+I. Request method with only 6 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values respectively.
+{"req":"COM_Invoke6","rid":19,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":19,"data":{"Ret":0,"Val":""}}
+
+J. Request method with only 7 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values respectively.
+{"req":"COM_Invoke7","rid":20,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":20,"data":{"Ret":0,"Val":""}}
+
+K. Request method with only 8 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values respectively.
+{"req":"COM_Invoke8","rid":21,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":21,"data":{"Ret":0,"Val":""}}
+
+L. Request method with only 9 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values respectively.
+{"req":"COM_Invoke9","rid":22,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":22,"data":{"Ret":0,"Val":""}}
+
+M. Request method with only 10 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values respectively.
+{"req":"COM_InvokeA","rid":23,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":23,"data":{"Ret":0,"Val":""}}
+
+N. Request method with only 11 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values respectively.
+{"req":"COM_InvokeB","rid":24,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":24,"data":{"Ret":0,"Val":""}}
+
+O. Request method with only 12 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values respectively.
+{"req":"COM_InvokeC","rid":25,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":25,"data":{"Ret":0,"Val":""}}
+
+P. Request method with only 13 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values respectively.
+{"req":"COM_InvokeD","rid":26,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":26,"data":{"Ret":0,"Val":""}}
+
+Q. Request method with only 14 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values respectively.
+{"req":"COM_InvokeE","rid":27,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":27,"data":{"Ret":0,"Val":""}}
+
+R. Request method with only 15 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values respectively.
+{"req":"COM_InvokeF","rid":28,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":28,"data":{"Ret":0,"Val":""}}
+
+S. Request method with only 16 input parameters
+Name specifies the method name.
+DID can also specify the method ID.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values respectively.
+Taking Word opening a document as an example, requires 16 parameters, though some can be left empty if not needed.
+{"req":"COM_InvokeG","rid":29,"para":{"Name":"Documents.Open","Para1":"d:\\Zorro\\Test.docx","Para3":"0","Para4":"0","Para13":"0"}}
+Return: {"ret":0,"rid":29,"data":{"Ret":0,"Val":"Documents.Open6334={CatchDispatch}"}}
+The request opened and cached an automation interface instance Documents.Open6334. Through this instance name, operations can continue, e.g., requesting a property:
+{"req":"COM_GetProperty","rid":30,"para":{"{CatchDispatch}":"Documents.Open6334","Name":"FullName"}}
+Return again {"ret":0,"rid":30,"data":{"Ret":0,"Val":"D%3A%5CZorro%5CTest.docx"}}
+Or setting a property
+{"req":"COM_PutProperty","rid":31,"para":{"{CatchDispatch}":"Documents.Open6334","Name":"Saved","Val":"-1"}}
+If wanting to release the cached automation interface, call the following interface:
+{"req":"COM_PutProperty","rid":32,"para":{"Name":"Documents.Open6334={CatchDispatch}"}}
+
+3) Supported event notifications:
+COM automation component event notification example (VLC):
+{"event":"COM_Event","DispID":203,"data":{}} /// Represents playback start
+{"event":"COM_Event","DispID":211,"data":{"Para1":0.903101}} /// Notifies playback position
+
+7. Other
+For the JSON data packet of request parameters, please ensure it is UTF-8 encoding without BOM.
+For more interface request descriptions, please refer to the document TestWrl.txt in the installation directory, and "Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.

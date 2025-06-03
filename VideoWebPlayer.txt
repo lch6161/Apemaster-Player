@@ -1,1025 +1,878 @@
-﻿The ApeMaster Player is developed based on the cross-browser native applet system, using the ApeMaster middleware network advanced edition. It leverages underlying support from Hikvision and Dahua device network SDKs (download links: Hikvision SDK](https://openhikvision.com/download/5cda567cf47ae80dd41a54b3?type=10), Dahua SDK](https://support.dahuatech.com/tools/sdkExploit)) and the open-source LibVLC support library (VLC media player installation required or a portable VLC desktop application).
+﻿RTSP Web Multi-Engine Player (Supports Multiple Channels): Developed based on the cross-browser native mini-program system - ApeMaster Middleware Network Advanced Edition. The underlying layer can call device network SDKs from Hikvision and Dahua (Hikvision SDK download: https://open.hikvision.com/download/5cda567cf47ae80dd41a54b3?type=10 Dahua SDK download: https://support.dahuatech.com/tools/sdkExploit ) and the open-source LibVLC support library (requires installation of VLC media player or pairing with the green version of the VLC desktop program) to achieve playback.
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Extreme/Secure Browser, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, QiAnXin, RedLotus, Dual-core browsers, etc., including low versions. Also compatible with the latest versions of these browsers.
+Recommended for use on Windows 10 and above. For XP, VLC version 2.2.8 is suggested. For systems above XP, the latest versions 3.0.21 or 4.0 are recommended. Copyrights for VLC, Hikvision, Dahua SDK, and other playback engines belong to their respective companies.
 
-Supported Browsers：
+Advantages of this mini-program:
+1) The preferred playback solution in the entire market capable of achieving low latency (around 200 milliseconds), supported by mainstream browser versions;
+2) Supports simultaneous real-time playback of multiple channels, playback, frame-by-frame rewind, next frame, screenshot capture, screen recording, good performance for HD video or large-screen playback;
+3) Underlying playback technology uses Hikvision and Dahua Device Network SDKs (copyright belongs to the original manufacturers), supports Hikvision and Dahua private protocols, RTSP stream playback, PTZ control, voice intercom, etc., supports H.264 and H.265;
+4) Additional payment grants access to the source code of the playback mini-program for custom development;
+5) Supports Hikvision and Dahua cameras, Hikvision DVRs, and various series of devices;
+6) Supports local MP4 and other video files, and network stream playback like RTSP, RTMP, MMS.
 
-It is compatible with Chrome 41, Firefox 50, Edge 80 (Chromium-based), IE 8, Opera, Yandex, Electron, 360 Speed/Safe browsers, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, QiAnXin, HongLianHua, and Dual-core browsers on both older and the latest versions. Windows 10 or above is recommended for optimal use. For XP, VLC version 2.2.8 is suggested, while for XP and above, the latest versions (3.0.21 or 4.0) are recommended.
+Applicable to Hikvision DVR, NVR, DVS, network cameras, network dome cameras, etc., not limited to the following Hikvision product models:
+DVR: DS-9100, DS-8100, DS-8000-S, DS-8800, DS-7800, DS-7300, DS-7200, DS-7100, DS-7000 and other series, including -ST, -SH, -SE, -SN, -RT, -RH, -XT, etc.
+NVR: DS-96000N-I24/I16, DS-96000N-F24/F16(/H)(/I), DS-96000N-H24/H16(/H)(/I), DS-9600N-I8/H8/F8/ST/XT,
+DS-8600N-I8/H8/F8/E8/ST/XT, DS-7800N-E1/SN/SNH, DS-7600N-ST/E2/E1, DS-7700N-ST/E4, DS-9500N-ST,
+DS-9500N-S, DS-9600N-SH, DS-7600N-S, DS-9664N-RX, etc.
+XVR: DS-9000HQH-SH, DS-8100HQH(/HGH)-SH, DS-8000HQH-SH, DS-7300HQH(/HGH)-SH,
+DS-7200HQH(/HGH)-SH, DS-8800HQH(/HGH)(/HUH)-SH(/Fx), DS-7900HQH(/HGH)(/HUH)-SH(/Fx),
+DS-7800HQH(/HGH)(/HUH)-SH(/Ex/Fx), DS-7100HGH-E1(/F1), etc.
+HDVR (Hybrid DVR): DS-9000, DS-8000-ST, DS-7600H-ST/-S series, etc.
 
-This applet offers the following advantages:
+Applicable to Dahua general devices: IPC, dome cameras, intercom, etc.
 
-It is the preferred solution in the market for achieving low latency (approximately 200ms) and supports mainstream browser versions.
-Supports multi-channel simultaneous real-time playback, playback with frame-by-frame rewind, next frame control, screenshot capture, screen recording, and delivers excellent performance for HD video or large-screen playback.
-The underlying playback technology utilizes Hikvision and Dahua device network SDKs (copyrighted by their respective manufacturers), supporting Hikvision/Dahua private protocols, RTSP stream playback, PTZ control, voice intercom, and compatibility with H.264 and H.265.
-The source code is available for customized development upon additional payment.
-Supports Hikvision and Dahua cameras, Hikvision DVRs, and other series of devices.
-Compatible with local MP4 video files and network streams such as RTSP, RTMP, and MMS.
-（Save this text as a .txt file for easy copying.）
+File playback supports private, PS, TS, 3GP, AVI, and other encapsulated recording file formats. Supported video codecs include private H.264, standard H.264, MPEG2, MPEG4, MJPEG, H.265, SVAC, Smart264, Smart265, etc. Audio formats include G.711, G.722, G.726, MPEG, AAC, PCM, etc.
 
-Applicable to Hikvision DVR, NVR, DVS, Network Cameras, PTZ Cameras, and Other Devices‌
-The following device models are supported, including but not limited to:
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installer, please run it directly;
+2) If it is a green version package, please unzip it to a directory on the disk, then double-click "InstallWrl.bat" to install;
+3) Upon installation completion, the ApeMaster Middleware service will start. The ZbaService.txt log file in the Data subdirectory of the installation directory outputs the running status.
 
-DVR：DS-9100、DS-8100、DS-8000-S、DS-8800、DS-7800、DS-7300、DS-7200、DS-7100、DS-7000 等系
-列，包括-ST、-SH、-SE、-SN、-RT、-RH、-XT 等。
-NVR：DS-96000N-I24/I16、DS-96000N-F24/F16(/H)(/I)、DS-96000N-H24/H16(/H)(/I)、DS-9600N-I8/H8/F8/ST/XT、
-DS-8600N-I8/H8/F8/E8/ST/XT、DS-7800N-E1/SN/SNH、DS-7600N-ST/E2/E1、DS-7700N-ST/E4、DS-9500N-ST、
-DS-9500N-S、DS-9600N-SH、DS-7600N-S、DS-9664N-RX 等。
-XVR：DS-9000HQH-SH、DS-8100HQH(/HGH)-SH、DS-8000HQH-SH、DS-7300HQH(/HGH)-SH、
-DS-7200HQH(/HGH)-SH、DS-8800HQH(/HGH)(/HUH)-SH(/Fx)、DS-7900HQH(/HGH)(/HUH)-SH(/Fx)、
-DS-7800HQH(/HGH)(/HUH)-SH(/Ex/Fx)、DS-7100HGH-E1(/F1)等。
-HDVR(混合型 DVR)：DS-9000、DS-8000-ST、DS-7600H-ST/-S 系列等
+2. RTSP Web Multi-Engine Player Control Interfaces:
+Note: The following functions can be executed after connecting to the ApeMaster main service via WebSocket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (refer to the document "ApeMaster Developer Manual.pdf" in the SDK package for configuring the listening port), specify the port number in the connection address.
+For front-end integration using ordinary JS scripts, please refer mainly to: http://test.yuanmaster.com/player. The JS script programs needed for embedding are completely open source. For VUE framework, refer to http://test.yuanmaster.com/playerJS. For simple test startup, refer to the following web pages:
+HTTP Web Online Test: http://test.yuanmaster.com/HKFrame.html       HTTPS Web Online Test: https://test.yuanmaster.com/HKFrame.html
+If IE browser compatibility is also needed, in the standalone test webpage, the CLSID in <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
 
-Applicable to Dahua General Equipment: IPC、 Ball machines, intercoms, etc
+Front-end integration can refer to the above test web pages for the required JS scripts to embed; the script programs are completely open source.
+Double-click or press the letter F when the playback window is selected to enter full-screen mode. Exit full-screen mode via ESC, Windows key, ESC, or the letter F. Full-screen switching sends a JSON packet Player_FullScreen notification.
 
-File playback supports private, PS, TS, 3GP, AVI and other encapsulated video file formats. The supported video encoding formats include private H.264 encoding, standard H.264, mpeg2, mpeg4, mjpeg, H.265, SVAC, Smart264, Smart265, etc. Audio formats include G.711, G.722, G.726, MPEG, AAC, PCM, etc.
-
-1. Installation of ApeMaster middleware:
-1) If it is an exe installation program, please run the installation directly;
-2) If it is a green version package, please unzip it to a directory on the disk and double-click "InstallWrl. bat" to install it;
-3) When the installation is completed, the Ape Master middleware service will be launched, and the ZbaService.exe log file will output the running status in the Data sub directory of the installation directory.
-
-2. ApeMaster Player control related interfaces:
-Explanation: The following functions can be executed by connecting to the main service of Monkey Master through Web Socket (ws://localhost: 83? Sid=12345&flag=1). If the default listening port is not 83 , please specify the port number in the connection address for connection.
-When using regular JS scripts for front-end integration, please refer to: http://test.yuanmaster.com/player The JS script program that needs to be embedded is completely open source. If it is a VUE framework, please refer to it http://test.yuanmaster.com/playerJS If it's just a simple test startup, you can refer to the following webpage:
-
-HTTP webpage online testing: http://test.yuanmaster.com/HKFrame.html
-HTTPS web page online testing: https://test.yuanmaster.com/HKFrame.html
-
-If compatibility with IE browser is still required, in the standalone version test webpage,<object ID="WrlWS" CLASS="CLSID: C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
-The CLSID needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
-
-The front-end integration can refer to the above test webpage for embedding JS scripts that need to be used. The script program is completely open source.
-When the playback window is in the selected state, double-click or press the letter F to display it in full screen. The full screen display state can be cancelled by ESC, Windows button, ESC or letter F. Switching to full screen will send a Player_FullScreen notification in JSON package.
-
-‌Request to Start the RTSP Web Multi-Engine Player‌
-‌Parameters‌
-‌Type‌ (Browser Type):
-
-‌Default‌: 0 (auto-detect, requires the browser to be active and in the foreground; Flag must be set to 0 for current-page loading).
-‌Forced Types‌:
-1: Internet Explorer
-2: Chrome
-4: Firefox
-5: Brave (English version)
-8: Opera
-9: Vivaldi (English version)
-10: Yandex
-16: Edge (Chromium kernel)
-20: Electron
-32: 360 Speed Browser
-33: 360 Safe Browser
-34: 360 Enterprise Browser
-35: 360 Gaming Browser
-36: 360 AI Browser
-40: Lenovo Browser
-45: Dual-core Browser
-50: QQ Browser
-51: WeChat Web
-55: Qizhi Browser
-57: Honglianhua Browser
-60: Sogou Browser
-61: Quark
-62: Maxthon
-63: Liebao Browser
-66: Doubao
-70: Huawei Browser
-‌Note‌: Use the Wrl_BrowserInfo interface in TestWrl.txt to fetch Type, BrowserWnd (browser window handle), DrawWnd (drawing window handle), and Title (current webpage title). Validate if the title matches the target page before proceeding.
-
-‌Title‌ (Keyword in webpage title):
-
-Used to verify if the current webpage is the intended embedding target.
-‌Url‌ (Deprecated):
-
-Replaced by the Web parameter.
-‌Flag‌ (Bitmask Flags):
-
-1: Load in a new tab (default: current page if 1 or 16 not set).
-2: Display player window borders.
-4: Disable automatic boundary cropping.
-8: Auto-adapt to webpage dimensions.
-64: Enable Web parameter (required for Web configuration).
-128: Anti-screenshot protection.
-256: Force display on secondary screen.
-512: Allow multiple instances on the same webpage.
-‌Web‌ (Playback Configuration):
-
-‌Mandatory Fields‌: Left, Top, Width, Height (coordinates and size of the player window).
-Replaces Url when Flag includes 64.
-‌Version‌ (Player Version):
-
-0: Run within the player applet.
-1: Run in a separate process.
-‌ShowType‌ (Window Split Mode):
-
-‌Default‌: 1 (single window).
-Supports 1 to 31 split modes (e.g., multi-screen layouts).
-‌CheckVLC‌:
-
-Set to 1 to verify if VLC media player is installed (required for LibVLC engine).
-‌IframeX/IframeY‌:
-
-Offset correction for iframe embedding.
-‌BarW/BarH/ScrollTop‌:
-
-Reserved space adjustments (right, bottom, and top scroll areas).
-‌Playback Options‌ (Option Parameter)
-‌PlayEngine‌:
-
-0: Hikvision SDK (default, private protocol).
-1: Hikvision MP4 file engine.
-2: LibVLC engine.
-3: FFPlayer engine.
-4: Dahua SDK (private protocol).
-‌AutoLoop=1‌: Enable loop playback.
-
-‌Caching‌:
-
-For Hikvision SDK: 6 = max 6 frames cached.
-For other engines: 6 = 600ms latency.
-‌Server‌: Hikvision/Dahua server address, username, password, port.
-
-‌Channel‌: Channel ID (default: 1; DVRs may use values >32).
-
-‌Stream‌:
-
-0: Primary stream.
-1: Sub-stream (valid only for PlayEngine=0).
-‌Link‌:
-
-0: TCP.
-1: UDP (ignored for PlayEngine=1).
-‌Mute=1‌: Mute audio.
-
-‌FrameCache=20‌: Frame-based playback with max 20 cached frames (LibVLC only).
-
-‌AudioColumn=1‌: Push audio column notifications (LibVLC only).
-
-‌ToolBar=1‌: Show playback controls.
-
-‌InSidePlay=1‌: Default built-in playback; set 0 for zoomable video regions.
-
-‌LogFlag=1‌: Enable VLC error logs.
-
-‌ClockSync=-1‌: Use engine default for audio/video sync.
-
-‌Transform‌: VLC video rotation (none, 90, 180, 270, hflip, vflip, etc.).
-
-‌AudioOut‌: Audio output type (mmdevice, directsound, waveout, etc.).
-
-‌Avcodec‌: Hardware acceleration (none, dxva2, d3d11va, any).
-
-‌StartTime/StopTime‌: Playback start/stop timestamps (LibVLC/file playback only).
-
-‌Special Notes‌
-‌Open‌: Initial playback stream URL or local file path.
-Replace \ with / in paths.
-For passwords with + or special characters, use Web instead.
-‌Encoding‌: URL-encode Open, Url, or Web parameters if they contain =, &, quotes, or non-ASCII characters.
-‌Root Directory‌: Non-full paths default to the middleware’s Data subdirectory.
-This version removes all markers and simplifies technical jargon while preserving functionality. Let me know if further adjustments are needed!
-举例：
-自动识别当前浏览器指定位置和大小启动：
+1) Request to start the RTSP Web Multi-Engine Player:
+Type is the browser type. Pass 0 for automatic detection (prerequisite: the current browser is started and displayed in the foreground. Flag must be 0 when the current page loads). Can forcibly specify browser type Type (1 for IE, 2 for Chrome, 4 for Firefox, 5 for Brave (English), 8 for Opera, 9 for Vivaldi (English), 10 for Yandex, 16 for Edge (Chromium kernel), 20 for Electron, 32 for 360 Extreme Browser, 33 for 360 Secure Browser, 34 for 360 Extreme Browser, 35 for 360 Enterprise Security Browser, 36 for 360 Gaming Browser, 37 for 360 AI Browser, 40 for Lenovo Browser, 45 for Dual-core Browser, 50 for QQ Browser, 51 for WeChat Webpage, 55 for QiAnXin Browser, 57 for RedLotus Browser, 60 for Sogou Browser, 61 for Quark, 62 for Maxthon Browser, 63 for Liebao Browser, 66 for Doubao, 70 for Huawei Browser).
+When Type needs to specify the browser type, first obtain the current browser's type Type, main window handle BrowserWnd, drawing window handle DrawWnd, and current webpage title Title through the interface Wrl_BrowserInfo in the TestWrl.txt document. Decide whether to continue starting by judging if the Title is the webpage that needs embedding. If continuing, set the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters to speed up startup.
+Title: Keyword in the webpage title.
+Url: The actual address of the webpage where the mini-program is loaded. Defines the display position and size of the mini-program on the webpage, multi-window playback addresses and options, etc. Not recommended for use; suggest using Web parameter instead.
+Flag mask flag: 1 specifies new tab loading (if neither 1 nor 16 is specified, current page load) 2 shows mini-program window border 4 does not automatically crop out-of-bound windows 8 automatically adapts to webpage height and width display 64 enable Web parameter 128 anti-screenshot 256 force display to secondary screen 512 allow multiple instances on the same webpage.
+Web: Playback configuration (new method), can replace Url. Flag value +64 to use this configuration. Must specify Left, Top, Width, Height values in this command.
+Version playback mini-program version, 0 plays within the playback mini-program, 1 plays in an independent process.
+ShowType Playback window split-screen type, default 1 shows only one playback window. Supports values from 1 to 31, up to 31 split-screen types. Note: This value does not represent the number of splits.
+CheckVLC If using LibVLC engine playback, set 1 to detect if VLC media player is installed on the local machine.
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting, respectively.
+BarW and BarH are the reserved areas on the right and bottom of the webpage, respectively. ScrollTop is the reserved height for top scrolling.
+The actual display position of the mini-program is first based on the coordinates and size specified in the Web or Url webpage, then corrected according to the values set in IframeX, IframeY, BarW, BarH.
+Option: Playback parameters, multiple parameters separated by spaces.
+PlayEngine=2 specifies playback using LibVLC engine. Default 0 uses Hikvision SDK private protocol playback. 1 uses Hikvision MP4 local file engine playback. 3 uses FFPlayer engine playback. 4 uses Dahua SDK private protocol playback.
+AutoLoop=1 specifies whether to loop playback, 1 loops.
+Caching=6 For Hikvision private protocol playback engine, setting 6 represents maximum cache of 6 frames. For other playback engines, setting 6 represents 600 milliseconds delay.
+Server Specifies server address, login username, password, and port information for Hikvision or Dahua SDK private protocol playback.
+Channel=1 Channel ID for private protocol playback. Not needed when directly connecting to a camera. Default channel sequence is 1. DVRs can specify channel numbers greater than 32.
+Stream=1 Specifies stream type. 0 is main stream, 1 is sub stream. Only valid for PlayEngine=0.
+Link=1 Specifies connection type. 0 is TCP mode, 1 is UDP mode. Invalid for PlayEngine=1.
+Mute=1 Specifies whether to play muted. 1 is muted.
+FrameCache=20 Specifies whether to play frame by frame. 0 no, greater than 0 represents the maximum number of cached frames for frame-by-frame playback. Only valid for PlayEngine=2.
+AudioColumn=1 Specifies whether to notify sound column information. 1 push. Only valid for PlayEngine=2.
+ToolBar=1 Specifies whether to display the playback toolbar. 1 displays.
+InSidePlay=1 Specifies built-in playback, default 1. For VLC, Hikvision private, and MP4 file playback, specifying 0 supports selecting and zooming in on a local video area.
+LogFlag=1 Specifies VLC error log output, default 1.
+ClockSync=-1 Specifies whether audio is synchronized with video, default -1 playback engine default value.
+Transform=none Specifies whether to rotate the VLC playback image. Besides default none (no rotation), supported settings: 90, 180, 270, hflip, vflip, transpose, antitranspose.
+AudioOut=any Specifies audio output type. Options: mmdevice, directsound, waveout, amem, afile, NDI, adummy, none.
+Avcodec=any Specifies hardware acceleration type. none: no hardware acceleration. Can specify dxva2, d3d11va, any. When any, let the playback engine choose the appropriate one.
+StartTime=3.000 Specifies start time, 3 seconds. Decimal represents milliseconds. Only supports VLC engine playbackback and file video.
+StopTime=300.000 Specifies stop time, 300 seconds. Decimal represents milliseconds. Only supports VLC engine playbackback and file video.
+Open: The stream address or local multimedia file path for the first window to play automatically after startup. Replace backslash \ with / before passing. Can also be specified in Web. If the password in Open contains special characters like +, it needs to be moved to Web for specification.
+Note: If Open, Url, Web contain special characters = & double quotes or Chinese, etc., they need to be URL-encoded before passing. If not a full local path, the middleware program's Data subdirectory is used as the root directory by default.
+Example:
+Start by automatically identifying the current browser's specified position and size:
 {"req":"Wrl_VideoWebPlayer","rid":5,"para":{"Type":"0","Title":"HK Web Player","Flag":66,"Left":20,"Top":230,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Version":"0","ShowType":6,"Web":[{"ID":1,"Server":"wzh:test123456@192.168.1.12:8000","Option":"Channel=33 Caching=1 Stream=1 Link=1"},{"ID":2,"Server":"wzh:test123456@192.168.1.2:37777","Option":"Channel=1 Link=1 Stream=0 PlayEngine=4"},{"ID":3,"Server":"admin:test123456@192.168.1.8:8000","Option":"Link=1 Stream=0"},{"ID":4,"Server":"wzh:test123456@192.168.1.8:8000","Option":"Link=0 Stream=1"},{"ID":5,"Uri":"d:/zorro/test.mp4","Option":"PlayEngine=1"},{"ID":6,"Uri":"https://vjs.zencdn.net/v/oceans.mp4","Option":"PlayEngine=2"}]}}
 
-自动识别当前浏览器充满网页区显示：
+Automatically identify the current browser and fill the webpage area display:
 {"req":"Wrl_VideoWebPlayer","rid":5,"para":{"Type":"0","Title":"HK Web Player","Flag":72,"Left":20,"Top":230,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Version":"0","ShowType":6,"Web":[{"ID":1,"Server":"wzh:test123456@192.168.1.12:8000","Option":"Channel=33 Caching=1 Stream=1 Link=1"},{"ID":2,"Server":"wzh:test123456@192.168.1.2:37777","Option":"Channel=1 Link=1 Stream=0 PlayEngine=4"},{"ID":3,"Server":"admin:test123456@192.168.1.8:8000","Option":"Link=1 Stream=0"},{"ID":4,"Server":"wzh:test123456@192.168.1.8:8000","Option":"Link=0 Stream=1"},{"ID":5,"Uri":"d:/zorro/test.mp4","Option":"PlayEngine=1"},{"ID":6,"Uri":"https://vjs.zencdn.net/v/oceans.mp4","Option":"PlayEngine=2"}]}}
 
-启动后会先后收到三个JSON数据包
-A、{"ret":0,"rid":5,"data":{"ID":2}}
-代表小程序WS侦听服务就绪
-B、{"event":"Wrl_Listen","rid":2,"rid":5,"data":{"SID":"123","PID":"VideoWebPlayer","port":920}}
-返回的侦听端口，可再建立一个Web Socket连接后，调用小程序中的相关功能，比如新播放一个Player。
-代表小程序创建成功，返回ID为当前小程序运行实例ID，通过此ID，可执行Wrl_AppletControl、Wrl_AppletScroll、Wrl_AppletResize等命令。
-C、{"event":"Wrl_AppletOK","rid":2,"rid":5,"data":{"SID":"123","PID":"VideoWebPlayer","Port":920}}
+After startup, three JSON data packets will be received sequentially:
+A. {"ret":0,"rid":5,"data":{"ID":2}}
+Indicates the mini-program WS listening service is ready.
+B. {"event":"Wrl_Listen","rid":2,"rid":5,"data":{"SID":"123","PID":"VideoWebPlayer","port":920}}
+Returns the listening port. A new WebSocket connection can be established to call related functions in the mini-program, such as playing a new Player.
+Indicates the mini-program was created successfully. Returns the ID as the current mini-program running instance ID. Using this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C. {"event":"Wrl_AppletOK","rid":2,"rid":5,"data":{"SID":"123","PID":"VideoWebPlayer","Port":920}}
 
-由于依赖VLC桌面程序，所以可以提前调用以下接口获得VLC等播放器的安装情况，如未安装，可先提示下载安装
-{"req":"Wrl_PlayerInfo","rid":1,"para":{}} 
-获得当前电脑VLC桌面播放器安装的情况，返回值
+Since it depends on the VLC desktop program, the following interface can be called in advance to obtain the installation status of VLC and other players. If not installed, prompt to download and install first.
+{"req":"Wrl_PlayerInfo","rid":1,"para":{}}
+Obtains the installation status of the VLC desktop player on the current computer. Return value:
 {"ret":0,"rid":1,"req":"Wrl_PlayerInfo","data":{"Info":[{"Type":1,"X64":1,"Ver":"3.0.17.4","Path":"C:/Program Files/VideoLAN/VLC/vlc.exe"}]}}
-Type 1 代表VLC X64 代表是否为64位版本 Ver 代表文件版本信息 Path 安装路径
+Type 1 represents VLC. X64 indicates whether it's the 64-bit version. Ver represents file version information. Path is the installation path.
 
-2)、请求控制RTSP网页多引擎播放器：
-当前端不再需要小程序时可指定关闭，或者显示/隐藏及全屏显示等
-ID为启动小程序时返回的ID值，Code代表控制类型掩码：1正常关闭 128强制迅速关闭 2全屏显示 4自动隐藏 8还原显示 16自动适配网页高度和宽度显示模式切换 32强制隐藏。其中全屏显示2，可直接通过热键ESC或取消,设置4和32隐藏后可通过8恢复显示
+2) Request to control the RTSP Web Multi-Engine Player:
+When the front-end no longer needs the mini-program, it can specify to close it, or show/hide, full-screen display, etc.
+ID is the ID value returned when starting the mini-program. Code represents the control type mask: 1 normal close, 128 force immediate close, 2 full-screen display, 4 auto hide, 8 restore display, 16 switch auto-adapt webpage height and width display mode, 32 force hide. Among them, full-screen display 2 can be canceled directly via hotkey ESC. After setting 4 and 32 to hide, it can be restored via 8.
 {"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
 
-3)、请求滚动网页中RTSP网页多引擎播放器：
-当前端截取到网页滚动通知时，需要调用此接口实现小程序和网页的滚动联动
-ID为启动小程序时返回JSON中的ID值
-Code为滚动方向1是水平，2是垂直，3是同时
-Left为横向滚动条位置，Top为纵向滚动条位置
+3) Request to scroll the RTSP Web Multi-Engine Player in the webpage:
+When the front-end intercepts a webpage scroll notification, this interface needs to be called to achieve scroll linkage between the mini-program and the webpage.
+ID is the ID value in the JSON returned when starting the mini-program.
+Code is the scroll direction: 1 horizontal, 2 vertical, 3 both.
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.
 {"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
 
-4)、请求改变网页中RTSP网页多引擎播放器显示位置或大小：
-当前端网页显示区域缩放时，可动态修改小程序的显示位置或大小
-ID为Wrl_VideoWebPlayer启动小程序时返回JSON中的ID值，Width和Height分别为新的宽度和高度
-X和Y分别为新的显示位置，不指定时保持不变，指定时原设置的IframeX和IframeY失效
+4) Request to change the display position or size of the RTSP Web Multi-Engine Player in the webpage:
+When the front-end webpage display area zooms, the display position or size of the mini-program can be dynamically modified.
+ID is the ID value in the JSON returned by Wrl_VideoWebPlayer starting the mini-program. Width and Height are the new width and height, respectively.
+X and Y are the new display positions. If not specified, remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
 {"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
-或，同时修改小程序显示起始坐标
+Or, simultaneously modify the mini-program display starting coordinates:
 {"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
 
-5)、请求设置网页预留右侧宽度和底部高度，滚动条信息、垂直滚动及水平滚动位置：
-当小程序显示区域超过当前网页时，需去除滚动条的显示影响
-ID为启动小程序时返回JSON中的ID值，BarW为预留右侧宽度 BarH为预留底部高度
-Code 1代表有水平滚动条，2代表有垂直滚动条，3代表都有
-ScrollTop垂直滚动条位置 ScrollTop水平滚动条位置
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:
+When the mini-program display area exceeds the current webpage, the influence of the scrollbar display needs to be removed.
+ID is the ID value in the JSON returned when starting the mini-program. BarW is the reserved right width. BarH is the reserved bottom height.
+Code 1 represents horizontal scrollbar exists, 2 represents vertical scrollbar exists, 3 represents both exist.
+ScrollTop vertical scrollbar position ScrollTop horizontal scrollbar position (Note: typo in original, likely ScrollLeft).
 {"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
 
-6)、请求对小程序窗口做Alpha透明处理，便于前端临时显示覆盖到小程序窗口的菜单等：
-ID为Wrl_VideoWebPlayer启动小程序时返回的ID值，Alpha为透明度百分比，1-100
+6) Request to perform Alpha transparency processing on the mini-program window to facilitate the front-end temporarily displaying menus overlaid on the mini-program window:
+ID is the ID value returned by Wrl_VideoWebPlayer starting the mini-program. Alpha is the transparency percentage, 1-100.
 {"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
 
-7)、请求对小程序窗口内容进行截图：
-ID为启动小程序时返回JSON中的ID值，
-File为指定截图文件保存路径或扩展名
-Base64指定为1时代表返回BASE64编码的图像内容
-如果嵌入的小程序窗口(比如是DirectUI或Direct3D绘制)抓图不正常，可以额外指定参数Flag为1看看
-{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"File":".png"}}
+7) Request to take a screenshot of the mini-program window content:
+ID: The aid instance value in the JSON returned when starting the mini-program.
+File: Specifies the screenshot file save path or extension.
+Base64: Specifies whether to return BASE64 encoded image content. Set to 1 for yes.
+Flag: If the embedded mini-program window (e.g., DirectUI or Direct3D drawing) captures abnormally, additionally specify 1 to see the effect. Furthermore, if multiple or selected area screenshots are needed, start the screenshot tool separately by adding 2 or 4.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
 
-8)、请求缩放内嵌网页小程序，用于浏览器网页按比例缩放，一般不需要处理：
-ID为启动小程序时返回JSON中的ID值，不指定Scale时，获取当前小程序所用的缩放百分比，一般和系统缩放比例一致
+8) Request to scale the embedded webpage mini-program, used for browser webpage proportional scaling. Generally not needed:
+ID is the ID value in the JSON returned when starting the mini-program. If Scale is not specified, gets the current scaling percentage used by the mini-program, generally consistent with the system scaling ratio.
 {"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
 
-3、小程序安装、升级、卸载
-1)、请求安装RTSP网页多引擎播放器
-请在测试网页输入框中，输入如下请求，然后点击发送，完成安装：
+3. Mini-program Installation, Upgrade, Uninstallation
+1) Request to install RTSP Web Multi-Engine Player
+Please enter the following request in the test webpage input box, then click Send to complete the installation:
+{"req":"Plugin_Install","rid":1,"para":{"Name":"RTSP Web Multi-Engine Player","PID":"VideoWebPlayer","Date":"2025-05-30","Desc":"Cross-browser RTSP Web Multi-Engine Player on ApeMaster, supports low-latency multi-channel RTSP stream playback in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest browser webpages.","DownAddr":"http://local.zorrosoft.com/Files/Net/VideoWebPlayer.pid","MD5":"0941A980968E4B7B98F58840AA74B419","Version":"2.2.17.6","Size":11108352,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"9B658B9FE61DBF5617D62D864551F47DF41E17198F705E15F0F23938F7611B4DEA673C6FC8CF08FE36F0A1B2EB6DADB68C9D69691F5FCDCB34EFD8B1D0BA6921BA8F25BDE3FA8B215698038E4BF5D9B76B611CD947BD2A5E8654F68EC58AF8E126D092B9B7AE5A2A1AD2AC037648E801C5F9A2F3C219BB893594D86DB8ABD22854B0FCBE70FB1699A1145711E961FD418E76D1DD44621C28A377E1C96BCABC145EDF4ADE21E09325B022D6FFB8E35FE7C09FB1ED28C5D3D4683342E1BA4171A6F02B759E452AFC64DE3BB51FB55CAAD96533303683765567ABB7C9578AF972586498058DA285B3A04753312CC99B18496746C4DA7396E20434473377EBAF4AA8"}}
+After starting the installation, installation progress will be continuously received until the installation ends.
 
-{"req":"Plugin_Install","rid":1,"para":{"Name":"RTSP网页多引擎播放器","PID":"VideoWebPlayer","Date":"2025-04-07","Desc":"跨浏览器的RTSP网页多引擎播放器，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中低延迟多路播放RTSP流","DownAddr":"http://local.zorrosoft.com/Files/Net/VideoWebPlayer.pid","MD5":"985F1FEA86A0D6ADE98E7F32DEB558DE","Version":"2.2.17.3","Size":5668864,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"50381C96F84B615F1933F24A61FAEF94592791A9C13A5B7FE844AC88D918603608BA09441D04B3583F43F24353F1DAD9AD18C1E9ECA7016702A7BF3AC763F5EBEE1CCB31A9CF0D88256E0E54708857D5E956A41BA01A251A87BF6742DB58ED8D86EBAFD588DEAFEC5247C81253B24635233D00CC3866CC107BE27D1E9571E23AA50C629099304FA211C87577085924FC2EBBB3A348F469511D5294888CB2016ED005BBAB286BB5B3EB03296411EA8AA061C39F54D58575F8312932E77545421CD3E76B3CCF9A374545799B36DA3477480C6877483FF82A1255A20BAA6D708CD5D699EDFD418B51952638601039D31B81C7D6912563E577B84BC8D7AFEA80D9C4"}}
+2) Request to upgrade the RTSP Web Multi-Engine Player:
+{"req":"Plugin_Update","rid":1,"para":{"Name":"RTSP Web Multi-Engine Player","PID":"VideoWebPlayer","Date":"2025-05-30","Desc":"Cross-browser RTSP Web Multi-Engine Player on ApeMaster, supports low-latency multi-channel RTSP stream playback in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest browser webpages.","DownAddr":"http://local.zorrosoft.com/Files/Net/VideoWebPlayer_Update.pid","MD5":"833473D38E68FA685CC06AEBF48FF377","Version":"2.2.17.6","Size":11108352,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"A49B75909304121065F9023E6A05061822D8168C0236E56E27886C6BCA2A0B7FC62CC8001284D65468A67C2B52277826BBAA6B7078B9B9DB5FEC154BA20494747E9DE2F4D321B53B83C42656D7992A9F46B70364D80A080D7468B650D6C5A7299B2FBE2DCC5B746587633CCB01D1D8376A92131706A2C59DE56B160C2C5B2FBC044BE0DBDEDFEB73F35F74D57EAD646B78788BE411C59F60E4B565612FA74800B4148B9F7804F0E4979EF082893E6E4AA90BCD424466B1BAF40DAB2B0230DCAEA21531D1EBB270206D705CC37E2FE6329BFB520BC64EAC206AD204998BDC9DD07FCD8CF74AFF82DD0C8ADE833F389ADF9217C35AFA0E5308D14AF082858931EE"}}
+The JSON request packets for installation and upgrade above may differ due to version upgrades. If errors occur during installation or upgrade, please contact customer service to obtain the latest request packet.
 
-启动安装后，会不断收到安装进度直到安装结束。
-
-2)、请求升级RTSP网页多引擎播放器：
-
-{"req":"Plugin_Update","rid":1,"para":{"Name":"RTSP网页多引擎播放器","PID":"VideoWebPlayer","Date":"2025-04-07","Desc":"跨浏览器的RTSP网页多引擎播放器，支持在Chrome、Edge、Firefox、IE、Oprea、360、QQ等最新版本浏览器网页中低延迟多路播放RTSP流","DownAddr":"VideoWebPlayer_Update.pid","MD5":"C5E66ACD88E9AFCDD15C3C55EADF7625","Version":"2.2.17.3","Size":5668864,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"1541985C6D6A532BF04F09E181CAEFC9A912C6A080D6994CD99054CBC5E9BD802A03BB833962B46090E9278218A0D2335EE5E81C10530E6413A499356434624B6BB854A0578A2DF0448E607458D9FACFA0CE5908FD8D2604B12DA9610104BF106B076FD7B854D08A2DEF6D2286F7BD9E5294B96A617C4B21E10F2EF6937175304E5CB49C90487F6E704E3B997305675CE55214719B68C148768DE92A37702EF9F30D076FAA04A47B6714CE079B5147C0AD5309A18E8C5830ED81869C418D300417A5365366AC20F1F3D837FF5220C6CE12C0A66FFC1EEACDB3FF5E1B463FCD458E1942E0FEBD04D588036603F67D403C785FB312D3F7079087D9D0399D167053"}}
-
-以上安装和升级的JSON请求包，可能因版本升级导致内容不同，如遇安装或升级时报错，请联系客服获取最新的请求包。 
-
-3)、请求卸载RTSP网页多引擎播放器：
-正式版需要添加TK校验，具体规则请参考SDK包中文档“猿大师中间件安全解决方案.pdf”，可在SDK包中的打包程序ZbaPackage.exe的中间件维护生成带TK的请求。
+3) Request to uninstall the RTSP Web Multi-Engine Player:
+The official version requires adding TK verification. Specific rules refer to the document "ApeMaster Middleware Security Solution.pdf" in the SDK package. The packaged program ZbaPackage.exe in the SDK package can generate requests with TK in middleware maintenance.
 {"req":"Plugin_Remove","rid":3,"para":{"PID":"VideoWebPlayer","Type":8}}
 
-4、RTSP网页多引擎播放器转调用多引擎原生播放SDK封装的ActiveX控件接口，先根据Wrl_VideoWebPlayer请求启动后返回的端口号，新建立一个WebSocket连接后可执行如下指令：
-A、常用功能请求：
-1) 取指定ID播放窗口属性AutoLoop(自动循环播放)值，仅对MP4等文件播放有效
-其中窗口序号ID，从1开始，序号原则是从左向右开始编号，然后从上到下开始顺序编号，如遇右侧多层排列窗口时，直到右侧窗口序号排序完成
-请求：{"req":"Player_GetAutoLoop","rid":41,"para":[{"ID":1},{"ID":2}]}
-返回：{"ret":0,"rid":41,"ID":1,"data":{"Ret":0,"AutoLoop":0}} 和 {"ret":0,"rid":41,"ID":2,"data":{"Ret":0,"AutoLoop":0}}
-ret为请求返回值，0正常，非零不正常，不正常时请取和ret同级的错误描述err,下同
-Ret为调用ActiveX对应函数返回值，0代表正常
-AutoLoop为1代表循环播放，0不循环
+4. RTSP Web Multi-Engine Player calls the ActiveX control interface encapsulated by the multi-engine native playback SDK. First, based on the port number returned after the Wrl_VideoWebPlayer request starts, establish a new WebSocket connection to execute the following commands:
+A. Common function requests:
+1) Get the AutoLoop (auto loop playback) value property of the specified ID playback window, only valid for MP4 and other file playback.
+Window sequence ID starts from 1. The numbering principle is from left to right, then top to bottom. When encountering multi-layered windows on the right, continue until the right window sequence sorting is completed.
+Request: {"req":"Player_GetAutoLoop","rid":41,"para":[{"ID":1},{"ID":2}]}
+Return: {"ret":0,"rid":41,"ID":1,"data":{"Ret":0,"AutoLoop":0}} and {"ret":0,"rid":41,"ID":2,"data":{"Ret":0,"AutoLoop":0}}
+ret is the request return value, 0 normal, non-zero abnormal. If abnormal, get the error description err at the same level as ret, same below.
+Ret is the return value of the called ActiveX function, 0 represents normal.
+AutoLoop 1 represents loop playback, 0 no loop.
 
-2) 设置指定ID窗口AutoLoop(自动循环播放)值，仅对MP4等文件播放有效
-请求：{"req":"Player_PutAutoLoop","rid":42,"para":[{"ID":1,"AutoLoop":1},{"ID":2,"AutoLoop":0}]}
-分别返回：{"ret":0,"rid":42,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":42,"ID":2,"data":{"Ret":0}}
+2) Set the AutoLoop (auto loop playback) value for the specified ID window, only valid for MP4 and other file playback.
+Request: {"req":"Player_PutAutoLoop","rid":42,"para":[{"ID":1,"AutoLoop":1},{"ID":2,"AutoLoop":0}]}
+Return respectively: {"ret":0,"rid":42,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":42,"ID":2,"data":{"Ret":0}}
 
-3) 取播放引擎SDK的信息，包含版本号、对接及超时配置等信息
-Engine 即使没有启动这个引擎播放，也可以获取指定引擎的版本
-请求：{"req":"Player_GetSDKInfo","rid":43,"para":[{"ID":1,"Engine":2},{"ID":2}]}
-分别返回：{"ret":0,"rid":43,"ID":1,"data":{"Ret":0,"Ver":"V6.1.6.45","Build":"20210302","GenCfg":{"SplitFile":0,"ResumeUpgrade":0,"ResumeTimeout":0},"OverTimeCfg":{"PreviewTime":5000,"VodTime":5000,"AlarmTime":5000,"ElseTime":5000},"TalkCfg":{"TalkMode":0}}}
+3) Get the playback engine SDK information, including version number, docking, timeout configuration, etc.
+Engine Even if this engine is not started for playback, the version of the specified engine can be obtained.
+Request: {"req":"Player_GetSDKInfo","rid":43,"para":[{"ID":1,"Engine":2},{"ID":2}]}
+Return respectively: {"ret":0,"rid":43,"ID":1,"data":{"Ret":0,"Ver":"V6.1.6.45","Build":"20210302","GenCfg":{"SplitFile":0,"ResumeUpgrade":0,"ResumeTimeout":0},"OverTimeCfg":{"PreviewTime":5000,"VodTime":5000,"AlarmTime":5000,"ElseTime":5000},"TalkCfg":{"TalkMode":0}}}
 
-4) 取指定ID窗口当前播放引擎 0海康私有协议播放 1海康MP4本地文件播放 2开源LibVLC播放 3FFPlayer引擎播放 4大华SDK私有协议播放 使用哪个引擎由启动播放参数决定
-请求：{"req":"Player_PlayEngine","rid":44,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":44,"ID":1,"data":{"Ret":0,"Engine":0}} 和 {"ret":0,"rid":44,"ID":2,"data":{"Ret":0,"Engine":1}}
+4) Get the current playback engine for the specified ID window: 0 Hikvision private protocol playback, 1 Hikvision MP4 local file playback, 2 open-source LibVLC playback, 3 FFPlayer engine playback, 4 Dahua SDK private protocol playback. Which engine is used is determined by the startup playback parameters.
+Request: {"req":"Player_PlayEngine","rid":44,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":44,"ID":1,"data":{"Ret":0,"Engine":0}} and {"ret":0,"rid":44,"ID":2,"data":{"Ret":0,"Engine":1}}
 
-5) 取指定ID窗口音频输出类型 VLC播放有效
-请求：{"req":"Player_GetAudioOut","rid":45,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":45,"ID":1,"data":{"Ret":0,"AudioOut":"directsound"}} 和 {"ret":0,"rid":45,"ID":2,"data":{"Ret":0,"AudioOut":"any"}}
+5) Get the audio output type for the specified ID window. Valid for VLC playback.
+Request: {"req":"Player_GetAudioOut","rid":45,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":45,"ID":1,"data":{"Ret":0,"AudioOut":"directsound"}} and {"ret":0,"rid":45,"ID":2,"data":{"Ret":0,"AudioOut":"any"}}
 
-6) 设置指定ID窗口音频输出类型，调用播放前设置 VLC播放有效
-请求：{"req":"Player_PutAudioOut","rid":46,"para":[{"ID":1,"AudioOut":"directsound"},{"ID":2,"AudioOut":"any"}]}
-分别返回：{"ret":0,"rid":46,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":46,"ID":2,"data":{"Ret":0}}
+6) Set the audio output type for the specified ID window. Set before calling playback. Valid for VLC playback.
+Request: {"req":"Player_PutAudioOut","rid":46,"para":[{"ID":1,"AudioOut":"directsound"},{"ID":2,"AudioOut":"any"}]}
+Return respectively: {"ret":0,"rid":46,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":46,"ID":2,"data":{"Ret":0}}
 
-7) 取指定ID窗口当前播放网络缓存帧数 1-50 1实时性好;3实时性较好;6实时性中,15流畅性中
-请求：{"req":"Player_GetCaching","rid":47,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":47,"ID":1,"data":{"Ret":0,"Caching":3}} 和 {"ret":0,"rid":47,"ID":2,"data":{"Ret":0,"Caching":1}}
+7) Get the current playback network cache frames for the specified ID window. 1-50. 1 best real-time; 3 good real-time; 6 medium real-time, 15 medium fluency.
+Request: {"req":"Player_GetCaching","rid":47,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":47,"ID":1,"data":{"Ret":0,"Caching":3}} and {"ret":0,"rid":47,"ID":2,"data":{"Ret":0,"Caching":1}}
 
-8) 设置指定ID窗口当前播放网络缓存帧数，调用播放前有效
-请求：{"req":"Player_PutCaching","rid":48,"para":[{"ID":1,"Caching":3},{"ID":2,"Caching":1}]}
-分别返回：{"ret":0,"rid":48,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":48,"ID":2,"data":{"Ret":0}}
+8) Set the current playback network cache frames for the specified ID window. Valid before calling playback.
+Request: {"req":"Player_PutCaching","rid":48,"para":[{"ID":1,"Caching":3},{"ID":2,"Caching":1}]}
+Return respectively: {"ret":0,"rid":48,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":48,"ID":2,"data":{"Ret":0}}
 
-9) 取当前连接类型 0：TCP方式,1：UDP方式,2：多播方式,3 - RTP方式，4-RTP/RTSP,5-RSTP/HTTP 
-请求：{"req":"Player_GetLinkMode","rid":49,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":49,"ID":1,"data":{"Ret":0,"LinkMode":1}} 和 {"ret":0,"rid":49,"ID":2,"data":{"Ret":0,"LinkMode":0}}
+9) Get the current connection type: 0: TCP mode, 1: UDP mode, 2: Multicast mode, 3 - RTP mode, 4-RTP/RTSP, 5-RSTP/HTTP
+Request: {"req":"Player_GetLinkMode","rid":49,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":49,"ID":1,"data":{"Ret":0,"LinkMode":1}} and {"ret":0,"rid":49,"ID":2,"data":{"Ret":0,"LinkMode":0}}
 
-10) 设置连接类型，调用播放前设置有效
-请求：{"req":"Player_PutLinkMode","rid":50,"para":[{"ID":1,"LinkMode":1},{"ID":2,"LinkMode":0}]}
-分别返回：{"ret":0,"rid":50,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":50,"ID":2,"data":{"Ret":0}}
+10) Set the connection type. Valid before calling playback.
+Request: {"req":"Player_PutLinkMode","rid":50,"para":[{"ID":1,"LinkMode":1},{"ID":2,"LinkMode":0}]}
+Return respectively: {"ret":0,"rid":50,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":50,"ID":2,"data":{"Ret":0}}
 
-11) 取当前流类型 码流类型，0-主码流，1-子码流，2-码流3，3-码流4, 4-码流5,5-码流6,7-码流7,8-码流8,9-码流9,10-码流10
-请求：{"req":"Player_GetStreamType","rid":51,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":51,"ID":1,"data":{"Ret":0,"StreamType":1}} 和 {"ret":0,"rid":51,"ID":2,"data":{"Ret":0,"StreamType":0}}
+11) Get the current stream type: Stream type, 0-main stream, 1-sub stream, 2-stream 3, 3-stream 4, 4-stream 5, 5-stream 6, 7-stream 7, 8-stream 8, 9-stream 9, 10-stream 10
+Request: {"req":"Player_GetStreamType","rid":51,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":51,"ID":1,"data":{"Ret":0,"StreamType":1}} and {"ret":0,"rid":51,"ID":2,"data":{"Ret":0,"StreamType":0}}
 
-12) 设置当前流类型，非本地文件、调用播放前设置有效
-请求：{"req":"Player_PutStreamType","rid":52,"para":[{"ID":1,"StreamType":1},{"ID":2,"StreamType":0}]}
-分别返回：{"ret":0,"rid":52,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":52,"ID":2,"data":{"Ret":0}}
+12) Set the current stream type. Not valid for local files. Valid before calling playback.
+Request: {"req":"Player_PutStreamType","rid":52,"para":[{"ID":1,"StreamType":1},{"ID":2,"StreamType":0}]}
+Return respectively: {"ret":0,"rid":52,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":52,"ID":2,"data":{"Ret":0}}
 
-13) 取当前协议类型 应用层取流协议，0-私有协议，1-RTSP协议,2-SRTP码流加密（对应此结构体中dwLinkMode 字段，支持如下方式, 为1，表示udp传输方式，信令走TLS加密，码流走SRTP加密，为2，表示多播传输方式，信令走TLS加密，码流走SRTP加密）
-请求：{"req":"Player_GetProtoType","rid":53,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":53,"ID":1,"data":{"Ret":0,"ProtoType":0}} 和 {"ret":0,"rid":53,"ID":2,"data":{"Ret":0,"ProtoType":1}}
+13) Get the current protocol type: Application layer stream fetching protocol, 0-private protocol, 1-RTSP protocol, 2-SRTP stream encryption (corresponding to the dwLinkMode field in this structure, supporting the following methods: 1 means UDP transmission, signaling over TLS encryption, stream over SRTP encryption; 2 means multicast transmission, signaling over TLS encryption, stream over SRTP encryption)
+Request: {"req":"Player_GetProtoType","rid":53,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":53,"ID":1,"data":{"Ret":0,"ProtoType":0}} and {"ret":0,"rid":53,"ID":2,"data":{"Ret":0,"ProtoType":1}}
 
-14) 设置当前协议类型，非本地文件、调用播放前设置有效
-请求：{"req":"Player_PutProtoType","rid":54,"para":[{"ID":1,"ProtoType":1},{"ID":2,"ProtoType":0}]}
-分别返回：{"ret":0,"rid":54,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":54,"ID":2,"data":{"Ret":0}}
+14) Set the current protocol type. Not valid for local files. Valid before calling playback.
+Request: {"req":"Player_PutProtoType","rid":54,"para":[{"ID":1,"ProtoType":1},{"ID":2,"ProtoType":0}]}
+Return respectively: {"ret":0,"rid":54,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":54,"ID":2,"data":{"Ret":0}}
 
-15) 取指定ID窗口设备信息，仅对连接海康及大华硬件设备登录成功后有效
-请求：{"req":"Player_GetDeviceInfo","rid":55,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":55,"ID":1,"aid":15,"data":{"Ret":0,"DeviceInfo":{"DevType":31,"IP":0,"DevChanNum":1,"IPChanNum":0,"AudioNum":1,"MainProto":2,"SubProto":2,"SN":"DS-2SC3Q140MY-TE20210819AACHG56068012"}}} 和 {"ret":0,"rid":55,"ID":2,"aid":13,"data":{"Ret":0,"DeviceInfo":{"DevType":20,"DiskNum":1,"DevChanNum":1,"SN":"9D0B7E0PHA14CA4"}}}
+15) Get device information for the specified ID window. Only valid after successfully logging into Hikvision/Dahua hardware devices.
+Request: {"req":"Player_GetDeviceInfo","rid":55,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":55,"ID":1,"aid":15,"data":{"Ret":0,"DeviceInfo":{"DevType":31,"IP":0,"DevChanNum":1,"IPChanNum":0,"AudioNum":1,"MainProto":2,"SubProto":2,"SN":"DS-2SC3Q140MY-TE20210819AACHG56068012"}}} and {"ret":0,"rid":55,"ID":2,"aid":13,"data":{"Ret":0,"DeviceInfo":{"DevType":20,"DiskNum":1,"DevChanNum":1,"SN":"9D0B7E0PHA14CA4"}}}
 
-16) 登录设备，仅对连接海康及大华硬件设备有效，本地MP4文件播放无需登录，登录结果通过事件接收
-请求：{"req":"Player_Login","rid":56,"para":[{"ID":1,"Server":"admin:test123456@192.168.1.9:8000"},{"ID":2,"Server":"admin:test123456@192.168.1.8:8000"}]}
-分别返回：{"ret":0,"rid":56,"ID":1,"data":{"Ret":0,"LoginID":1}} 和 {"ret":0,"rid":56,"ID":2,"data":{"Ret":0,"LoginID":2}}
-LoginID为登录标识，登录结果事件中携带
+16) Login to the device. Only valid for connecting to Hikvision/Dahua hardware devices. Local MP4 file playback does not require login. Login result received via event.
+Request: {"req":"Player_Login","rid":56,"para":[{"ID":1,"Server":"admin:test123456@192.168.1.9:8000"},{"ID":2,"Server":"admin:test123456@192.168.1.8:8000"}]}
+Return respectively: {"ret":0,"rid":56,"ID":1,"data":{"Ret":0,"LoginID":1}} and {"ret":0,"rid":56,"ID":2,"data":{"Ret":0,"LoginID":2}}
+LoginID is the login identifier, carried in the login result event.
 
-17) 取指定ID窗口播放文件时长
-请求：{"req":"Player_GetFileTime","rid":57,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":57,"ID":1,"data":{"Ret":0,"FileTime":12}} 和 {"ret":0,"rid":57,"ID":2,"data":{"Ret":0,"FileTime":0}}
+17) Get the file duration for the specified ID playback window.
+Request: {"req":"Player_GetFileTime","rid":57,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":57,"ID":1,"data":{"Ret":0,"FileTime":12}} and {"ret":0,"rid":57,"ID":2,"data":{"Ret":0,"FileTime":0}}
 
-18) 取指定ID窗口文件已播放时长
-请求：{"req":"Player_GetPlayedTime","rid":58,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":58,"ID":1,"data":{"Ret":0,"PlayedTime":12}} 和 {"ret":0,"rid":58,"ID":2,"data":{"Ret":0,"PlayedTime":0}}
+18) Get the played time of the file for the specified ID window.
+Request: {"req":"Player_GetPlayedTime","rid":58,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":58,"ID":1,"data":{"Ret":0,"PlayedTime":12}} and {"ret":0,"rid":58,"ID":2,"data":{"Ret":0,"PlayedTime":0}}
 
-19) 取指定ID窗口文件已播放帧数，仅对海康及大华回放、FFPlayer和本地MP4等文件打开播放后有效
-请求：{"req":"Player_GetPlayedFrames","rid":59,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":59,"ID":1,"data":{"Ret":0,"PlayedFrames":12}} 和 {"ret":0,"rid":59,"ID":2,"data":{"Ret":0,"PlayedFrames":0}}
+19) Get the played frame count of the file for the specified ID window. Only valid for Hikvision/Dahua playbackback, FFPlayer, and local MP4 files opened for playback.
+Request: {"req":"Player_GetPlayedFrames","rid":59,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":59,"ID":1,"data":{"Ret":0,"PlayedFrames":12}} and {"ret":0,"rid":59,"ID":2,"data":{"Ret":0,"PlayedFrames":0}}
 
-20) 取指定ID窗口文件总播放帧数，仅对海康及大华回放、FFPlayer和本地MP4等文件打开播放后有效
-请求：{"req":"Player_GetTotalFrames","rid":60,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":60,"ID":1,"data":{"Ret":0,"TotalFrames":12}} 和 {"ret":0,"rid":60,"ID":2,"data":{"Ret":0,"TotalFrames":0}}
+20) Get the total playback frame count of the file for the specified ID window. Only valid for Hikvision/Dahua playbackback, FFPlayer, and local MP4 files opened for playback.
+Request: {"req":"Player_GetTotalFrames","rid":60,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":60,"ID":1,"data":{"Ret":0,"TotalFrames":12}} and {"ret":0,"rid":60,"ID":2,"data":{"Ret":0,"TotalFrames":0}}
 
-21) 取指定ID窗口文件播放百分比，仅对VLC引擎、FFPlayer及本地MP4等文件打开播放后有效
-请求：{"req":"Player_GetPlayPercent","rid":61,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":61,"ID":1,"data":{"Ret":0,"Percent":12}} 和 {"ret":0,"rid":61,"ID":2,"data":{"Ret":0,"Percent":0}}
+21) Get the file playback percentage for the specified ID window. Only valid after opening and playing VLC engine, FFPlayer, and local MP4 files.
+Request: {"req":"Player_GetPlayPercent","rid":61,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":61,"ID":1,"data":{"Ret":0,"Percent":12}} and {"ret":0,"rid":61,"ID":2,"data":{"Ret":0,"Percent":0}}
 
-22) 设置指定ID窗口文件播放百分比，仅对VLC引擎、FFPlayer及本地MP4等文件打开播放后有效
-请求：{"req":"Player_PutPlayPercent","rid":62,"para":[{"ID":1,"Percent":12},{"ID":2,"Percent":0}]}
-分别返回：{"ret":0,"rid":62,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":62,"ID":2,"data":{"Ret":0}}
+22) Set the file playback percentage for the specified ID window. Only valid after opening and playing VLC engine, FFPlayer, and local MP4 files.
+Request: {"req":"Player_PutPlayPercent","rid":62,"para":[{"ID":1,"Percent":12},{"ID":2,"Percent":0}]}
+Return respectively: {"ret":0,"rid":62,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":62,"ID":2,"data":{"Ret":0}}
 
-23) 指定ID窗口播放控制，非实时流打开播放后有效
-Type类型 默认1加速播放可多次调用 2降速播放可多次调用 3倒播(仅海康MP4本地文件播放支持)
-请求：{"req":"Player_FileControl","rid":63,"para":[{"ID":2,"Type":1}]}
-分别返回：{"ret":0,"rid":63,"ID":1,"data":{"Ret":0}}
+23) Playback control for the specified ID window. Valid after non-real-time stream open playback.
+Type type: Default 1 speed up playback (can be called multiple times), 2 slow down playback (can be called multiple times), 3 reverse playback (only supported by Hikvision MP4 local file playback).
+Request: {"req":"Player_FileControl","rid":63,"para":[{"ID":2,"Type":1}]}
+Return: {"ret":0,"rid":63,"ID":1,"data":{"Ret":0}}
 
-24) 指定ID窗口设备类型和序列号，本地MP4等文件播放无效
-请求：{"req":"Player_GetDeviceType","rid":64,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":64,"ID":1,"aid":15,"data":{"Ret":0,"Type":31,"SerialNumber":"DS-2SC3Q140MY-TE20210819AACHG56068012"}} 和 {"ret":0,"rid":64,"ID":2,"aid":14,"data":{"Ret":0,"Type":20,"SerialNumber":"9D0B7E0PHA14CA4"}}
+24) Get device type and serial number for the specified ID window. Invalid for local MP4 file playback.
+Request: {"req":"Player_GetDeviceType","rid":64,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":64,"ID":1,"aid":15,"data":{"Ret":0,"Type":31,"SerialNumber":"DS-2SC3Q140MY-TE20210819AACHG56068012"}} and {"ret":0,"rid":64,"ID":2,"aid":14,"data":{"Ret":0,"Type":20,"SerialNumber":"9D0B7E0PHA14CA4"}}
 
-25) 获取或者设置指定ID窗口当前播放通道，本地MP4等文件播放无效
-获取请求：{"req":"Player_GetCurChannel","rid":65,"para":[{"ID":1},{"ID":2}]}
-设置当前播放通道请求，只对硬盘录像机有效：{"req":"Player_PutCurChannel","rid":65,"para":[{"ID":1,"Channel":33},{"ID":2,"Channel":34}]}
-分别返回：{"ret":0,"rid":65,"ID":1,"data":{"Ret":0,"CurChannel":2}} 和 {"ret":0,"rid":65,"ID":2,"data":{"Ret":0,"CurChannel":1}}
+25) Get or set the current playback channel for the specified ID window. Invalid for local MP4 file playback.
+Get request: {"req":"Player_GetCurChannel","rid":65,"para":[{"ID":1},{"ID":2}]}
+Set current playback channel request, only valid for DVRs: {"req":"Player_PutCurChannel","rid":65,"para":[{"ID":1,"Channel":33},{"ID":2,"Channel":34}]}
+Return respectively: {"ret":0,"rid":65,"ID":1,"data":{"Ret":0,"CurChannel":2}} and {"ret":0,"rid":65,"ID":2,"data":{"Ret":0,"CurChannel":1}}
 
-26) 取指定ID窗口相关状态，本地MP4文件、FFPlayer及VLC引擎播放登录状态无效，只有播放状态
-请求：{"req":"Player_GetStatus","rid":66,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":66,"ID":1,"data":{"Ret":0,"LoginStatus":2,"PlayStatus":1,"SupportTalk":1}} 和 {"ret":0,"rid":66,"ID":2,"data":{"Ret":0,"PlayStatus":1}}
-返回LoginStatus为海康及大华私有协议登录状态
-返回PlayStatus为当前播放状态，播放状态定义参考libvlc_state_t
-返回是否支持对讲标识SupportTalk 海康及大华私有协议播放有效
+26) Get the status related to the specified ID window. Login status invalid for local MP4 files, FFPlayer, VLC engine playback. Only playback status is valid.
+Request: {"req":"Player_GetStatus","rid":66,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":66,"ID":1,"data":{"Ret":0,"LoginStatus":2,"PlayStatus":1,"SupportTalk":1}} and {"ret":0,"rid":66,"ID":2,"data":{"Ret":0,"PlayStatus":1}}
+Return LoginStatus is the Hikvision/Dahua private protocol login status.
+Return PlayStatus is the current playback status. Playback status definition reference libvlc_state_t.
+Return SupportTalk indicates whether intercom is supported. Valid for Hikvision/Dahua private protocol playback.
 
-27) 指定ID窗口播放指定通道、本地文件或RTSP流地址，海康及大华私有协议播放需要先登录
-指定Channel时为指定通道播放，指定Uri时，要么是本地路径文件，要么是服务器的RTSP流地址(包含回放地址) Uri中如果有特殊字符= & 双引号或中文等，需要用URL编码处理后传递 Uri如非本地全路径，默认使用中间件程序Data子目录作为根目录使用
-需要注意的是比如已经启动播放本地MP4文件播放，那么这个窗口调用此接口时也只能切换本地MP4文件播放
-请求：{"req":"Player_Play","rid":67,"para":[{"ID":1,"Channel":1},{"ID":2,"Uri":"d:/zorro/test.mp4"},{"ID":3,"Uri":"rtsp://192.168.1.8:554/h264/ch1/sub/av_stream","Option":"Stream=1"}]}
-分别返回：{"ret":0,"rid":67,"ID":1,"data":{"Ret":0,"PlayID":1}} {"ret":0,"rid":67,"ID":2,"data":{"Ret":0,"PlayID":2}} 和 {"ret":0,"rid":67,"ID":3,"data":{"Ret":0,"PlayID":3}}
-PlayID为当前播放ID
+27) Play the specified channel, local file, or RTSP stream address in the specified ID window. Hikvision/Dahua private protocol playback requires login first.
+When Channel is specified, it plays the specified channel. When Uri is specified, it can be a local path file or a server RTSP stream address (including playback address). If Uri contains special characters = & double quotes or Chinese, etc., it needs to be URL-encoded before passing. If Uri is not a full local path, the middleware program's Data subdirectory is used as the root directory by default.
+Note: For example, if local MP4 file playback is already started, then when calling this interface for that window, it can only switch to local MP4 file playback.
+Request: {"req":"Player_Play","rid":67,"para":[{"ID":1,"Channel":1},{"ID":2,"Uri":"d:/zorro/test.mp4"},{"ID":3,"Uri":"rtsp://192.168.1.8:554/h264/ch1/sub/av_stream","Option":"Stream=1"}]}
+Return respectively: {"ret":0,"rid":67,"ID":1,"data":{"Ret":0,"PlayID":1}} {"ret":0,"rid":67,"ID":2,"data":{"Ret":0,"PlayID":2}} and {"ret":0,"rid":67,"ID":3,"data":{"Ret":0,"PlayID":3}}
+PlayID is the current playback ID.
 
-28) 指定ID窗口播放控制，需要先调用播放
-Type为控制类型，默认3暂停播放 2停止播放 4恢复播放
-请求：{"req":"Player_Control","rid":68,"para":[{"ID":1,"Type":4},{"ID":2,"Type":2},{"ID":3,"Type":3}]}
-分别返回：{"ret":0,"rid":68,"ID":1,"data":{"Ret":0,"Status":3}} {"ret":0,"rid":68,"ID":2,"data":{"Ret":0,"Status":5}} 和 {"ret":0,"rid":68,"ID":3,"data":{"Ret":0,"Status":4}}
-其中Status为当前播放状态 播放状态定义参考libvlc_state_t
+28) Playback control for the specified ID window. Playback must be called first.
+Type is the control type: default 3 pause playback, 2 stop playback, 4 resume playback.
+Request: {"req":"Player_Control","rid":68,"para":[{"ID":1,"Type":4},{"ID":2,"Type":2},{"ID":3,"Type":3}]}
+Return respectively: {"ret":0,"rid":68,"ID":1,"data":{"Ret":0,"Status":3}} {"ret":0,"rid":68,"ID":2,"data":{"Ret":0,"Status":5}} and {"ret":0,"rid":68,"ID":3,"data":{"Ret":0,"Status":4}}
+Status is the current playback status. Playback status definition reference libvlc_state_t.
 
-29) 指定ID窗口设置声音共享模式，需要先调用播放
-AudioMode 1为独占 单路音频模式；2－共享声卡，多路音频模式 
-请求：{"req":"Player_SetAudioMode","rid":69,"para":[{"ID":1,"AudioMode":2},{"ID":2,"AudioMode":2}]}
-分别返回：{"ret":0,"rid":69,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":69,"ID":2,"data":{"Ret":0}}
+29) Set sound sharing mode for the specified ID window. Playback must be called first.
+AudioMode 1 is exclusive, single-channel audio mode; 2－share sound card, multi-channel audio mode.
+Request: {"req":"Player_SetAudioMode","rid":69,"para":[{"ID":1,"AudioMode":2},{"ID":2,"AudioMode":2}]}
+Return respectively: {"ret":0,"rid":69,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":69,"ID":2,"data":{"Ret":0}}
 
-30) 指定ID窗口打开声音，本地MP4等文件播放需要先打开声音再播放，非本地MP4等文件播放需要先调用播放
-请求：{"req":"Player_OpenSound","rid":70,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":70,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":70,"ID":2,"data":{"Ret":0}}
+30) Turn on sound for the specified ID window. Local MP4 file playback needs sound turned on before playback. Non-local MP4 file playback requires playback to be called first.
+Request: {"req":"Player_OpenSound","rid":70,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":70,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":70,"ID":2,"data":{"Ret":0}}
 
-31) 指定ID窗口关闭声音，需要先调用打开声音
-请求：{"req":"Player_CloseSound","rid":71,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":71,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":71,"ID":2,"data":{"Ret":0}}
+31) Turn off sound for the specified ID window. Requires sound to be turned on first.
+Request: {"req":"Player_CloseSound","rid":71,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":71,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":71,"ID":2,"data":{"Ret":0}}
 
-32) 取当前音频音量 0-100，0代表静音，100最大音量
-请求：{"req":"Player_GetAudioVolume","rid":72,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":72,"ID":1,"data":{"Ret":0,"AudioVolume":100}} 和 {"ret":0,"rid":72,"ID":2,"data":{"Ret":0,"AudioVolume":0}}
+32) Get current audio volume 0-100, 0 represents mute, 100 maximum volume.
+Request: {"req":"Player_GetAudioVolume","rid":72,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":72,"ID":1,"data":{"Ret":0,"AudioVolume":100}} and {"ret":0,"rid":72,"ID":2,"data":{"Ret":0,"AudioVolume":0}}
 
-33) 设置当前音频音量 0-100，0代表静音，100最大音量
-请求：{"req":"Player_PutAudioVolume","rid":73,"para":[{"ID":1,"AudioVolume":0},{"ID":2,"AudioVolume":100}]}
-分别返回：{"ret":0,"rid":73,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":73,"ID":2,"data":{"Ret":0}}
+33) Set current audio volume 0-100, 0 represents mute, 100 maximum volume.
+Request: {"req":"Player_PutAudioVolume","rid":73,"para":[{"ID":1,"AudioVolume":0},{"ID":2,"AudioVolume":100}]}
+Return respectively: {"ret":0,"rid":73,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":73,"ID":2,"data":{"Ret":0}}
 
-34) 指定ID窗口进行云台控制，海康需要先调用播放，大华只需要登录即可，海康及大华私有协议有效
-Stop是否停止 0－开始，1－停止 
-Type为云台控制类型
-以下是海康云台类型定义：
-	PTZTYPE_LIGHT_PWRON		= 2,	/// 接通灯光电源
-	PTZTYPE_WIPER_PWRON		= 3,	/// 接通雨刷开关
-	PTZTYPE_FAN_PWRON		= 4,	/// 接通风扇开关
-	PTZTYPE_HEATER_PWRON	= 5,	/// 接通加热器开关
-	PTZTYPE_AUX_PWRON1		= 6,	/// 接通辅助设备开关
-	PTZTYPE_AUX_PWRON2		= 7,	/// 接通辅助设备开关
-	PTZTYPE_SET_PRESET		= 8,	/// 设置预置点
-	PTZTYPE_CLE_PRESET		= 9,	/// 清除预置点
-	PTZTYPE_ZOOM_IN			= 11,	/// 焦距以速度SS变大(倍率变大)
-	PTZTYPE_ZOOM_OUT		= 12,	/// 焦距以速度SS变小(倍率变小)
-	PTZTYPE_FOCUS_NEAR		= 13,	/// 焦点以速度SS前调
-	PTZTYPE_FOCUS_FAR		= 14,	/// 焦点以速度SS后调
-	PTZTYPE_IRIS_OPEN		= 15,	/// 光圈以速度SS扩大
-	PTZTYPE_IRIS_CLOSE		= 16,	/// 光圈以速度SS缩小
-	PTZTYPE_TILT_UP			= 21,	/// 云台以SS的速度上仰
-	PTZTYPE_TILT_DOWN		= 22,	/// 云台以SS的速度下俯
-	PTZTYPE_PAN_LEFT		= 23,	/// 云台以SS的速度左转
-	PTZTYPE_PAN_RIGHT		= 24,	/// 云台以SS的速度右转
-	PTZTYPE_UP_LEFT			= 25,	/// 云台以SS的速度上仰和左转
-	PTZTYPE_UP_RIGHT		= 26,	/// 云台以SS的速度上仰和右转
-	PTZTYPE_DOWN_LEFT		= 27,	/// 云台以SS的速度下俯和左转
-	PTZTYPE_DOWN_RIGHT		= 28,	/// 云台以SS的速度下俯和右转
-	PTZTYPE_PAN_AUTO		= 29,	/// 云台以SS的速度左右自动扫描
+34) PTZ control for the specified ID window. Hikvision requires playback to be called first, Dahua only requires login. Valid for Hikvision/Dahua private protocols.
+Stop whether to stop: 0－start, 1－stop.
+Type is the PTZ control type.
+Hikvision PTZ type definitions:
+	PTZTYPE_LIGHT_PWRON		= 2,	/// Turn on light power
+	PTZTYPE_WIPER_PWRON		= 3,	/// Turn on wiper switch
+	PTZTYPE_FAN_PWRON		= 4,	/// Turn on fan switch
+	PTZTYPE_HEATER_PWRON	= 5,	/// Turn on heater switch
+	PTZTYPE_AUX_PWRON1		= 6,	/// Turn on auxiliary device 1 switch
+	PTZTYPE_AUX_PWRON2		= 7,	/// Turn on auxiliary device 2 switch
+	PTZTYPE_SET_PRESET		= 8,	/// Set preset point
+	PTZTYPE_CLE_PRESET		= 9,	/// Clear preset point
+	PTZTYPE_ZOOM_IN			= 11,	/// Zoom in (magnification increases) at speed SS
+	PTZTYPE_ZOOM_OUT		= 12,	/// Zoom out (magnification decreases) at speed SS
+	PTZTYPE_FOCUS_NEAR		= 13,	/// Focus forward at speed SS
+	PTZTYPE_FOCUS_FAR		= 14,	/// Focus backward at speed SS
+	PTZTYPE_IRIS_OPEN		= 15,	/// Iris open at speed SS
+	PTZTYPE_IRIS_CLOSE		= 16,	/// Iris close at speed SS
+	PTZTYPE_TILT_UP			= 21,	/// Tilt up at speed SS
+	PTZTYPE_TILT_DOWN		= 22,	/// Tilt down at speed SS
+	PTZTYPE_PAN_LEFT		= 23,	/// Pan left at speed SS
+	PTZTYPE_PAN_RIGHT		= 24,	/// Pan right at speed SS
+	PTZTYPE_UP_LEFT			= 25,	/// Tilt up and pan left at speed SS
+	PTZTYPE_UP_RIGHT		= 26,	/// Tilt up and pan right at speed SS
+	PTZTYPE_DOWN_LEFT		= 27,	/// Tilt down and pan left at speed SS
+	PTZTYPE_DOWN_RIGHT		= 28,	/// Tilt down and pan right at speed SS
+	PTZTYPE_PAN_AUTO		= 29,	/// Auto pan left/right scan at speed SS
+	PTZTYPE_FILL_PRE_SEQ	= 30,	/// Add preset point to cruise sequence
+	PTZTYPE_SET_SEQ_DWELL	= 31,	/// Set cruise point dwell time
+	PTZTYPE_SET_SEQ_SPEED	= 32,	/// Set cruise speed
+	PTZTYPE_CLE_PRE_SEQ		= 33,	/// Delete preset point from cruise sequence
+	PTZTYPE_STA_MEM_CRUISE	= 34,	/// Start recording track
+	PTZTYPE_STO_MEM_CRUISE	= 35,	/// Stop recording track
+	PTZTYPE_RUN_CRUISE		= 36,	/// Start track
+	PTZTYPE_RUN_SEQ			= 37,	/// Start cruise
+	PTZTYPE_STOP_SEQ		= 38,	/// Stop cruise
+	PTZTYPE_GOTO_PRESET		= 39,	/// Fast dome go to preset point
+	PTZTYPE_DEL_SEQ			= 43,	/// Delete cruise path
+	PTZTYPE_STOP_CRUISE		= 44,	/// Stop track
+	PTZTYPE_DELETE_CRUISE	= 45,	/// Delete single track
+	PTZTYPE_DELETE_ALL_CRUISE= 46,	/// Delete all tracks
+	PTZTYPE_PAN_CIRCLE		= 50,	/// Auto circular scan at speed SS
+	PTZTYPE_DRAG_PTZ		= 51,	/// Drag PTZ
+	PTZTYPE_LINEAR_SCAN		= 52,	/// Area scan
+	PTZTYPE_CLE_ALL_PRESET	= 53,	/// Clear all preset points
+	PTZTYPE_CLE_ALL_SEQ		= 54,	/// Clear all cruises
+	PTZTYPE_CLE_ALL_CRUISE	= 55,	/// Clear all tracks
+	PTZTYPE_POPUP_MENU		= 56,	/// Show operation menu
+	PTZTYPE_TILT_DOWN_ZOOM_IN	= 58,	/// Tilt down at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_TILT_DOWN_ZOOM_OUT	= 59,	/// Tilt down at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_PAN_LEFT_ZOOM_IN	= 60,	/// Pan left at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_PAN_LEFT_ZOOM_OUT	= 61,	/// Pan left at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_PAN_RIGHT_ZOOM_IN	= 62,	/// Pan right at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_PAN_RIGHT_ZOOM_OUT	= 63,	/// Pan right at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_UP_LEFT_ZOOM_IN		= 64,	/// Tilt up and pan left at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_UP_LEFT_ZOOM_OUT	= 65,	/// Tilt up and pan left at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_UP_RIGHT_ZOOM_IN	= 66,	/// Tilt up and pan right at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_UP_RIGHT_ZOOM_OUT	= 67,	/// Tilt up and pan right at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_DOWN_LEFT_ZOOM_IN	= 68,	/// Tilt down and pan left at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_DOWN_LEFT_ZOOM_OUT	= 69,	/// Tilt down and pan left at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_DOWN_RIGHT_ZOOM_IN	= 70,	/// Tilt down and pan right at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_DOWN_RIGHT_ZOOM_OUT	= 71,	/// Tilt down and pan right at speed SS && Zoom out at speed SS (magnification decreases)
+	PTZTYPE_TILT_UP_ZOOM_IN		= 72,	/// Tilt up at speed SS && Zoom in at speed SS (magnification increases)
+	PTZTYPE_TILT_UP_ZOOM_OUT	= 73,	/// Tilt up at speed SS && Zoom out at speed SS (magnification decreases)
+For Hikvision PTZ control types involving speed, set this parameter: Speed specifies the speed control value set by the user according to different decoders. Range [1,7]. Do not set this value if speed control is not needed.
 
-	PTZTYPE_FILL_PRE_SEQ	= 30,	/// 将预置点加入巡航序列
-	PTZTYPE_SET_SEQ_DWELL	= 31,	/// 设置巡航点停顿时间
-	PTZTYPE_SET_SEQ_SPEED	= 32,	/// 设置巡航速度
-	PTZTYPE_CLE_PRE_SEQ		= 33,	/// 将预置点从巡航序列中删除
-	PTZTYPE_STA_MEM_CRUISE	= 34,	/// 开始记录轨迹
-	PTZTYPE_STO_MEM_CRUISE	= 35,	/// 停止记录轨迹
-	PTZTYPE_RUN_CRUISE		= 36,	/// 开始轨迹
-	PTZTYPE_RUN_SEQ			= 37,	/// 开始巡航
-	PTZTYPE_STOP_SEQ		= 38,	/// 停止巡航
-	PTZTYPE_GOTO_PRESET		= 39,	/// 快球转到预置点
-	PTZTYPE_DEL_SEQ			= 43,	/// 删除巡航路径
-	PTZTYPE_STOP_CRUISE		= 44,	/// 停止轨迹
-	PTZTYPE_DELETE_CRUISE	= 45,	/// 删除单条轨迹
-	PTZTYPE_DELETE_ALL_CRUISE= 46,	/// 删除所有轨迹
+Dahua PTZ type definitions:
+		DHPTZTYPE_UP_CONTROL = 0,                      // Up                   Speed corresponds to param2(1-8)
+		DHPTZTYPE_DOWN_CONTROL,                        // Down                 Speed corresponds to param2(1-8)
+		DHPTZTYPE_LEFT_CONTROL,                        // Left                 Speed corresponds to param2(1-8)
+		DHPTZTYPE_RIGHT_CONTROL,                       // Right                Speed corresponds to param2(1-8)
+		DHPTZTYPE_ZOOM_ADD_CONTROL,                    // Zoom+                Corresponds to param2
+		DHPTZTYPE_ZOOM_DEC_CONTROL,                    // Zoom-                Corresponds to param2
+		DHPTZTYPE_FOCUS_ADD_CONTROL,                   // Focus-               Corresponds to param2
+		DHPTZTYPE_FOCUS_DEC_CONTROL,                   // Focus+               Corresponds to param2
+		DHPTZTYPE_APERTURE_ADD_CONTROL,                // Iris+                Corresponds to param2
+		DHPTZTYPE_APERTURE_DEC_CONTROL,                // Iris-                Corresponds to param2
+		DHPTZTYPE_POINT_MOVE_CONTROL,                  // Go to preset point   param2 is preset point number
+		DHPTZTYPE_POINT_SET_CONTROL,                   // Set                  param2 is preset point number, max number can be obtained from PTZ capability set. param4 can pass preset point name, max valid value 63 bytes.
+		DHPTZTYPE_POINT_DEL_CONTROL,                   // Delete               param2 is preset point number
+		DHPTZTYPE_POINT_LOOP_CONTROL,                  // Point-to-point cruise param1 is cruise line
+		DHPTZTYPE_LAMP_CONTROL,                        // Light/Wiper          Corresponds to param1(1-On, 0-Off)
+		/// The following are extended PTZ types
+		DHEXTPTZTYPE_LEFTTOP = 0x20,                   // Up-Left
+		DHEXTPTZTYPE_RIGHTTOP,                         // Up-Right
+		DHEXTPTZTYPE_LEFTDOWN,                         // Down-Left
+		DHEXTPTZTYPE_RIGHTDOWN,                        // Down-Right
+		DHEXTPTZTYPE_ADDTOLOOP,                        // Add preset point to cruise Cruise line Preset point value
+		DHEXTPTZTYPE_DELFROMLOOP,                      // Delete preset point from cruise Cruise line Preset point value
+		DHEXTPTZTYPE_CLOSELOOP,                        // Clear cruise Cruise line
+		DHEXTPTZTYPE_STARTPANCRUISE,                   // Start horizontal rotation
+		DHEXTPTZTYPE_STOPPANCRUISE,                    // Stop horizontal rotation
+		DHEXTPTZTYPE_SETLEFTBORDER,                    // Set left border
+		DHEXTPTZTYPE_SETRIGHTBORDER,                   // Set right border
+		DHEXTPTZTYPE_STARTLINESCAN,                    // Start line scan
+		DHEXTPTZTYPE_CLOSELINESCAN,                    // Stop line scan
+		DHEXTPTZTYPE_SETMODESTART,                     // Set mode start    Mode line
+		DHEXTPTZTYPE_SETMODESTOP,                      // Set mode stop     Mode line
+		DHEXTPTZTYPE_RUNMODE,                          // Run mode     Mode line
+		DHEXTPTZTYPE_STOPMODE,                         // Stop mode     Mode line
+		DHEXTPTZTYPE_DELETEMODE,                       // Clear mode     Mode line
+		DHEXTPTZTYPE_REVERSECOMM,                      // Reverse command
+		DHEXTPTZTYPE_FASTGOTO,                         // Fast positioning Horizontal coordinate(-8191~8191) Vertical coordinate(-8191~8191) Zoom(-16~16)
+		DHEXTPTZTYPE_AUXIOPEN,                         // Auxiliary switch on Auxiliary point (param4 corresponds to PTZ_CONTROL_AUXILIARY, param1, param2, param3 invalid, dwStop set to FALSE)
+		DHEXTPTZTYPE_AUXICLOSE,                        // Auxiliary switch off Auxiliary point (param4 corresponds to PTZ_CONTROL_AUXILIARY, param1, param2, param3 invalid, dwStop set to FALSE)
+		DHEXTPTZTYPE_OPENMENU = 0x36,                  // Open dome menu
+		DHEXTPTZTYPE_CLOSEMENU,                        // Close menu
+		DHEXTPTZTYPE_MENUOK,                           // Menu OK
+		DHEXTPTZTYPE_MENUCANCEL,                       // Menu Cancel
+		DHEXTPTZTYPE_MENUUP,                           // Menu Up
+		DHEXTPTZTYPE_MENUDOWN,                         // Menu Down
+		DHEXTPTZTYPE_MENULEFT,                         // Menu Left
+		DHEXTPTZTYPE_MENURIGHT,                        // Menu Right
+		DHEXTPTZTYPE_ALARMHANDLE = 0x40,               // Alarm linkage PTZ parm1: alarm input channel; parm2: alarm linkage type 1-preset point 2-line scan 3-cruise; parm3: linkage value, e.g., preset number
+		DHEXTPTZTYPE_MATRIXSWITCH = 0x41,              // Matrix switch parm1: previewer number (video output number); parm2: video input number; parm3: matrix number
+		DHEXTPTZTYPE_LIGHTCONTROL,                     // Light controller
+		DHEXTPTZTYPE_EXACTGOTO,                        // 3D precise positioning parm1: horizontal angle(0~3600); parm2: vertical coordinate(-1800-1800); parm3: zoom(1~128), zoom is level, not actual zoom multiple
+		DHEXTPTZTYPE_RESETZERO,                        // 3D positioning reset zero position
+		DHEXTPTZTYPE_MOVE_RELATIVELY = 0x84,			// PTZ relative positioning, param4 corresponds to structure NET_IN_MOVERELATIVELY_INFO
+		DHEXTPTZTYPE_SET_DIRECTION = 0x85,				// Set PTZ direction, param4 corresponds to structure NET_IN_SET_DIRECTION_INFO
+		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY = 0x86,		// Precise absolute move control command, param4 corresponds to structure NET_IN_PTZBASE_MOVEABSOLUTELY_INFO (Obtain PTZ capability set (CFG_PTZ_PROTOCOL_CAPS_INFO) via CFG_CAP_CMD_PTZ command. If bSupportReal is TRUE, the device supports this operation)
+		DHEXTPTZTYPE_BASE_MOVE_CONTINUOUSLY,			// PTZ continuous move control command, param4 corresponds to structure NET_IN_PTZBASE_MOVE_CONTINUOUSLY_INFO. Obtain PTZ capability set via CFG_CAP_CMD_PTZ.
+														// If stuMoveContinuously.bSupportExtra in CFG_PTZ_PROTOCOL_CAPS_INFO is TRUE, the device supports this operation.
+		DHEXTPTZTYPE_BASE_SET_FOCUS_MAP_VALUE,			// Set current position focus value, param4 corresponds to structure NET_IN_PTZBASE_SET_FOCUS_MAP_VALUE_INFO
+		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY_ONLYPT,		// Absolute positioning independently controls PT and can control speed in degrees/second, param4 corresponds to structure NET_IN_PTZBASE_MOVEABSOLUTELY_ONLYPT_INFO
+		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY_ONLYZOOM,		// Absolute positioning independently controls zoom, and can control zoom speed, param4 corresponds to structure NET_IN_PTZBASE_MOVEABSOLUTELY_ONLYZOOM_INFO
+		DHEXTPTZTYPE_STOP_MOVE,							// Stop PTZ movement, also stop cruise mode, param4 corresponds to structure NET_IN_STOP_MOVE_INFO
+		DHEXTPTZTYPE_TOTAL,                            // Maximum command value
+Dahua PTZ control parameters param1 param2 param3 correspond to the parameters needed in the above types respectively.
+Hikvision PTZ request example: {"req":"Player_PTZControl","rid":74,"para":[{"ID":1,"Type":25,"Speed":5,"Stop":0}]}
+Dahua PTZ request example: {"req":"Player_PTZControl","rid":74,"para":[{"ID":1,"Type":0,"param2":5,"Stop":0}]}
+Return: {"ret":0,"rid":74,"ID":1,"data":{"Ret":0}}
 
-	PTZTYPE_PAN_CIRCLE		= 50,	/// 云台以SS的速度自动圆周扫描
-	PTZTYPE_DRAG_PTZ		= 51,	/// 拖动PTZ
-	PTZTYPE_LINEAR_SCAN		= 52,	/// 区域扫描
-	PTZTYPE_CLE_ALL_PRESET	= 53,	/// 预置点全部清除
-	PTZTYPE_CLE_ALL_SEQ		= 54,	/// 巡航全部清除
-	PTZTYPE_CLE_ALL_CRUISE	= 55,	/// 轨迹全部清除
-	PTZTYPE_POPUP_MENU		= 56,	/// 显示操作菜单
+35) Get connection information for the specified ID window. Valid for Hikvision private protocol playback.
+Type is the get type: 1 preview, 2 playbackback
+3 intercom Returns empty for devices that do not support intercom.
+Request: {"req":"Player_GetLinkAddr","rid":75,"para":[{"ID":1,"Type":1}]}
+Return: {"ret":0,"rid":75,"ID":1,"data":{"Ret":0,"LinkInfo":{}}}
 
-	PTZTYPE_TILT_DOWN_ZOOM_IN	= 58,	/// 云台以SS的速度下俯&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_TILT_DOWN_ZOOM_OUT	= 59,	/// 云台以SS的速度下俯&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_PAN_LEFT_ZOOM_IN	= 60,	/// 云台以SS的速度左转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_PAN_LEFT_ZOOM_OUT	= 61,	/// 云台以SS的速度左转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_PAN_RIGHT_ZOOM_IN	= 62,	/// 云台以SS的速度右转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_PAN_RIGHT_ZOOM_OUT	= 63,	/// 云台以SS的速度右转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_UP_LEFT_ZOOM_IN		= 64,	/// 云台以SS的速度上仰和左转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_UP_LEFT_ZOOM_OUT	= 65,	/// 云台以SS的速度上仰和左转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_UP_RIGHT_ZOOM_IN	= 66,	/// 云台以SS的速度上仰和右转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_UP_RIGHT_ZOOM_OUT	= 67,	/// 云台以SS的速度上仰和右转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_DOWN_LEFT_ZOOM_IN	= 68,	/// 云台以SS的速度下俯和左转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_DOWN_LEFT_ZOOM_OUT	= 69,	/// 云台以SS的速度下俯和左转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_DOWN_RIGHT_ZOOM_IN	= 70,	/// 云台以SS的速度下俯和右转&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_DOWN_RIGHT_ZOOM_OUT	= 71,	/// 云台以SS的速度下俯和右转&&焦距以速度SS变小(倍率变小)
-	PTZTYPE_TILT_UP_ZOOM_IN		= 72,	/// 云台以SS的速度上仰&&焦距以速度SS变大(倍率变大)
-	PTZTYPE_TILT_UP_ZOOM_OUT	= 73,	/// 云台以SS的速度上仰&&焦距以速度SS变小(倍率变小)
+36) Get available video or intercom channels for the specified ID window. Valid for Hikvision/Dahua private protocol playback.
+Type get type: 0 available video channels, 1 available intercom channels.
+Request: {"req":"Player_GetChannelInfo","rid":76,"para":[{"ID":1,"Type":0},{"ID":2,"Type":1}]}
+Return respectively: {"ret":0,"rid":76,"ID":1,"data":{"Ret":0,"ChannelInfo":""}} and {"ret":0,"rid":76,"ID":2,"data":{"Ret":0,"ChannelInfo":""}}
 
-以上涉及速度的海康云台控制类型设置此参数：Speed是否指定速度 用户按不同解码器的速度控制值设置。取值范围[1,7] 不需要速度控制时不设置此值
+37) Refresh the intercom status of the specified ID window. Invalid for local MP4 file playback. Return value invalid for devices that do not support intercom. Valid for Hikvision private protocol playback.
+Request: {"req":"Player_UpdateTalkStatus","rid":77,"para":[{"ID":1,"Channel":0}]}
+Return: {"ret":0,"rid":77,"ID":1,"data":{"Ret":0,"TalkStatus":""}}
 
-以下是大华云台类型定义：
-		DHPTZTYPE_UP_CONTROL = 0,                      // 上                   速度对应parma2(1-8)
-		DHPTZTYPE_DOWN_CONTROL,                        // 下                   速度对应parma2(1-8)
-		DHPTZTYPE_LEFT_CONTROL,                        // 左                   速度对应parma2(1-8)
-		DHPTZTYPE_RIGHT_CONTROL,                       // 右                   速度对应parma2(1-8)
-		DHPTZTYPE_ZOOM_ADD_CONTROL,                    // 变倍+                对应param2
-		DHPTZTYPE_ZOOM_DEC_CONTROL,                    // 变倍-                对应param2
-		DHPTZTYPE_FOCUS_ADD_CONTROL,                   // 调焦-                对应param2
-		DHPTZTYPE_FOCUS_DEC_CONTROL,                   // 调焦+                对应param2
-		DHPTZTYPE_APERTURE_ADD_CONTROL,                // 光圈+                对应param2
-		DHPTZTYPE_APERTURE_DEC_CONTROL,                // 光圈-                对应param2
-		DHPTZTYPE_POINT_MOVE_CONTROL,                  // 转至预置点           param2为预置点序号
-		DHPTZTYPE_POINT_SET_CONTROL,                   // 设置                 param2为预置点序号，最大序号可以从云台能力集中获取  param4可以传预置点名称，预置点名称最大有效值为63字节。
-		DHPTZTYPE_POINT_DEL_CONTROL,                   // 删除                 param2为预置点序号
-		DHPTZTYPE_POINT_LOOP_CONTROL,                  // 点间巡航             param1为巡航线路
-		DHPTZTYPE_LAMP_CONTROL,                        // 灯光雨刷             对应param1(1-开启,0-关闭)
-		/// 以下是云台扩展类型
-		DHEXTPTZTYPE_LEFTTOP = 0x20,                   // 左上
-		DHEXTPTZTYPE_RIGHTTOP,                         // 右上
-		DHEXTPTZTYPE_LEFTDOWN,                         // 左下
-		DHEXTPTZTYPE_RIGHTDOWN,                        // 右下
-		DHEXTPTZTYPE_ADDTOLOOP,                        // 加入预置点到巡航 巡航线路 预置点值
-		DHEXTPTZTYPE_DELFROMLOOP,                      // 删除巡航中预置点 巡航线路 预置点值
-		DHEXTPTZTYPE_CLOSELOOP,                        // 清除巡航 巡航线路
-		DHEXTPTZTYPE_STARTPANCRUISE,                   // 开始水平旋转
-		DHEXTPTZTYPE_STOPPANCRUISE,                    // 停止水平旋转
-		DHEXTPTZTYPE_SETLEFTBORDER,                    // 设置左边界
-		DHEXTPTZTYPE_SETRIGHTBORDER,                   // 设置右边界
-		DHEXTPTZTYPE_STARTLINESCAN,                    // 开始线扫
-		DHEXTPTZTYPE_CLOSELINESCAN,                    // 停止线扫
-		DHEXTPTZTYPE_SETMODESTART,                     // 设置模式开始    模式线路
-		DHEXTPTZTYPE_SETMODESTOP,                      // 设置模式结束    模式线路
-		DHEXTPTZTYPE_RUNMODE,                          // 运行模式    模式线路
-		DHEXTPTZTYPE_STOPMODE,                         // 停止模式    模式线路
-		DHEXTPTZTYPE_DELETEMODE,                       // 清除模式    模式线路
-		DHEXTPTZTYPE_REVERSECOMM,                      // 翻转命令
-		DHEXTPTZTYPE_FASTGOTO,                         // 快速定位 水平坐标(-8191~8191) 垂直坐标(-8191~8191) 变倍(-16~16)
-		DHEXTPTZTYPE_AUXIOPEN,                         // 辅助开关开 辅助点(param4对应 PTZ_CONTROL_AUXILIARY,param1、param2、param3无效,dwStop设置为FALSE)
-		DHEXTPTZTYPE_AUXICLOSE,                        // 辅助开关关 辅助点(param4对应 PTZ_CONTROL_AUXILIARY,param1、param2、param3无效,dwStop设置为FALSE)
-		DHEXTPTZTYPE_OPENMENU = 0x36,                  // 打开球机菜单
-		DHEXTPTZTYPE_CLOSEMENU,                        // 关闭菜单
-		DHEXTPTZTYPE_MENUOK,                           // 菜单确定
-		DHEXTPTZTYPE_MENUCANCEL,                       // 菜单取消
-		DHEXTPTZTYPE_MENUUP,                           // 菜单上
-		DHEXTPTZTYPE_MENUDOWN,                         // 菜单下
-		DHEXTPTZTYPE_MENULEFT,                         // 菜单左
-		DHEXTPTZTYPE_MENURIGHT,                        // 菜单右
-		DHEXTPTZTYPE_ALARMHANDLE = 0x40,               // 报警联动云台 parm1：报警输入通道；parm2：报警联动类型1-预置点2-线扫3-巡航；parm3：联动值,如预置点号
-		DHEXTPTZTYPE_MATRIXSWITCH = 0x41,              // 矩阵切换 parm1：预览器号(视频输出号)；parm2：视频输入号；parm3：矩阵号
-		DHEXTPTZTYPE_LIGHTCONTROL,                     // 灯光控制器
-		DHEXTPTZTYPE_EXACTGOTO,                        // 三维精确定位 parm1：水平角度(0~3600)；parm2：垂直坐标(-1800-1800)；parm3：变倍(1~128),变倍为档位,并非实际变倍倍数
-		DHEXTPTZTYPE_RESETZERO,                        // 三维定位重设零位
-		DHEXTPTZTYPE_MOVE_ABSOLUTELY,                  // 绝对移动控制命令,param4对应结构 PTZ_CONTROL_ABSOLUTELY
-		DHEXTPTZTYPE_MOVE_CONTINUOUSLY,                // 持续移动控制命令,param4对应结构 PTZ_CONTROL_CONTINUOUSLY
-		DHEXTPTZTYPE_GOTOPRESET,                       // 云台控制命令,以一定速度转到预置位点,parm4对应结构PTZ_CONTROL_GOTOPRESET
-		DHEXTPTZTYPE_SET_VIEW_RANGE = 0x49,            // 设置可视域(param4对应结构 PTZ_VIEW_RANGE_INFO)
-		DHEXTPTZTYPE_FOCUS_ABSOLUTELY = 0x4A,          // 绝对聚焦(param4对应结构PTZ_FOCUS_ABSOLUTELY)
-		DHEXTPTZTYPE_HORSECTORSCAN = 0x4B,             // 水平扇扫(param4对应PTZ_CONTROL_SECTORSCAN,param1、param2、param3无效)
-		DHEXTPTZTYPE_VERSECTORSCAN = 0x4C,             // 垂直扇扫(param4对应PTZ_CONTROL_SECTORSCAN,param1、param2、param3无效)
-		DHEXTPTZTYPE_SET_ABS_ZOOMFOCUS = 0x4D,         // 设定绝对焦距、聚焦值,param1为焦距,范围:[0,255],param2为聚焦,范围:[0,255],param3、param4无效
-		DHEXTPTZTYPE_SET_FISHEYE_EPTZ = 0x4E,          // 控制鱼眼电子云台,param4对应结构 PTZ_CONTROL_SET_FISHEYE_EPTZ  
-		DHEXTPTZTYPE_SET_TRACK_START = 0x4F,           // 轨道机开始控制(param4对应结构体为 PTZ_CONTROL_SET_TRACK_CONTROL,dwStop传FALSE, param1、param2、param3无效)
-		DHEXTPTZTYPE_SET_TRACK_STOP = 0x50,            // 轨道机停止控制(param4对应结构体为 PTZ_CONTROL_SET_TRACK_CONTROL,dwStop传FALSE,param1、param2、param3无效)
-		DHEXTPTZTYPE_RESTART = 0x51,                   // 云台重启命令(param1、param2、param3 param4 均无效,dwStop设置为FALSE)
-		DHEXTPTZTYPE_INTELLI_TRACKMOVE = 0x52,         // 云台连续移动,枪球联动专用,param4对应结构 PTZ_CONTROL_INTELLI_TRACKMOVE
-		DHEXTPTZTYPE_SET_FOCUS_REGION = 0x53,          // 设置区域聚焦参数(param4对应结构体为PTZ_CONTROL_SET_FOCUS_REGION,dwStop传FALSE,param1、param2、param3无效)
-		DHEXTPTZTYPE_PAUSELINESCAN = 0x54,             // 暂停线扫(param1、param2、param3param4均无效，dwStop设置为FALSE)
-		DHEXTPTZTYPE_INTELLI_SETLENSWISDOMSTATE = 0x55,// 目标跟踪时设置聚焦模式(param4对应结构体为PTZ_CONTROL_INTELLI_SETLENSWISDOMSTATE,dwStop传FALSE,param1、param2、param3无效) 
-		DHEXTPTZTYPE_INTELLI_SETFOCUSAREA = 0x56,		// 设置聚焦区域(param4对应结构体为PTZ_CONTROL_INTELLI_SETFOCUSAREA,dwStop传FALSE,param1、param2、param3无效)
-														// 注：目标跟踪若不需设置聚焦区域，因聚焦区域会沿袭上次主动设置状态，故需主动调用此接口取消设置聚焦区域
+38) Start intercom for the specified ID window. Valid for Hikvision/Dahua private protocol playback.
+Channel is the intercom channel. Only one intercom can be open at the same time.
+TalkVolume is the intercom volume.
+LocalFile and DeviceFile are the save file paths for local and device intercom content, respectively.
+Request: {"req":"Player_StartTalk","rid":78,"para":[{"ID":1,"Channel":0,"TalkVolume":60,"LocalFile":"d:/Zorro/Local.mp4","DeviceFile":"d:/Zorro/Device.mp4"}]}
+Return: {"ret":0,"rid":78,"ID":1,"data":{"Ret":0,"TID":1}}
 
-		DHEXTPTZTYPE_UP_TELE = 0x70,                   // 上 + TELE param1=速度(1-8),下同
-		DHEXTPTZTYPE_DOWN_TELE,                        // 下 + TELE
-		DHEXTPTZTYPE_LEFT_TELE,                        // 左 + TELE
-		DHEXTPTZTYPE_RIGHT_TELE,                       // 右 + TELE
-		DHEXTPTZTYPE_LEFTUP_TELE,                      // 左上 + TELE
-		DHEXTPTZTYPE_LEFTDOWN_TELE,                    // 左下 + TELE
-		DHEXTPTZTYPE_TIGHTUP_TELE,                     // 右上 + TELE
-		DHEXTPTZTYPE_RIGHTDOWN_TELE,                   // 右下 + TELE
-		DHEXTPTZTYPE_UP_WIDE,                          // 上 + WIDE param1=速度(1-8),下同
-		DHEXTPTZTYPE_DOWN_WIDE,                        // 下 + WIDE
-		DHEXTPTZTYPE_LEFT_WIDE,                        // 左 + WIDE
-		DHEXTPTZTYPE_RIGHT_WIDE,                       // 右 + WIDE
-		DHEXTPTZTYPE_LEFTUP_WIDE,                      // 左上 + WIDE
-		DHEXTPTZTYPE_LEFTDOWN_WIDE,                    // 左下 + WIDE
-		DHEXTPTZTYPE_TIGHTUP_WIDE,                     // 右上 + WIDE
-		DHEXTPTZTYPE_RIGHTDOWN_WIDE,                   // 右下 + WIDE
-		DHEXTPTZTYPE_GOTOPRESETSNAP = 0x80,            // 转至预置点并抓图
-		DHEXTPTZTYPE_DIRECTIONCALIBRATION = 0x82,      // 校准云台方向（双方向校准）
-		DHEXTPTZTYPE_SINGLEDIRECTIONCALIBRATION = 0x83, // 校准云台方向（单防线校准）,param4对应结构 NET_IN_CALIBRATE_SINGLEDIRECTION
-		DHEXTPTZTYPE_MOVE_RELATIVELY = 0x84,			// 云台相对定位,param4对应结构 NET_IN_MOVERELATIVELY_INFO
-		DHEXTPTZTYPE_SET_DIRECTION = 0x85,				// 设置云台方向, param4对应结构 NET_IN_SET_DIRECTION_INFO
-		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY = 0x86,		// 精准绝对移动控制命令, param4对应结构 NET_IN_PTZBASE_MOVEABSOLUTELY_INFO（通过 CFG_CAP_CMD_PTZ 命令获取云台能力集( CFG_PTZ_PROTOCOL_CAPS_INFO )，若bSupportReal为TRUE则设备支持该操作）
-		DHEXTPTZTYPE_BASE_MOVE_CONTINUOUSLY,			// 云台连续移动控制命令, param4 对应结构 NET_IN_PTZBASE_MOVE_CONTINUOUSLY_INFO.  通过 CFG_CAP_CMD_PTZ 命令获取云台能力集
-														// 若 CFG_PTZ_PROTOCOL_CAPS_INFO 中 stuMoveContinuously 字段的 stuType.bSupportExtra 为 TRUE, 表示设备支持该操作
-		DHEXTPTZTYPE_BASE_SET_FOCUS_MAP_VALUE,			// 设置当前位置聚焦值, param4对应结构体 NET_IN_PTZBASE_SET_FOCUS_MAP_VALUE_INFO
-		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY_ONLYPT,		// 绝对定位独立控制PT并能以度/秒为单位的速度控制, param4对应结构 NET_IN_PTZBASE_MOVEABSOLUTELY_ONLYPT_INFO
-		DHEXTPTZTYPE_BASE_MOVE_ABSOLUTELY_ONLYZOOM,		// 绝对定位独立控制zoom，并能控制变倍速度, param4对应结构 NET_IN_PTZBASE_MOVEABSOLUTELY_ONLYZOOM_INFO
-		DHEXTPTZTYPE_STOP_MOVE,							// 云台移动停止,同时也停止巡航模式,param4对应结构体 NET_IN_STOP_MOVE_INFO
-		DHEXTPTZTYPE_TOTAL,                            // 最大命令值
-大华云台控制参数param1 param2 param3分别对应以上类型中需要的参数
-海康云台请求举例：{"req":"Player_PTZControl","rid":74,"para":[{"ID":1,"Type":25,"Speed":5,"Stop":0}]}
-大华云台请求举例：{"req":"Player_PTZControl","rid":74,"para":[{"ID":1,"Type":0,"param2":5,"Stop":0}]}
-分别返回：{"ret":0,"rid":74,"ID":1,"data":{"Ret":0}}
+39) Get the current intercom volume for the specified ID window. 0-100, 0 represents mute, 100 maximum volume. Valid for Hikvision/Dahua private protocol playback.
+Request: {"req":"Player_GetTalkVolume","rid":79,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":79,"ID":1,"data":{"Ret":0,"TalkVolume":100}} and {"ret":0,"rid":79,"76":2,"data":{"Ret":0,"TalkVolume":0}} (Note: Typo in ID likely)
 
-35) 取指定ID窗口连接信息，海康私有协议播放有效
-Type为获取类型 1预览 2回放
-3 对讲 不支持对讲的设备调用返回空
-请求：{"req":"Player_GetLinkAddr","rid":75,"para":[{"ID":1,"Type":1}]}
-分别返回：{"ret":0,"rid":75,"ID":1,"data":{"Ret":0,"LinkInfo":{}}}
+40) Set the current intercom volume for the specified ID window. 0-100, 0 represents mute, 100 maximum volume. Valid for Hikvision/Dahua private protocol playback.
+Request: {"req":"Player_SetTalkVolume","rid":80,"para":[{"ID":1,"TalkVolume":50},{"ID":2,"TalkVolume":50}]}
+Return respectively: {"ret":0,"rid":80,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":80,"ID":2,"data":{"Ret":0}}
 
-36) 取指定ID窗口可用视频或对讲通道，海康及大华私有协议播放有效
-Type获取类型 0可用视频通道 1可用对讲通道
-请求：{"req":"Player_GetChannelInfo","rid":76,"para":[{"ID":1,"Type":0},{"ID":2,"Type":1}]}
-分别返回：{"ret":0,"rid":76,"ID":1,"data":{"Ret":0,"ChannelInfo":""}} 和 {"ret":0,"rid":76,"ID":2,"data":{"Ret":0,"ChannelInfo":""}}
+41) Request to stop intercom for the specified ID window. Valid for Hikvision/Dahua private protocol playback.
+Request: {"req":"Player_StopTalk","rid":81,"para":[{"ID":1}]}
+Return: {"ret":0,"rid":81,"ID":1,"data":{"Ret":0}}
 
-37) 刷新指定ID窗口对讲状态，本地MP4文件播放无效，不支持对讲的设备调用返回值无效 海康私有协议播放有效
-请求：{"req":"Player_UpdateTalkStatus","rid":77,"para":[{"ID":1,"Channel":0}]}
-分别返回：{"ret":0,"rid":77,"ID":1,"data":{"Ret":0,"TalkStatus":""}}
+42) Screenshot for the specified ID window.
+Type specifies the image type. Can specify 1 (BMP, does not support BASE64 encoded content), default 3 (JPG), 4 (PNG).
+Base64 set to 1 means directly return BASE64 encoded image content.
+AutoDel set to 1, Base64=1 takes effect, automatically delete the temporarily generated image file. Set 0 to not delete.
+Count number of screenshots to capture, default capture one. Delay specifies the delay in milliseconds to start. Interval interval in milliseconds for multiple shots.
+FileName specifies the screenshot file name. Chinese etc. need to be UrlEncode encoded first. Can be omitted to use default value.
+CustomPath specifies the screenshot save path. Chinese etc. need to be UrlEncode encoded first. If not specified, determined by PathType.
+PathType specifies the screenshot image save path type. 0 default temporary directory, 1 operating system desktop, 2 current logged-in user's My Pictures directory, 3 middleware data directory.
+Quality capture quality. 0 represents original image. For VLC and Dahua, value 0-5. For Hikvision, value 0-2. Larger number, lower quality.
+Request 1: {"req":"Player_SnapshotImg","rid":82,"para":[{"ID":1,"Type":3,"PathType":3,"Count":3,"Base64":1,"AutoDel":1,"Delay":1000,"Interval":200}]}
+Request 2: {"req":"Player_SnapshotImg","rid":82,"para":[{"ID":1,"Type":3,"Count":3,"CustomPath":"D:/Zorro","FileName":"TestFileName"}]}
+Return respectively: {"ret":0,"rid":82,"data":{"Ret":0,"Img":[{"Size":0,"Width":0,"Height":0,"File":""}]}} and {"ret":0,"rid":82,"ID":2,"data":{"Ret":0,,"Img":[{"Size":0,"Width":0,"Height":0,"File":""}]}} (Note: extra comma)
 
-38) 开始指定ID窗口对讲 海康及大华私有协议播放有效
-Channel 为对讲通道，同时只能开一个对讲
-TalkVolume 对讲音量
-LocalFile和DeviceFile分别为本地和设备对讲内容保存文件路径
-请求：{"req":"Player_StartTalk","rid":78,"para":[{"ID":1,"Channel":0,"TalkVolume":60,"LocalFile":"d:/Zorro/Local.mp4","DeviceFile":"d:/Zorro/Device.mp4"}]}
-分别返回：{"ret":0,"rid":78,"ID":1,"data":{"Ret":0,"TID":1}}
-
-39) 取指定ID窗口当前对讲音量 0-100，0代表静音，100最大音量 海康及大华私有协议播放有效
-请求：{"req":"Player_GetTalkVolume","rid":79,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":79,"ID":1,"data":{"Ret":0,"TalkVolume":100}} 和 {"ret":0,"rid":79,"76":2,"data":{"Ret":0,"TalkVolume":0}}
-
-40) 设置指定ID窗口当前对讲音量 0-100，0代表静音，100最大音量 海康及大华私有协议播放有效
-请求：{"req":"Player_SetTalkVolume","rid":80,"para":[{"ID":1,"TalkVolume":50},{"ID":2,"TalkVolume":50}]}
-分别返回：{"ret":0,"rid":80,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":80,"ID":2,"data":{"Ret":0}}
-
-41) 指定ID窗口对讲请求停止 海康及大华私有协议播放有效
-请求：{"req":"Player_StopTalk","rid":81,"para":[{"ID":1}]}
-分别返回：{"ret":0,"rid":81,"ID":1,"data":{"Ret":0}}
-
-42) 指定ID窗口截图
-Type 指定图像类型，可指定1(BMP，不支持BASE64编码内容)、默认3(JPG)、4(PNG) 
-Base64指定为1时代表直接返回BASE64编码的图像内容
-AutoDel设置1 Base64为1时生效，自动删临时生成的图片文件，不删除设置0
-Count截取图数量，默认截一张，Delay指定延迟毫秒数开始，Interval多张时间隔毫秒数
-FileName 指定截图文件名称,中文等需要先进行UrlEncode编码，可缺省使用默认值
-CustomPath 指定截图保存路径，中文等需要先进行UrlEncode编码，不指定时由PathType决定
-PathType 指定截图图片保存路径类型，0默认临时目录，1操作系统桌面 2当前登录用户我的图片目录 3中间件数据目录
-Quality 截取质量 0代表原图，VLC及大华的取值0-5，海康的取值0-2，数值越大，质量越低
-请求1：{"req":"Player_SnapshotImg","rid":82,"para":[{"ID":1,"Type":3,"PathType":3,"Count":3,"Base64":1,"AutoDel":1,"Delay":1000,"Interval":200}]}
-请求2： {"req":"Player_SnapshotImg","rid":82,"para":[{"ID":1,"Type":3,"Count":3,"CustomPath":"D:/Zorro","FileName":"TestFileName"}]}
-分别返回：{"ret":0,"rid":82,"data":{"Ret":0,"Img":[{"Size":0,"Width":0,"Height":0,"File":""}]}} 和 {"ret":0,"rid":82,"ID":2,"data":{"Ret":0,,"Img":[{"Size":0,"Width":0,"Height":0,"File":""}]}}
-
-43) 指定ID窗口录像到文件，不支持同时录制多个 大华SDK及海康MP4文件播放不支持
-Type为录像方式(VLC或FFPlayer播放时有效) 0:VLC 1:ffmpeg 指定1时在播放小程序子目录存放ffmpeg程序，支持指定视频开始的时间录像
-File为录像目标文件不指定时自动生成 如非本地全路径，默认使用中间件程序Data子目录作为根目录使用  Second为录制限时时间(秒)，0代表由前端指定停止
-Second为录制限时时间(秒)，0代表由前端指定停止
-Para为录像参数 使用VLC时默认为vcodec=h264 使用ffmpeg时默认为-vcodec libx264
-指定Second时为录制指定秒数的录像，不指定时需要主动调用Player_StopRecord结束录像
+43) Record to file for the specified ID window. Does not support recording multiple simultaneously. Dahua SDK and Hikvision MP4 file playback not supported.
+Type is the recording method (valid for VLC or FFPlayer playback): 0: VLC, 1: ffmpeg. When specifying 1, the ffmpeg program is stored in the playback mini-program subdirectory. Supports specifying the start time of the video for recording.
+File is the recording target file. If not specified, generated automatically. If not a full local path, the middleware program's Data subdirectory is used as the root directory by default. Second is the recording time limit (seconds), 0 means stop is specified by the front-end.
+Second is the recording time limit (seconds), 0 means stop is specified by the front-end.
+Para is the recording parameter. Default for VLC is vcodec=h264. Default for ffmpeg is -vcodec libx264.
+When Second is specified, it records for the specified number of seconds. If not specified, Player_StopRecord must be actively called to end recording.
 {"req":"Player_RecordFile","rid":83,"para":[{"ID":1,"File":"D:/Zorro/Record.mp4","Second":30}]}
-返回：{"ret":0,"rid":83,"ID":1,"data":{"Ret":0,"PID":1}}
+Return: {"ret":0,"rid":83,"ID":1,"data":{"Ret":0,"PID":1}}
 
-44) 指定ID窗口停止录像 大华SDK及海康MP4文件播放不支持
+44) Stop recording for the specified ID window. Dahua SDK and Hikvision MP4 file playback not supported.
 {"req":"Player_StopRecord","rid":84,"para":[{"ID":1}]}
-File为录像文件路径，Size为录像文件大小
-返回：{"ret":0,"rid":84,"ID":1,"data":{"Ret":0,"PID":1,"File":"D:/Zorro/Record.mp4","Size":321}}
+File is the recording file path, Size is the recording file size.
+Return: {"ret":0,"rid":84,"ID":1,"data":{"Ret":0,"PID":1,"File":"D:/Zorro/Record.mp4","Size":321}}
 
-45) 动态改变分屏数量或播放内容，海康及大华私有协议播放需要指定服务器信息参数Server
-ShowType指定分屏数量，如果不变就不设置
-ForceDestroy VLC4.0时默认1，其它时候默认0，指定0时切换播放不销毁原有控件
-Play指定播放内容：Uri中如果有特殊字符= & 双引号或中文等，需要用URL编码处理后传递 Uri如非本地全路径，默认使用中间件程序Data子目录作为根目录使用
-请求范例1：{"req":"Player_ChangePlay","rid":85,"para":{"ShowType":2}}
-请求范例2：{"req":"Player_ChangePlay","rid":85,"para":{"Play":[{"ID":1,"Server":"admin:test123456@192.168.1.9:8000","Option":"Stream=1 Link=0 caching=3"},{"ID":2,"Uri":"D:/Zorro/test.mp4"}]}}
-请求范例3：{"req":"Player_ChangePlay","rid":85,"para":{"ShowType":3,"ForceDestroy":0,"Play":[{"ID":1,"Uri":"rtsp://wzh:test123456@192.168.1.8:554/h264/ch1/main/av_stream","Option":"caching=3"},{"ID":2,"Uri":"D:/Zorro/test.mp4","Option":""},{"ID":3,"Server":"admin:test123456@192.168.1.9:8000","Uri":"rtsp://wzh:test123456@192.168.1.8:554/h264/ch1/main/av_stream","Option":"Stream=1"}]}}
-分别返回：{"ret":0,"rid":85,"data":{"Ret":0,"Play":[]}}
+45) Dynamically change the number of splits or playback content. Hikvision/Dahua private protocol playback requires specifying server information parameter Server.
+ShowType specifies the number of splits. If unchanged, do not set.
+ForceDestroy Default 1 for VLC4.0, default 0 otherwise. Specifying 0 does not destroy the original control when switching playback.
+Play specifies playback content: If Uri contains special characters = & double quotes or Chinese, etc., it needs to be URL-encoded before passing. If Uri is not a full local path, the middleware program's Data subdirectory is used as the root directory by default.
+Example request 1: {"req":"Player_ChangePlay","rid":85,"para":{"ShowType":2}}
+Example request 2: {"req":"Player_ChangePlay","rid":85,"para":{"Play":[{"ID":1,"Server":"admin:test123456@192.168.1.9:8000","Option":"Stream=1 Link=0 caching=3"},{"ID":2,"Uri":"D:/Zorro/test.mp4"}]}}
+Example request 3: {"req":"Player_ChangePlay","rid":85,"para":{"ShowType":3,"ForceDestroy":0,"Play":[{"ID":1,"Uri":"rtsp://wzh:test123456@192.168.1.8:554/h264/ch1/main/av_stream","Option":"caching=3"},{"ID":2,"Uri":"D:/Zorro/test.mp4","Option":""},{"ID":3,"Server":"admin:test123456@192.168.1.9:8000","Uri":"rtsp://wzh:test123456@192.168.1.8:554/h264/ch1/main/av_stream","Option":"Stream=1"}]}}
+Return: {"ret":0,"rid":85,"data":{"Ret":0,"Play":[]}}
 
-46) 设置当前焦点播放窗口
-ID是当前播放窗口序号，ID是从1开始，需要确保不越界
+46) Set the current focus playback window.
+ID is the current playback window sequence number. ID starts from 1. Ensure it does not go out of bounds.
 {"req":"Player_SetSelect","rid":86,"para":{"ID":2}}
-返回：{"ret":0,"rid":86,"ID":2,"data":{"Ret":1}}
+Return: {"ret":0,"rid":86,"ID":2,"data":{"Ret":1}}
 
-47) 获取当前焦点播放窗口序号
+47) Get the current focus playback window sequence number.
 {"req":"Player_GetSelect","rid":87,"para":{}}
-返回：{"ret":0,"rid":87,"ID":2,"data":{"Ret":1}}
-ID为当前播放焦点窗口
+Return: {"ret":0,"rid":87,"ID":2,"data":{"Ret":1}}
+ID is the current playback focus window.
 
-48) 指定ID窗口回放指定文件，必须先登录 海康及大华私有协议播放有效
-Uri为服务器上的文件名称 海康ch0001代表第一个通道 ch0002代表第二个通道 以此类推
-Reverse为1代表倒放 默认0按时间线播放
-大华播放时需要先调用Player_SearchFile查找得到Uri指定的录像文件
-海康举例：{"req":"Player_PlayBackByName","rid":88,"para":[{"ID":1,"Reverse":0,"Uri":"ch0001_00000000129000000"},{"ID":2,"Reverse":1,"Uri":"ch0002_00000000138000000"}]}
-大华举例：{"req":"Player_PlayBackByName","rid":88,"para":[{"ID":1,"Reverse":0,"Uri":"/mnt/sd/2023-10-07/001/dav/06/06.37.14-06.37.34[M][0@0][0].dav"}]}
-返回：{"ret":0,"rid":88,"ID":1,"data":{"Ret":0,"PlayID":1}} 和 {"ret":0,"rid":88,"ID":2,"data":{"Ret":0,"PlayID":2}}
-PlayID为当前播放ID
+48) Playback specified file by name for the specified ID window. Must login first. Valid for Hikvision/Dahua private protocol playback.
+Uri is the file name on the server. For Hikvision, ch0001 represents the first channel, ch0002 the second channel, and so on.
+Reverse 1 represents reverse playback. Default 0 plays along the timeline.
+For Dahua playback, Player_SearchFile must be called first to find the recording file specified by Uri.
+Hikvision example: {"req":"Player_PlayBackByName","rid":88,"para":[{"ID":1,"Reverse":0,"Uri":"ch0001_00000000129000000"},{"ID":2,"Reverse":1,"Uri":"ch0002_00000000138000000"}]}
+Dahua example: {"req":"Player_PlayBackByName","rid":88,"para":[{"ID":1,"Reverse":0,"Uri":"/mnt/sd/2023-10-07/001/dav/06/06.37.14-06.37.34[M][0@0][0].dav"}]}
+Return: {"ret":0,"rid":88,"ID":1,"data":{"Ret":0,"PlayID":1}} and {"ret":0,"rid":88,"ID":2,"data":{"Ret":0,"PlayID":2}}
+PlayID is the current playback ID.
 
-49) 指定ID窗口回放指定回放起始和结束时间，必须先登录 海康及大华私有协议播放有效
-Channel指定通道号 Begin和End为指定回放起始和结束时间，时间为UNIX时间戳，从1970年1月1号零点零分零秒开始 
-Reverse为1代表倒放
+49) Playback by specified start and end time for the specified ID window. Must login first. Valid for Hikvision/Dahua private protocol playback.
+Channel specifies the channel number. Begin and End specify the playback start and end time. Time is UNIX timestamp, starting from 00:00:00 on January 1, 1970.
+Reverse 1 represents reverse playback.
 {"req":"Player_PlayBackByTime","rid":89,"para":[{"ID":1,"Channel":33,"Begin":1696623200,"End":1696723200,"Reverse":0},{"ID":2,"Channel":34,"Begin":1696713200,"End":1696723200,"Reverse":1}]}
-返回：{"ret":0,"rid":89,"ID":1,"data":{"Ret":0,"PlayID":1}} 和 {"ret":0,"rid":89,"ID":2,"data":{"Ret":0,"PlayID":2}}
-PlayID为当前播放ID
+Return: {"ret":0,"rid":89,"ID":1,"data":{"Ret":0,"PlayID":1}} and {"ret":0,"rid":89,"ID":2,"data":{"Ret":0,"PlayID":2}}
+PlayID is the current playback ID.
 
-50) 指定ID窗口回放控制 海康及大华私有协议播放有效 必须先调用了回放Player_PlayBackByName或Player_PlayBackByTime接口
-Type控制类型：1开始播放 2停止播放 3暂停播放 4恢复播放（在暂停后调用将恢复暂停前的速度播放）5快放 6慢放 7正常速度播放
-8单帧放 9打开声音 10关闭声音 11调节音量，取值范围[0,0xffff] 12改变文件回放的进度 13获取文件回放的进度 
-14获取当前已经播放的时间(按文件回放的时候有效 仅海康) 15获取当前已经播放的帧数(按文件回放的时候有效 仅海康)
-16获取当前播放文件总的帧数(按文件回放的时候有效 仅海康) 17获取当前播放文件总的时间(按文件回放的时候有效 仅海康)
-24设置码流速度(海康最低256kbps 大华是帧数) 25保持于设备的心跳 仅海康 26按绝对时间定位 27获取按时间回放对应时间段内的所有文件的总长度
-29倒放转为正放 30正放改为倒放
-举例:请求暂停播放或恢复播放：
+50) Playback control for the specified ID window. Valid for Hikvision/Dahua private protocol playback. Must have called playbackback Player_PlayBackByName or Player_PlayBackByTime first.
+Type control type: 1 start playback, 2 stop playback, 3 pause playback, 4 resume playback (after pause, resumes playback at pre-pause speed), 5 fast playback, 6 slow playback, 7 normal speed playback,
+8 single frame playback, 9 turn on sound, 10 turn off sound, 11 adjust volume, range [0,0xffff], 12 change playbackback progress,
+13 get playbackback progress,
+14 get current played time (valid for file playbackback only, Hikvision only),
+15 get current played frame count (valid for file playbackback only, Hikvision only),
+16 get total frame count of current playing file (valid for file playbackback only, Hikvision only),
+17 get total time of current playing file (valid for file playbackback only, Hikvision only),
+24 set stream speed (Hikvision minimum 256kbps, Dahua is frame count), 25 maintain heartbeat with device (Hikvision only), 26 locate by absolute time, 27 get total length of all files corresponding to the time period for time-based playbackback,
+29 reverse playback to forward playback, 30 forward playback to reverse playback.
+Example: Request pause or resume playback:
 {"req":"Player_PlayBackControl","rid":90,"para":[{"ID":1,"Type":3},{"ID":2,"Type":4}]}
-举例:11调节音量 12改变回放进度等需要设置，Val控制值
+Example: 11 adjust volume, 12 change playbackback progress, etc., need setting. Val is the control value.
 {"req":"Player_PlayBackControl","rid":90,"para":[{"ID":1,"Type":12,"Val":1},{"ID":2,"Type":12}]}
-返回：{"ret":0,"rid":90,"ID":1,"data":{"Ret":0,"Val":1}}  和 {"ret":0,"rid":90,"ID":2,"data":{"Ret":0,"Val":2}}
-Val为获取值，Code为13 14 15 16 17等时有效
+Return: {"ret":0,"rid":90,"ID":1,"data":{"Ret":0,"Val":1}} and {"ret":0,"rid":90,"ID":2,"data":{"Ret":0,"Val":2}}
+Val is the obtained value, valid for Code 13,14,15,16,17, etc.
 
-51) 指定ID分屏窗口全屏，一次请求只能指定一个分屏窗口全屏
-请求：{"req":"Player_Fullscreen","rid":91,"para":[{"ID":1}]}
-分别返回：{"ret":0,"rid":91,"ID":1,"data":{"Ret":0}}
+51) Full-screen for the specified ID split-screen window. One request can only specify one split-screen window to go full-screen.
+Request: {"req":"Player_Fullscreen","rid":91,"para":[{"ID":1}]}
+Return: {"ret":0,"rid":91,"ID":1,"data":{"Ret":0}}
 
-52) 取指定ID窗口播放速率，VLC播放引擎有效
-请求：{"req":"Player_GetPlayRate","rid":92,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":92,"ID":1,"data":{"Ret":0,"Rate":1.0}} 和 {"ret":0,"rid":92,"ID":2,"data":{"Ret":0,"Rate":2.0}}
+52) Get the playback rate for the specified ID window. Valid for VLC playback engine.
+Request: {"req":"Player_GetPlayRate","rid":92,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":92,"ID":1,"data":{"Ret":0,"Rate":1.0}} and {"ret":0,"rid":92,"ID":2,"data":{"Ret":0,"Rate":2.0}}
 
-53) 设置指定ID窗口播放速率，FFPlayer和VLC播放引擎有效
-Rate 1算正常速度 FFPlayer引擎：取值范围0.1-2  VLC引擎：0.5半速, 2.0快一倍
-请求：{"req":"Player_PutPlayRate","rid":93,"para":[{"ID":1,"Rate":1},{"ID":2,"Rate":2}]}
-分别返回：{"ret":0,"rid":93,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":93,"ID":2,"data":{"Ret":0}}
+53) Set the playback rate for the specified ID window. Valid for FFPlayer and VLC playback engines.
+Rate 1 is normal speed. FFPlayer engine: range 0.1-2. VLC engine: 0.5 half speed, 2.0 twice speed.
+Request: {"req":"Player_PutPlayRate","rid":93,"para":[{"ID":1,"Rate":1},{"ID":2,"Rate":2}]}
+Return respectively: {"ret":0,"rid":93,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":93,"ID":2,"data":{"Ret":0}}
 
-54) 设置指定ID窗口字幕信息，VLC播放引擎及FFPlayer有效，举例：
-指定的参数，需要的才设置，必须视频开始播放才能设置
-Text 文字内容
-Opacity 透明度 0-256 0完全透明 256完全不透明
-Position(VLC播放可设置) 显示位置有center left right top bottom top-left top-right bottom-left bottom-right 不指定时由X和Y坐标决定
-X 和 Y分别指定文字开始坐标
-W和H分别指定文字显示宽度和高度 FFPlayer需要设置
-Color 颜色 可用长整型(COLORREF)，也可以用#000000这样的颜色值
-Size 字体大小
-Timeout 超时
-请求1(VLC)：{"req":"Player_MarqueePut","rid":94,"para":[{"ID":1,"Text":"Hello1","Position":"TOP","Timeout":0,"Color":"16777215","Opacity":128,"Refresh":1,"Size":50,"X":50,"Y":50},{"ID":2,"Text":"Hello2","Position":"TOP","Timeout":0,"Color":"16777215","Opacity":255,"Refresh":1,"Size":50,"X":50,"Y":50}]}
-请求2(FFPlayer)：{"req":"Player_MarqueePut","rid":94,"para":[{"ID":1,"Text":"Hello","Color":"16777215","Opacity":128,"Size":50,"X":50,"Y":50,"W":200,"H":50}]}
-分别返回：{"ret":0,"rid":94,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":94,"ID":2,"data":{"Ret":0}}
+54) Set subtitle information for the specified ID window. Valid for VLC playback engine and FFPlayer. Example:
+Specify parameters, set only what is needed. Video must be playing to set.
+Text text content
+Opacity transparency 0-256. 0 fully transparent, 256 fully opaque.
+Position (can be set in VLC playback) Display position: center, left, right, top, bottom, top-left, top-right, bottom-left, bottom-right. If not specified, determined by X and Y coordinates.
+X and Y specify the starting coordinates of the text.
+W and H specify the display width and height of the text respectively. FFPlayer needs setting.
+Color color. Can use long integer (COLORREF), or color value like #000000.
+Size font size.
+Timeout timeout.
+Request 1 (VLC): {"req":"Player_MarqueePut","rid":94,"para":[{"ID":1,"Text":"Hello1","Position":"TOP","Timeout":0,"Color":"16777215","Opacity":128,"Refresh":1,"Size":50,"X":50,"Y":50},{"ID":2,"Text":"Hello2","Position":"TOP","Timeout":0,"Color":"16777215","Opacity":255,"Refresh":1,"Size":50,"X":50,"Y":50}]}
+Request 2 (FFPlayer): {"req":"Player_MarqueePut","rid":94,"para":[{"ID":1,"Text":"Hello","Color":"16777215","Opacity":128,"Size":50,"X":50,"Y":50,"W":200,"H":50}]}
+Return respectively: {"ret":0,"rid":94,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":94,"ID":2,"data":{"Ret":0}}
 
-55) 取指定ID窗口字幕信息，VLC播放引擎有效，举例：
-Text指定时获取文字信息 Position指定时获取位置信息
-请求：{"req":"Player_MarqueeGet","rid":95,"para":[{"ID":1,"Text":1,"Position":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":95,"ID":1,"data":{"Ret":0,"Color":0,"Opacity":0,"Refresh":0,"Size":0,"Timeout":0,"X":0,"Y":"","Text":"","Position":""}} 和 {"ret":0,"rid":95,"ID":2,"data":{"Ret":0,"Color":0,"Opacity":0,"Refresh":0,"Size":0,"Timeout":0,"X":0,"Y":""}}
+55) Get subtitle information for the specified ID window. Valid for VLC playback engine. Example:
+Text specified gets text information. Position specified gets position information.
+Request: {"req":"Player_MarqueeGet","rid":95,"para":[{"ID":1,"Text":1,"Position":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":95,"ID":1,"data":{"Ret":0,"Color":0,"Opacity":0,"Refresh":0,"Size":0,"Timeout":0,"X":0,"Y":"","Text":"","Position":""}} and {"ret":0,"rid":95,"ID":2,"data":{"Ret":0,"Color":0,"Opacity":0,"Refresh":0,"Size":0,"Timeout":0,"X":0,"Y":""}}
 
-56) 控制指定ID窗口字幕，VLC播放引擎有效，举例：
-请求：{"req":"Player_MarqueeControl","rid":96,"para":[{"ID":1,"Enable":1},{"ID":2,"Enable":0}]}
-分别返回：{"ret":0,"rid":96,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":96,"ID":2,"data":{"Ret":0}}
+56) Control subtitle for the specified ID window. Valid for VLC playback engine. Example:
+Request: {"req":"Player_MarqueeControl","rid":96,"para":[{"ID":1,"Enable":1},{"ID":2,"Enable":0}]}
+Return respectively: {"ret":0,"rid":96,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":96,"ID":2,"data":{"Ret":0}}
 
-57) 设置水印显示，VLC播放引擎有效
-ID为窗口序号
-File 水印文件路径，如有特殊符号请先进行UrlEncode，为空默认用小程序目录的Logo.png
-Code 水印图片BASE64编码，可替代File
-Position 显示位置有center left right top bottom top-left top-right bottom-left bottom-right，默认undefined未定义，显示位置有坐标X和Y控制
-Delay 水印间隔图像时间为毫秒 0 - 60000 默认1000
-Repeat 循环 水印动画的循环数量 -1继续(默认) 0关闭
-Opacity 透明度 (数值介于 0(完全透明) 与 255(完全不透明，默认)
-X 水印X坐标
-Y 水印Y坐标
+57) Set watermark display. Valid for VLC playback engine.
+ID is the window sequence number.
+File Watermark file path. If there are special symbols, please UrlEncode first. If empty, use Logo.png in the mini-program directory by default.
+Code BASE64 encoding of the watermark image, can replace File.
+Position Display position: center, left, right, top, bottom, top-left, top-right, bottom-left, bottom-right. Default undefined. Display position controlled by coordinates X and Y.
+Delay Watermark interval image time in milliseconds 0 - 60000. Default 1000.
+Repeat Loop count of watermark animation. -1 continue (default), 0 close.
+Opacity Transparency (value between 0 (fully transparent) and 255 (fully opaque, default).
+X Watermark X coordinate.
+Y Watermark Y coordinate.
 {"req":"Player_PutLogoShow","rid":97,"para":[{"ID":1,"File":"VLC.png" ,"Delay":20,"Repeat":-1,"Opacity":128,"X":100,"Y":100},{"ID":2,"Position":" center ","Delay":100,"Repeat":-1,"Opacity":256,"X":200,"Y":0}]}
-分别返回：{"ret":0,"rid":97,"ID":1,"data":{"Ret":0,"Enable":1}} 和 {"ret":0,"rid":97,"ID":2,"data":{"Ret":0,"Enable":0}}
+Return respectively: {"ret":0,"rid":97,"ID":1,"data":{"Ret":0,"Enable":1}} and {"ret":0,"rid":97,"ID":2,"data":{"Ret":0,"Enable":0}} (Note: Opacity 256 should be 255 max)
 
-58) 获取水印显示信息，VLC播放引擎有效
+58) Get watermark display information. Valid for VLC playback engine.
 {"req":"Player_GetShowLogo","rid":98,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":98,"ID":1,"data":{"Ret":0,"File":"","Position":"","Delay":0,"Repeat":0,"Opacity":0,"X":0,"Y":0,"Enable":0}} 和 {"ret":0,"rid":98,"ID":2,"data":{"Ret":0}}
+Return respectively: {"ret":0,"rid":98,"ID":1,"data":{"Ret":0,"File":"","Position":"","Delay":0,"Repeat":0,"Opacity":0,"X":0,"Y":0,"Enable":0}} and {"ret":0,"rid":98,"ID":2,"data":{"Ret":0}}
 
-59) 水印显示控制，VLC播放引擎有效
-ID为窗口序号 Flag为1代表启用，0代表禁用
+59) Watermark display control. Valid for VLC playback engine.
+ID is the window sequence number. Flag 1 represents enable, 0 represents disable.
 {"req":"Player_LogoControl","rid":99,"para":[{"ID":1,"Flag":1},{"ID":2,"Flag":0}]}
-分别返回：{"ret":0,"rid":99,"ID":1,"data":{"Ret":0,"Enable":1}} 和 {"ret":0,"rid":99,"ID":2,"data":{"Ret":0,"Enable":0}}
+Return respectively: {"ret":0,"rid":99,"ID":1,"data":{"Ret":0,"Enable":1}} and {"ret":0,"rid":99,"ID":2,"data":{"Ret":0,"Enable":0}}
 
-60) 取指定ID窗口是否显示工具栏
-请求：{"req":"Player_GetToolbar","rid":100,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":100,"ID":1,"data":{"Ret":0,"Toolbar":1}} 和 {"ret":0,"rid":100,"ID":2,"data":{"Ret":0,"Toolbar":0}}
+60) Get whether the toolbar is displayed for the specified ID window.
+Request: {"req":"Player_GetToolbar","rid":100,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":100,"ID":1,"data":{"Ret":0,"Toolbar":1}} and {"ret":0,"rid":100,"ID":2,"data":{"Ret":0,"Toolbar":0}}
 
-61) 设置指定ID窗口是否显示工具栏
-请求：{"req":"Player_PutToolbar","rid":101,"para":[{"ID":1,"Toolbar":1},{"ID":2,"Toolbar":0}]}
-分别返回：{"ret":0,"rid":101,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":101,"ID":2,"data":{"Ret":0}}
+61) Set whether the toolbar is displayed for the specified ID window.
+Request: {"req":"Player_PutToolbar","rid":101,"para":[{"ID":1,"Toolbar":1},{"ID":2,"Toolbar":0}]}
+Return respectively: {"ret":0,"rid":101,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":101,"ID":2,"data":{"Ret":0}}
 
-62) 取指定ID窗口是否静音
-请求：{"req":"Player_GetSoundStatus","rid":102,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":102,"ID":1,"data":{"Ret":0,"Mute":1}} 和 {"ret":0,"rid":102,"ID":2,"data":{"Ret":0,"Mute":0}}
+62) Get whether the specified ID window is muted.
+Request: {"req":"Player_GetSoundStatus","rid":102,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":102,"ID":1,"data":{"Ret":0,"Mute":1}} and {"ret":0,"rid":102,"ID":2,"data":{"Ret":0,"Mute":0}}
 
-63) 设置指定ID窗口是否静音
-请求：{"req":"Player_PutSoundStatus","rid":103,"para":[{"ID":1,"Mute":1},{"ID":2,"Mute":0}]}
-分别返回：{"ret":0,"rid":103,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":103,"ID":2,"data":{"Ret":0}}
+63) Set whether the specified ID window is muted.
+Request: {"req":"Player_PutSoundStatus","rid":103,"para":[{"ID":1,"Mute":1},{"ID":2,"Mute":0}]}
+Return respectively: {"ret":0,"rid":103,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":103,"ID":2,"data":{"Ret":0}}
 
-64) 取指定ID窗口声音通道，VLC播放引擎有效
-请求：{"req":"Player_GetAudioChannel","rid":104,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":104,"ID":1,"data":{"Ret":0,"Channel":1}} 和 {"ret":0,"rid":104,"ID":2,"data":{"Ret":0,"Channel":2}}
+64) Get the sound channel for the specified ID window. Valid for VLC playback engine.
+Request: {"req":"Player_GetAudioChannel","rid":104,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":104,"ID":1,"data":{"Ret":0,"Channel":1}} and {"ret":0,"rid":104,"ID":2,"data":{"Ret":0,"Channel":2}}
 
-65) 设置指定ID窗口声音通道，VLC播放引擎有效
-声道定义：
+65) Set the sound channel for the specified ID window. Valid for VLC playback engine.
+Channel definitions:
 libvlc_AudioChannel_Error   = -1,
 libvlc_AudioChannel_Stereo  =  1,
 libvlc_AudioChannel_RStereo =  2,
 libvlc_AudioChannel_Left    =  3,
 libvlc_AudioChannel_Right   =  4,
 libvlc_AudioChannel_Dolbys  =  5
-请求：{"req":"Player_PutAudioChannel","rid":105,"para":[{"ID":1,"Channel":1},{"ID":2,"Channel":2}]}
-分别返回：{"ret":0,"rid":105,"ID":1,"data":{"Ret":0,"Volume":50}} 和 {"ret":0,"rid":105,"ID":2,"data":{"Ret":0,"Volume":100}}
-其中Volume为当前音量
+Request: {"req":"Player_PutAudioChannel","rid":105,"para":[{"ID":1,"Channel":1},{"ID":2,"Channel":2}]}
+Return respectively: {"ret":0,"rid":105,"ID":1,"data":{"Ret":0,"Volume":50}} and {"ret":0,"rid":105,"ID":2,"data":{"Ret":0,"Volume":100}}
+Volume is the current volume.
 
-66) 取指定ID窗口音轨数量，VLC播放引擎有效，举例：
-请求：{"req":"Player_GetAudioTrackCount","rid":106,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":106,"ID":1,"data":{"Ret":0,"Count":0}} 和 {"ret":0,"rid":106,"ID":2,"data":{"Ret":0,"Count":0}}
+66) Get the number of audio tracks for the specified ID window. Valid for VLC playback engine. Example:
+Request: {"req":"Player_GetAudioTrackCount","rid":106,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":106,"ID":1,"data":{"Ret":0,"Count":0}} and {"ret":0,"rid":106,"ID":2,"data":{"Ret":0,"Count":0}}
 
-67) 取指定ID窗口音轨，VLC播放引擎有效
-请求：{"req":"Player_GetAudioTrack","rid":107,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":107,"ID":1,"data":{"Ret":0,"Track":1}} 和 {"ret":0,"rid":107,"ID":2,"data":{"Ret":0,"Track":1}}
+67) Get the audio track for the specified ID window. Valid for VLC playback engine.
+Request: {"req":"Player_GetAudioTrack","rid":107,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":107,"ID":1,"data":{"Ret":0,"Track":1}} and {"ret":0,"rid":107,"ID":2,"data":{"Ret":0,"Track":1}}
 
-68) 设置指定ID窗口音轨，VLC播放引擎有效
-请求：{"req":"Player_PutAudioTrack","rid":108,"para":[{"ID":1,"Track":1},{"ID":2,"Track":1}]}
-分别返回：{"ret":0,"rid":108,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":108,"ID":2,"data":{"Ret":0}}
+68) Set the audio track for the specified ID window. Valid for VLC playback engine.
+Request: {"req":"Player_PutAudioTrack","rid":108,"para":[{"ID":1,"Track":1},{"ID":2,"Track":1}]}
+Return respectively: {"ret":0,"rid":108,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":108,"ID":2,"data":{"Ret":0}}
 
-69) 取指定ID窗口推送信息屏蔽掩码，举例：
-请求：{"req":"Player_GetBlockFlag","rid":109,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":109,"ID":1,"data":{"Ret":0,"BlockFlag":0}} 和 {"ret":0,"rid":109,"ID":2,"data":{"Ret":0,"BlockFlag":0}}
+69) Get the notification blocking mask for the specified ID window. Example:
+Request: {"req":"Player_GetBlockFlag","rid":109,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":109,"ID":1,"data":{"Ret":0,"BlockFlag":0}} and {"ret":0,"rid":109,"ID":2,"data":{"Ret":0,"BlockFlag":0}}
 
-70) 设置指定ID窗口推送信息屏蔽掩码，举例：
-由于以下几种信息通知比较多，所以增加阻止通知设置，比如阻止鼠标移动和进度通知，就设置9
-1阻止鼠标移动通知 2阻止时间变化通知 4阻止缓存通知 8阻止进度百分比通知
-请求：{"req":"Player_PutBlockFlag","rid":110,"para":[{"ID":1,"BlockFlag":0},{"ID":2,"BlockFlag":0}]}
-分别返回：{"ret":0,"rid":110,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":110,"ID":2,"data":{"Ret":0}}
+70) Set the notification blocking mask for the specified ID window. Example:
+Because several types of notifications are numerous, blocking notification settings are added. For example, to block mouse move and progress notifications, set 9.
+1 block mouse move notification, 2 block time change notification, 4 block cache notification, 8 block progress percentage notification.
+Request: {"req":"Player_PutBlockFlag","rid":110,"para":[{"ID":1,"BlockFlag":0},{"ID":2,"BlockFlag":0}]}
+Return respectively: {"ret":0,"rid":110,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":110,"ID":2,"data":{"Ret":0}}
 
-71) 设置指定ID窗口前进或后退帧数 正数前进，负数后退，最大可后退帧看FrameCache缓存数，VLC播放引擎有效
-播放时指定了帧缓存参数FrameCache大于0时代表了启动按帧播放
-请求：{"req":"Player_MoveFrame","rid":111,"para":[{"ID":1,"FrameCount":-10},{"ID":2,"FrameCount":5}]}
-分别返回：{"ret":0,"rid":111,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":111,"ID":2,"data":{"Ret":0}}
+71) Move the specified ID window forward or backward by a number of frames. Positive number forward, negative number backward. Maximum backward determined by FrameCache count. Valid for VLC playback engine.
+FrameCache parameter greater than 0 when playing represents starting frame-by-frame playback.
+Request: {"req":"Player_MoveFrame","rid":111,"para":[{"ID":1,"FrameCount":-10},{"ID":2,"FrameCount":5}]}
+Return respectively: {"ret":0,"rid":111,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":111,"ID":2,"data":{"Ret":0}}
 
-72) 请求显示下一帧(毫秒) 执行后播放暂停，效果类似在VLC桌面程序中按快捷键E的效果，VLC及FFPlayer播放引擎有效，海康及大华私有协议播放回放流支持
-非FFPlayer引擎中FrameCount 为帧数量，不指定时默认为1 不支持回退操作，仅支持视频文件和回放流
-FFPlayer播放引擎中FrameCount 为毫秒值，负值代表回退，正值代表向前，仅支持视频文件和回放流
+72) Request to show the next frame (milliseconds). Playback pauses after execution. Effect similar to pressing shortcut key E in VLC desktop program. Valid for VLC and FFPlayer playback engines. Hikvision/Dahua private protocol playbackback streams supported.
+In non-FFPlayer engines, FrameCount is the number of frames. Default 1 if not specified. Does not support backward operation. Only supports video files and playbackback streams.
+In FFPlayer engine, FrameCount is the millisecond value. Negative value backward, positive value forward. Only supports video files and playbackback streams.
 {"req":"Player_NextFrame","rid":112,"para":[{"ID":1,"FrameCount":10},{"ID":2,"FrameCount":10}]}
-分别返回：{"ret":0,"rid":112,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":112,"ID":2,"data":{"Ret":0}}
+Return respectively: {"ret":0,"rid":112,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":112,"ID":2,"data":{"Ret":0}}
 
-73) 取视频每秒传输帧数，举例：
-请求：{"req":"Player_GetFPS","rid":113,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":113,"ID":1,"data":{"Ret":0,"FPS":30}} 和 {"ret":0,"rid":113,"ID":2,"data":{"Ret":0,"FPS":30}}
+73) Get frames per second of the video. Example:
+Request: {"req":"Player_GetFPS","rid":113,"para":[{"ID":1},{"ID":2}]}
+Return respectively: {"ret":0,"rid":113,"ID":1,"data":{"Ret":0,"FPS":30}} and {"ret":0,"rid":113,"ID":2,"data":{"Ret":0,"FPS":30}}
 
-74）HTTP同步方式上传视频到服务器或下载视频到本地，上传主要用于上传截图和录像到服务器保存
-Type 1同步上传 0下载(支持异步，设置Asyn为1)
-Agent、Cookie及Auth Cookie可传浏览器中的Cookie或通过Auth授权验证上传权限，默认为空，非空时需要先做UrlEnocde编码
-Local 上传文件本地路径或下载文件保存路径，如果不指定默认用当前打开文档，需要做UrlEncode编码
-Url 上传或下载的地址，需要做UrlEncode编码
-Type为1时，可增加参数Para，对应POST数据包中需要传递的参数param 默认上传文件名为upfile，否则可通过NodeName设置自己的文件参数名称
-Type为0时，可增加参数MD5及FileSize，下载文件的哈希值及大小，用于校验下载文件的完整性，可默认空或0
+74) HTTP synchronous method to upload video to server or download video to local. Upload is mainly used to upload screenshots and recordings to server for saving.
+Type 1 synchronous upload, 0 download (supports asynchronous, set Asyn to 1).
+Agent, Cookie, and Auth Cookie can pass the browser's Cookie or Auth authorization to verify upload permissions. Default empty. If not empty, UrlEncode first.
+Local Local path of file to upload or save path for download file. If not specified, uses the currently open document by default. Needs UrlEncode encoding.
+Url Address to upload to or download from. Needs UrlEncode encoding.
+When Type is 1, you can add parameter Para, corresponding to the param parameters needed in the POST data packet. Default upload file name is upfile. Otherwise, set your own file parameter name via NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, hash value and size of the downloaded file, used to verify the integrity of the downloaded file. Can be default empty or 0.
 {"req":"Player_NetFile","rid":101,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
-返回：{"ret":0,"rid":35,"data":{"Ret":"0","Info":{}}} Info为上传到服务器返回的信息
+Return: {"ret":0,"rid":35,"data":{"Ret":"0","Info":{}}} Info is the information returned by the server after upload.
 
-75) 指定ID窗口检索录像文件，必须先登录 海康及大华私有协议播放有效
-Channel指定通道号 Begin和End为指定回放起始和结束时间，时间为UNIX时间戳，从1970年1月1号零点零分零秒开始
- StreamType 流类型 0-同一个时间段只返回一种录像，优先级顺序为：主码流、子码流、三码流，1-子码流，2-三码流，3-主码流，254-双码流搜索(优先返回主码流录像，没有主码流录像时返回子码流录像)
- FileType 文件类型
+75) Search recording files for the specified ID split-screen window. Must login first. Valid for Hikvision/Dahua private protocol playback.
+Channel specifies the channel number. Begin and End specify the playbackback start and end time. Time is UNIX timestamp, starting from 00:00:00 on January 1, 1970.
+ StreamType stream type: 0-returns only one type of recording in the same time period, priority order: main stream, sub stream, third stream; 1-sub stream; 2-third stream; 3-main stream; 254-dual stream search (priority return main stream recording, if no main stream recording, return sub stream recording).
+ FileType file type.
 {"req":"Player_SearchFile","rid":115,"para":[{"ID":1,"Channel":33,"Begin":1665100800,"End":1665187200,"StreamType":0},{"ID":2,"Channel":34,"Begin":1665100800,"End":1665187200,"StreamType":1}]}
-返回：{"ret":0,"rid":115,"ID":1,"data":{"Ret":0,"SID":1}} 和 {"ret":0,"rid":115,"ID":2,"data":{"Ret":0,"SID":2}}
-SID为当前搜索序号，最终搜索结果通过事件返回，事件包中包含SID参数
+Return: {"ret":0,"rid":115,"ID":1,"data":{"Ret":0,"SID":1}} and {"ret":0,"rid":115,"ID":2,"data":{"Ret":0,"SID":2}}
+SID is the current search sequence number. Final search results returned via event. The event packet contains the SID parameter.
 
-76) 指定ID窗口根据名称下载录像文件，必须先登录 海康及大华私有协议播放有效
-Uri为服务器上的文件名或下载路径 海康ch0001代表第一个通道 ch0002代表第二个通道 以此类推
-大华下载时需要先调用Player_SearchFile查找得到Uri指定的录像文件
-File为录像目标文件不指定时自动生成 如非本地全路径，默认使用中间件程序Data子目录作为根目录使用
-海康具体：{"req":"Player_DownVideoByName","rid":116,"para":[{"ID":1,"Uri":"ch0001_00000000129000000","File":"D:/Zorro/ch0001_00000000129000000.mp4"},{"ID":2,"Uri":"ch0002_00000000138000000","File":"D:/Zorro/ch0002_00000000138000000.mp4"}]}
-大华举例：{"req":"Player_DownVideoByName","rid":116,"para":[{"ID":1,"Uri":"/mnt/sd/2023-10-07/001/dav/06/06.37.14-06.37.34[M][0@0][0].dav","File":"D:/Zorro/06.37.14_06.37.34.dav"}]}
-返回：{"ret":0,"rid":116,"ID":1,"data":{"Ret":0,"DID":1}} 和 {"ret":0,"rid":116,"ID":2,"data":{"Ret":0,"DID":2}}
-DID为下载序号，下载进度通知中包含此参数
+76) Download recording file by name for the specified ID window. Must login first. Valid for Hikvision/Dahua private protocol playback.
+Uri is the file name or download path on the server. For Hikvision, ch0001 represents the first channel, ch0002 the second channel, and so on.
+For Dahua download, Player_SearchFile must be called first to find the recording file specified by Uri.
+File is the recording target file. If not specified, generated automatically. If not a full local path, the middleware program's Data subdirectory is used as the root directory by default.
+Hikvision specific: {"req":"Player_DownVideoByName","rid":116,"para":[{"ID":1,"Uri":"ch0001_00000000129000000","File":"D:/Zorro/ch0001_00000000129000000.mp4"},{"ID":2,"Uri":"ch0002_00000000138000000","File":"D:/Zorro/ch0002_00000000138000000.mp4"}]}
+Dahua example: {"req":"Player_DownVideoByName","rid":116,"para":[{"ID":1,"Uri":"/mnt/sd/2023-10-07/001/dav/06/06.37.14-06.37.34[M][0@0][0].dav","File":"D:/Zorro/06.37.14_06.37.34.dav"}]}
+Return: {"ret":0,"rid":116,"ID":1,"data":{"Ret":0,"DID":1}} and {"ret":0,"rid":116,"ID":2,"data":{"Ret":0,"DID":2}}
+DID is the download sequence number, contained in the download progress notification.
 
-77) 指定ID窗口根据时间下载录像文件，必须先登录 海康及大华私有协议播放有效
-Channel 指定通道号
-SteamType 指定下载流类型 海康默认0主码流 1子码流 大华默认0所有录像 1外部报警录像 2动态检测报警录像 3所有报警录像
-Begin和End为指定回放起始和结束时间，时间为UNIX时间戳，从1970年1月1号零点零分零秒开始
+77) Download recording file by time for the specified ID window. Must login first. Valid for Hikvision/Dahua private protocol playback.
+Channel specifies the channel number.
+SteamType specifies the download stream type. Hikvision default 0 main stream, 1 sub stream. Dahua default 0 all recordings, 1 external alarm recording, 2 motion detection alarm recording, 3 all alarm recordings.
+Begin and End specify the playbackback start and end time. Time is UNIX timestamp, starting from 00:00:00 on January 1, 1970.
 {"req":"Player_DownVideoByTime","rid":117,"para":[{"ID":1,"Channel":33,"Begin":1665102256,"End":1665104363,"File":"D:/Zorro/ch0001_00000000095000000.mp4"},{"ID":2,"Channel":1,"Begin":1665104363,"End":1665108028,"File":"D:/Zorro/test_1665108028.dav"}]}
-返回：{"ret":0,"rid":117,"ID":1,"data":{"Ret":0,"DID":1}} 和 {"ret":0,"rid":117,"ID":2,"data":{"Ret":0,"DID":2}}
-DID为下载序号，下载进度通知中包含此参数
+Return: {"ret":0,"rid":117,"ID":1,"data":{"Ret":0,"DID":1}} and {"ret":0,"rid":117,"ID":2,"data":{"Ret":0,"DID":2}}
+DID is the download sequence number, contained in the download progress notification.
 
-78) 指定ID窗口旋转画面 FFPlayer播放有效
-Angle指定顺时针的旋转角度
+78) Rotate the picture for the specified ID window. Valid for FFPlayer playback.
+Angle specifies the clockwise rotation angle.
 {"req":"Player_Rotation","rid":118,"para":[{"ID":1,"Angle":90},{"ID":2,"Angle":190}]}
-返回：{"ret":0,"rid":118,"ID":1,"data":{"Ret":0,"Angle":30}} 和 {"ret":0,"rid":118,"ID":2,"data":{"Ret":0,"Angle":60}}
-返回Angle为当前角度
+Return: {"ret":0,"rid":118,"ID":1,"data":{"Ret":0,"Angle":30}} and {"ret":0,"rid":118,"ID":2,"data":{"Ret":0,"Angle":60}} (Note: Returned angle doesn't match request)
 
-79) 指定ID窗口局部显示画面 FFPlayer播放有效
-X和Y分别指定局部显示的坐标 W和H指定局部显示的宽度和高度，高度和宽度都设置0代表取消局部显示
+79) Local display for the specified ID window. Valid for FFPlayer playback.
+X and Y specify the local display coordinates. W and H specify the local display width and height. Setting both height and width to 0 cancels local display.
 {"req":"Player_LocalShow","rid":119,"para":[{"ID":1,"X":50,"Y":50,"W":200,"H":200},{"ID":2,"X":50,"Y":50,"W":300,"H":300}]}
-返回：{"ret":0,"rid":119,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":119,"ID":2,"data":{"Ret":0}}
-返回Angle为当前角度
+Return: {"ret":0,"rid":119,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":119,"ID":2,"data":{"Ret":0}}
 
-80) 指定ID窗口叠加网页中的渲染内容，Widows 8及以上版本操作系统正常支持，本机需要安装Microsoft Edge WebView2 Runtime
-Url为透明网页地址，如有特殊符号请先进行UrlEncode，设置为空字符串代表取消叠加
-Alpha 透明度(0-255) 默认255不透明，Windows 7及以下版本系统不支持透明
-Rect节点设置叠加窗口位置和大小，不设置时代表全部区域，E代表边距默认1，X/Y/W/H分别代表叠加窗口在分屏窗口中显示的起始点和宽高，P为显示位置类型，大于0时替代X和Y，1左上 2右上 3左下 4右下
+80) Overlay web rendering content in the specified ID window. Supported on Windows 7 and above OS for overlay, 8.0 and above systems support transparency. Microsoft Edge WebView2 Runtime needs to be installed locally.
+Url is the transparent webpage address. If there are special symbols, please UrlEncode. Set to empty string to cancel overlay.
+Alpha transparency (0-255) default 255 opaque. Windows 7 and below do not support transparency.
+Rect node sets the overlay window position and size. If not set, represents the entire area. E represents margin default 1. X/Y/W/H represent the starting point and width/height of the overlay window displayed in the split-screen window. P is the display position type. If greater than 0, replaces X and Y. 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right.
+ID set to 0 overlays the entire split-screen area, achieving personalized display for split-screen style.
 {"req":"Player_FloatWebInfo","rid":120,"para":[{"ID":1,"Url":"https://output.jsbin.com/dopavun"},{"ID":2,"Alpha":70,"Url":"https://output.jsbin.com/dopavun"}]}
 {"req":"Player_FloatWebInfo","rid":120,"para":[{"ID":1,"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}]}
-返回：{"ret":0,"rid":120,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":120,"ID":2,"data":{"Ret":0}}
+Return: {"ret":0,"rid":120,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":120,"ID":2,"data":{"Ret":0}}
 
-81) 指定ID窗口叠加网页注入脚本运行
-Script为脚本内容，请先进行UrlEncode，设置为空字符串代表取消叠加
-Init 初始化
+81) Inject script to run in the overlay webpage for the specified ID window.
+Script is the script content. Please UrlEncode first. Set to empty string to cancel overlay.
+Init initialize.
 {"req":"Player_FloatWebInjectScript","rid":121,"para":[{"ID":1,"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"},{"ID":2,"Init":0,"Url":"if%20(window.parent%20!%3D%3D%20window.top)%7B%0A%09delete%20window.open%3B%0A%7D"}]}
-返回：{"ret":0,"rid":121,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":121,"ID":2,"data":{"Ret":0}}
+Return: {"ret":0,"rid":121,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":121,"ID":2,"data":{"Ret":0}}
 
-82) 指定多个同类视频文件进行合并，合并结果通过事件通知返回
-Type 合并引擎 1:FFMpeg
-Src 需要合并的原视频路径数组 文件名及路径需要先做UrlEncode编码
-Out 合并生成目标 如设置了需要先做UrlEncode编码，没设置自动在默认路径生成一个mp4视频文件名
-举例：
-请求：{"req":"Player_MergeVideo","rid":122,"para":{"Type":1,"Src":["d:/Zorro/test5.mp4","d:/Zorro/test6.mp4"],"Out": "dest.mp4"}}
-返回：{"ret":0,"rid":122,"data":{"Ret":0}}
-事件通知合并结果 
-aid:对应Player_MergeVideo的请求rid Size:合并目标视频文件大小 PID:合并进程 File:合并最终形成的目标视频文件
+82) Merge multiple similar video files. Merge results returned via event notification.
+Type merge engine: 1: FFMpeg
+Src Array of original video paths to merge. File names and paths need UrlEncode encoding first.
+Out Merge generation target. If set, UrlEncode encoding needed first. If not set, automatically generates an mp4 video file name in the default path.
+Example:
+Request: {"req":"Player_MergeVideo","rid":122,"para":{"Type":1,"Src":["d:/Zorro/test5.mp4","d:/Zorro/test6.mp4"],"Out": "dest.mp4"}}
+Return: {"ret":0,"rid":122,"data":{"Ret":0}}
+Event notification merge result:
+aid: corresponds to the rid of Player_MergeVideo request. Size: merged target video file size. PID: merge process. File: target video file finally formed by the merge.
 {"event":"Player_MergeOK","aid":122,"PID":0,"data":{"Ret":0,"File":"dest.mp4","Size":0}}
 
-83) 指定分屏添加轮播内容，一般用于大视频被切片时依次轮播
-比如1分屏正在播放Url地址内容(要求是文件或回放视频)，当播放结束时马上切换到轮播内容，切换时没有延迟
-Uri中如果有特殊字符= & 双引号或中文等，需要用URL编码处理后传递 Uri如非本地全路径，默认使用中间件程序Data子目录作为根目录使用
-请求：{"req":"Player_AddPreparePlay","rid":123,"para":[{"ID":1,"Uri":"d:/zorro/play.mp4","Name":"PreparePlay","Option":"Link=1 PlayEngine=3"}]}
-返回：{"ret":0,"rid":123,"data":{"Ret":0}}
+83) Add carousel content for the specified split-screen. Generally used when large videos are sliced and played sequentially.
+For example, if split-screen 1 is playing Url content (must be file or playbackback video), when playback ends, immediately switch to carousel content. No delay when switching.
+If Uri contains special characters = & double quotes or Chinese, etc., it needs to be URL-encoded before passing. If Uri is not a full local path, the middleware program's Data subdirectory is used as the root directory by default.
+Request: {"req":"Player_AddPreparePlay","rid":123,"para":[{"ID":1,"Uri":"d:/zorro/play.mp4","Name":"PreparePlay","Option":"Link=1 PlayEngine=3"}]}
+Return: {"ret":0,"rid":123,"data":{"Ret":0}}
 
-84) 设置指定分屏窗口是否禁用双击全屏功能
-DisableDBFull 设置1时禁用，默认不禁用
-{"req":"Player_PutDisableDBFull","rid":104,"para":[{"ID":1,"DisableDBFull":1},{"ID":2,"DisableDBFull":0}]}
-分别返回：{"ret":0,"rid":124,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":124,"ID":2,"data":{"Ret":0}}
+84) Set whether to disable double-click full-screen function for the specified split-screen window.
+DisableDBFull set 1 to disable. Default not disabled.
+{"req":"Player_PutDisableDBFull","rid":104,"para":[{"ID":1,"DisableDBFull":1},{"ID":2,"DisableDBFull":0}]} (Note: rid typo likely)
+Return respectively: {"ret":0,"rid":124,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":124,"ID":2,"data":{"Ret":0}} (Corrected rid)
 
-85) 获取指定分屏窗口的播放日志，海康及大华私有协议播放支持
-{"req":"Player_GetPlayLog","rid":105,"para":[{"ID":1},{"ID":2}]}
-分别返回：{"ret":0,"rid":125,"ID":1,"data":[]} 和 {"ret":0,"rid":125,"ID":2,"data":[]}
-data中包含播放日志记录
+85) Get the playback log for the specified split-screen window. Supported by Hikvision/Dahua private protocol playback.
+{"req":"Player_GetPlayLog","rid":105,"para":[{"ID":1},{"ID":2}]} (Note: rid typo likely)
+Return respectively: {"ret":0,"rid":125,"ID":1,"data":[]} and {"ret":0,"rid":125,"ID":2,"data":[]} (Corrected rid)
+data contains playback log records.
 
-86) 设置指定分屏窗口指定区域的画面放大显示，目前仅大华私有协议播放不支持
-Left及Top分别为播放窗口指定区域左上角坐标，Width及Height分别为指定区域宽度和高度
-当指定Width和Height为0时代表取消放大显示，按字母Q或R也可退出放大显示，或点击鼠标右键也可取消
-{"req":"Player_PutCropWindow","rid":105,"para":[{"ID":1,"Left":50,"Top":50,"Width":300,"Height":300},{"ID":2,"Left":100,"Top":100,"Width":500,"Height":500}]}
-分别返回：{"ret":0,"rid":126,"ID":1,"data":{"Ret":0}} 和 {"ret":0,"rid":126,"ID":2,"data":{"Ret":0}}
+86) Set the specified area of the picture for the specified split-screen window to zoom in. Currently not supported by Dahua private protocol playback.
+Left and Top are the top-left coordinates of the specified area in the playback window. Width and Height are the width and height of the specified area.
+When Width and Height are set to 0, it cancels zoom display. Pressing Q or R can also exit zoom display, or right-clicking the mouse can also cancel.
+{"req":"Player_PutCropWindow","rid":105,"para":[{"ID":1,"Left":50,"Top":50,"Width":300,"Height":300},{"ID":2,"Left":100,"Top":100,"Width":500,"Height":500}]} (Note: rid typo likely)
+Return respectively: {"ret":0,"rid":126,"ID":1,"data":{"Ret":0}} and {"ret":0,"rid":126,"ID":2,"data":{"Ret":0}} (Corrected rid)
 
-87）请求在嵌入窗口区域内弹出一个消息对话框
-Title为弹窗标题，如果是中文或特殊符号需要先做UrlEncode
-Content为弹窗内容，如果是中文或特殊符号需要先做UrlEncode
-Wait为等待多少秒自动消失 0代表不自动消失
-Type代表弹窗类型 0是MB_OK，具体见https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox uType定义
+87) Request to pop up a message dialog box within the embedded window area.
+Title is the popup title. If Chinese or special symbols, UrlEncode first.
+Content is the popup content. If Chinese or special symbols, UrlEncode first.
+Wait is how many seconds to wait before automatically disappearing. 0 means do not disappear automatically.
+Type represents the popup type. 0 is MB_OK. See https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox uType definition.
 {"req":"Player_MsgBox","rid":52,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
-返回：{"ret":0,"rid":52,"data":{"Ret":"0"}}
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}} (Note: Ret as string)
 
-5、RTSP网页多引擎播放器接收的通知：
-这些通知必须通过WebSocket连接到此小程序侦听的端口才能接收到。
+5. Notifications received by the RTSP Web Multi-Engine Player:
+These notifications must be received by establishing a WebSocket connection to the port listened by this mini-program.
 
-A、小程序：
-1) Selected 选中分屏窗口序号通知
-ID是分屏序号 aid是播放实例ID 下同
-{"event":"Player_Selected","ID":1,"rid":1,"data":{}} 
+A. Mini-program:
+1) Selected Selected split-screen window sequence number notification.
+ID is the split-screen sequence number. aid is the playback instance ID. Same below.
+{"event":"Player_Selected","ID":1,"rid":1,"data":{}}
 
-2) FullScreen 分屏窗口切换全屏通知
-{"event":"Player_FullScreen","ID":1,"rid":1,"data":{}} 
+2) FullScreen Split-screen window full-screen toggle notification.
+{"event":"Player_FullScreen","ID":1,"rid":1,"data":{}}
 
-3) 录像结束通知(限时录制时发出)
-ID 为窗口序号 PID为录像ID Size录像文件大小 File录像实际全路径
-{"event":"Player_StopRecord","ID":1,"rid":1,"data":{"Ret":0,"PID":1,"File":"D:/Zorro/test.mp4","Size":321}} 
+3) Recording end notification (issued for time-limited recording).
+ID is the window sequence number. PID is the recording ID. Size recording file size. File recording actual full path.
+{"event":"Player_StopRecord","ID":1,"rid":1,"data":{"Ret":0,"PID":1,"File":"D:/Zorro/test.mp4","Size":321}}
 
-4) 登录状态通知，播放MP4等本地文件无效
-{"event":"Player_LoginStatus","ID":1,"rid":1,"data":{"LID":1,"Status":0,"Desc":"登录失败"}} 
+4) Login status notification. Invalid for playing MP4 local files.
+{"event":"Player_LoginStatus","ID":1,"rid":1,"data":{"LID":1,"Status":0,"Desc":"Login failed"}}
 
-5) 海康及大华接口异常通知
-Type 0x8001语音对讲异常 0x8003网络预览异常 0x8005预览时重新连接 0x8010回放异常 0x8015预览时重连成功
-{"event":"Player_Exception","ID":1,"rid":1,"data":{"Type":0x8001}} 
+5) Hikvision/Dahua interface exception notification.
+Type 0x8001 voice intercom exception, 0x8003 network preview exception, 0x8005 preview reconnection, 0x8010 playbackback exception, 0x8015 preview reconnection success.
+{"event":"Player_Exception","ID":1,"rid":1,"data":{"Type":0x8001}}
 
-6) 海康及大华SDK错误通知
-{"event":"Player_SDKErr","ID":1,"rid":1,"data":{}} 
+6) Hikvision/Dahua SDK error notification.
+{"event":"Player_SDKErr","ID":1,"rid":1,"data":{}}
 
-7) 播放事件通知
-Type事件类型 Val事件相关的值
-Type包含的值含义如下
-5(libvlc_MediaStateChanged)				视频状态变化 1打开 2缓冲数据 3正在播放 4播放暂停 5停止播放 6播放到尾部 7播放错误
-258(libvlc_MediaPlayerOpening)			播放内容打开中...
-259(libvlc_MediaPlayerBuffering)		缓冲数据中... Val中包含缓冲数据的长度
-260(libvlc_MediaPlayerPlaying)			播放中
-261(libvlc_MediaPlayerPaused)			播放暂停
-262(libvlc_MediaPlayerStopped)			播放停止
-263(libvlc_MediaPlayerForward)			播放快进
-264(libvlc_MediaPlayerBackward)			播放快退
-265(libvlc_MediaPlayerEndReached)		播放到尾部
-266(libvlc_MediaPlayerEncounteredError) 播放遇到错误
-267(libvlc_MediaPlayerTimeChanged)  	播放时间变化 Val对应最新的时间
-268(libvlc_MediaPlayerPositionChanged) 	播放位置变化 Val对应最新的位置，这个用来做播放进度展示，*100就是百分比
-273(libvlc_MediaPlayerLengthChanged) 	播放长度变化 Val对应最新的长度
-283(libvlc_MediaPlayerAudioVolume)  	播放音量通知 Val对应最新的音量
+7) Playback event notification.
+Type event type. Val event-related value.
+Type contains the following meanings:
+5(libvlc_MediaStateChanged)				Video status change: 1 opening, 2 buffering data, 3 playing, 4 playback paused, 5 playback stopped, 6 played to end, 7 playback error.
+258(libvlc_MediaPlayerOpening)			Opening playback content...
+259(libvlc_MediaPlayerBuffering)		Buffering data... Val contains the length of buffered data.
+260(libvlc_MediaPlayerPlaying)			Playing.
+261(libvlc_MediaPlayerPaused)			Playback paused.
+262(libvlc_MediaPlayerStopped)			Playback stopped.
+263(libvlc_MediaPlayerForward)			Fast forward playback.
+264(libvlc_MediaPlayerBackward)			Fast backward playback.
+265(libvlc_MediaPlayerEndReached)		Played to end.
+266(libvlc_MediaPlayerEncounteredError) Playback encountered error.
+267(libvlc_MediaPlayerTimeChanged)  	Playback time changed. Val corresponds to the latest time.
+268(libvlc_MediaPlayerPositionChanged) 	Playback position changed. Val corresponds to the latest position. Multiply by 100 for percentage.
+273(libvlc_MediaPlayerLengthChanged) 	Playback length changed. Val corresponds to the latest length.
+283(libvlc_MediaPlayerAudioVolume)  	Playback volume notification. Val corresponds to the latest volume.
+{"event":"Player_VlcEvent","ID":1,"rid":1,"data":{"Type":1,"Val":0}}
 
-{"event":"Player_VlcEvent","ID":1,"rid":1,"data":{"Type":1,"Val":0}} 
+8) Mute notification. Mute 1 is muted, 0 not muted. Volume 0-100.
+{"event":"Player_SoundStatus","ID":1,"rid":1,"data":{"Mute":1,"Volume":80}}
 
-8) 是否静音通知 Mute为1是静音 0非静音 Volume音量0-100
-{"event":"Player_SoundStatus","ID":1,"rid":1,"data":{"Mute":1,"Volume":80}} 
+9) Frame playback notification. CacheCount current cached frame count. CurDraw current drawing frame sequence number in cache.
+{"event":"Player_FramePlaying","ID":1,"rid":1,"data":{"CacheCount":30,"CurDraw":0}}
 
-9) 帧播放通知 CacheCount当前缓存帧数 CurDraw当前绘制帧在缓存中的序号
-{"event":"Player_FramePlaying","ID":1,"rid":1,"data":{"CacheCount":30,"CurDraw":0}} 
+10) Audio information notification. Format format. Rate sample rate. Channel number of channels.
+{"event":"Player_AudioInfo","ID":1,"rid":1,"data":{"Format":"S16N","Rate":8000,"Channel":2}}
 
-10) 音频信息通知 Format格式 Rate速率 Channel通道数量
-{"event":"Player_AudioInfo","ID":1,"rid":1,"data":{"Format":"S16N","Rate":8000,"Channel":2}} 
+11) Sound column notification. Left left channel volume. Right right channel volume.
+{"event":"Player_AudioWave","ID":1,"rid":1,"data":{"Left":30,"Right":20}}
 
-11) 音柱通知 Left左声道声音大小 Right右声道声音大小
-{"event":"Player_AudioWave","ID":1,"rid":1,"data":{"Left":30,"Right":20}} 
-
-12) 海康及大华私有协议搜索硬盘录像机上的录像结果通知
+12) Search result notification for recordings on DVR for Hikvision/Dahua private protocol.
 {"event":"Player_SearchResult","ID":1,"rid":1,"data":{"SID":1,"Info":[{"Name":"ch0001_00000000094000100","Size":1053565500,"FType":0,"SType":0,"Locked":0,"STime":1665100588,"ETime":1665102259},{"Name":"ch0001_00000000095000000","Size":1065176994,"FType":0,"SType":0,"Locked":0,"STime":1665102256,"ETime":1665104363},{"Name":"ch0001_00000000097000000","Size":1065309215,"FType":0,"SType":0,"Locked":0,"STime":1665104363,"ETime":1665108028}]}}
-FType 文件类型 SType流类型 Locked是否锁定
-STime流开始时间 ETime流结束时间
+FType file type. SType stream type. Locked whether locked.
+STime stream start time. ETime stream end time.
 
-13) 海康及大华私有协议下载硬盘录像机上的录像进度通知
+13) Download progress notification for recordings on DVR for Hikvision/Dahua private protocol.
 {"event":"Player_DownPos","ID":1,"rid":2,"data":{"DID":1,"Pos":100}}
-Pos为100时下载结束
+Pos 100 when download ends.
 
-14) 叠加网页导航结果通知
-{"event":"Player_WebNavResult","ID":1,"rid":1,"aid":1,"data":{"Result":""}]}}
-Result UrlEncode后的请求结果
+14) Overlay webpage navigation result notification.
+{"event":"Player_WebNavResult","ID":1,"rid":1,"aid":1,"data":{"Result":""}]}} (Note: Extra bracket)
+Result UrlEncode encoded request result.
 
-15) 叠加网页注入脚本结果通知
-{"event":"Player_WebScriptResult","ID":1,"rid":1,"aid":1,"data":{"Result":""}]}}
-Result UrlEncode后的请求结果
+15) Overlay webpage injected script result notification.
+{"event":"Player_WebScriptResult","ID":1,"rid":1,"aid":1,"data":{"Result":""}]}} (Note: Extra bracket)
+Result UrlEncode encoded request result.
 
-16) 播放错误日志通知
-{"event":"Player_PlayLog","ID":1,"rid":1,"aid":1,"data":{"Level":1,"Line":18,"Module":"","Desc":""}]}}
-Level 日志级别 1错误日志 2警告日志 4通知日志
-Module 模块名称
-Line 代码行数
-Desc 日志描述
+16) Playback error log notification.
+{"event":"Player_PlayLog","ID":1,"rid":1,"aid":1,"data":{"Level":1,"Line":18,"Module":"","Desc":""}]}} (Note: Extra bracket)
+Level log level: 1 error log, 2 warning log, 4 notification log.
+Module module name.
+Line code line number.
+Desc log description.
 
-17) VLC引擎、海康MP4等播放视频分辨率通知
+17) Video resolution notification for VLC engine, Hikvision MP4, etc. playback.
 {"event":"Player_VideoSize","ID":1,"rid":2,"data":{"Width":1024,"Height":768}}
 
-18) VLC引擎、FFPlayer等播放视频选中局部放大通知
+18) Selected local zoom notification for VLC engine, FFPlayer, etc. playback.
 {"event":"Player_ZoomOut","ID":1,"rid":2,"data":{"X":50,"Y":50,"Width":1024,"Height":768}}
-data中参数分别为点选X、Y坐标及选中区域宽度和高度
+data parameters are the selected X, Y coordinates and the selected area width and height.
 
-19) VLC引擎、FFPlayer等播放视频局部放大结束通知
+19) Local zoom end notification for VLC engine, FFPlayer, etc. playback.
 {"event":"Player_ZoomEnd","ID":1,"rid":2,"data":{}}
 
-B、支持的事件通知：
+B. Supported event notifications:
+1) Whether the mini-program responded to the hotkey full-screen.
+{"event":"Player_FullScreen","rid":1,"data":{"FullScreen":0}} FullScreen is the current full-screen flag.
 
-1) 小程序是否响应了热键全屏
-{"event":"Player_FullScreen","rid":1,"data":{"FullScreen":0}} FullScreen为当前是否全屏标记
+2) Wrl_AppletExit Mini-program exit notification.
+{"event":"Wrl_AppletExit","data":{"ID":1}} ID mini-program instance ID.
 
-2) Wrl_AppletExit 小程序退出通知
-{"event":"Wrl_AppletExit","data":{"ID":1}} ID小程序实例ID
-
-6、其它
-请求参数的JSON数据包，请确保是UTF-8无签名的编码。
-更多接口请求说明，请参考安装目录中的文档TestWrl.txt、SDK包中的“猿大师开发者手册.pdf”及“猿大师中间件安全解决方案.pdf”。
+6. Other
+Ensure the JSON data packet of request parameters is UTF-8 without BOM encoding.
+For more interface request descriptions, refer to the document TestWrl.txt in the installation directory, "ApeMaster Developer Manual.pdf" and "ApeMaster Middleware Security Solution.pdf" in the SDK package.

@@ -1,0 +1,402 @@
+﻿OCX Embedded Web Applet: Based on the cross-browser native applet system - ApeMaster middleware network advanced edition development, the underlying layer can call the specified OCX control (using Adobe PDF Reader as an example) to embed the OCX window into the specified area of a webpage for operation and control.
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Speed/Secure, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qi An Xin, Red Lotus, Dual-core browsers, and other low-version browsers. Also compatible with the latest versions of these browsers.
+
+1. Installation of ApeMaster Middleware:
+1) If it's an exe installer, run it directly;
+2) If it's a green version package, extract it to a disk directory, then double-click "InstallWrl.bat" for installation;
+3) When the installation is complete, the ApeMaster middleware service will start. The log file ZbaService.txt in the Data subdirectory of the installation directory will output the running status.
+
+2. OCX Embedded Web Applet Control Interfaces:
+Note: Execute the following functions after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (refer to the document "ApeMaster Developer Manual.pdf" in the SDK package for configuring the listening port), specify the port number in the connection address.
+HTTP online test: http://test.yuanmaster.com/Ocxfull.html HTTPS online test: https://test.yuanmaster.com/Ocxframe.html
+For additional IE browser compatibility, in the network version test webpage, the CLSID in `<object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>`
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Frontend integration can refer to the above test webpages. HTML webpages need to embed code similar to the following;
+A. Mark the display position and size of the applet
+.OcxWebApplet {
+            margin: 20px 0 0 20px;
+            width: 480px;
+            height: 320px;
+            border: 1px solid blue;
+        }
+or
+.OcxWebApplet {
+            width: 480px;
+            height: 320px;
+            top: 20px;
+            left: 20px;
+            border: 1px solid blue;
+        }
+If the webpage header does not mark the initial display position and size of the applet, add the following parameters in the JSON parameters when starting the applet:
+"Left":20,"Top":20,"Width":480,"Height":320
+
+B. Embed elements in the webpage
+Supports IFrame:
+<iframe name="OcxWebApplet" id="OcxWebApplet" src="OcxWebApplet3.html" frameborder="0" align="left" width="550" height="540" scrolling="no></iframe>
+or directly use
+<div id="OcxWebApplet" class="OcxWebApplet"</div>
+
+Additionally, embed the required JS scripts, which are completely open source.
+
+1) Request to start the OCX embedded web applet to locally load documents like xt, step in the webpage for operation:
+Type is the browser type, pass 0 for automatic judgment (prerequisite: the current browser is already started and displayed in the foreground, Flag must be 0 when the current page loads) Can forcibly specify browser type Type (1: IE, 2: Chrome, 4: Firefox, 5: Brave (English), 8: Opera, 9: Vivaldi (English), 10: Yandex, 16: Edge (Chromium kernel), 20: Electron, 32: 360 Speed Browser, 33: 360 Security Browser, 34: 360 Speed Browser, 35: 360 Enterprise Security Browser, 36: 360 Game Browser, 37: 360 AI Browser, 40: Lenovo Browser, 45: Dual-core Browser, 50: QQ Browser, 51: WeChat Webpage, 55: Qi An Xin Browser, 57: Red Lotus Browser, 60: Sogou Browser, 61: Quark, 62: Maxthon Browser, 63: Liebao Browser, 66: Doubao, 70: Huawei Browser)
+When Type needs to specify the browser type, first use the interface `Wrl_BrowserInfo` in the TestWrl.txt document to get the current browser type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title. Decide whether to continue starting by judging if Title is the webpage that needs embedding. If continuing, setting the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters can speed up startup.
+Title: Keyword in the webpage title
+Flag mask flag: 1: Load in new tab (Load in current page if neither 1 nor 16 is specified) 2: Display border for webpage component window 4: Do not automatically clip out-of-bound windows 8: Automatically adapt to webpage height and width for display 64: Enable Web parameter 128: Anti-screenshot 256: Force display to secondary screen 512: Allow multiple instances on the same webpage
+Web: Open configuration, Flag value +64 uses this configuration. When using Web, must specify values for Left, Top, Width, Height
+Parameter description in Web:
+	DataPath represents the default local save path for drawings
+	Cookie When the document opened via Open is a Url address on the server, set Cookie for the network request Url to gain download permission
+	Auth When the document opened via Open is a Url address on the server, set Auth for the network request Url to gain download permission
+	ClassID ClassID of the ActiveX control to load, e.g., VLC player control 9BE31822-FDAD-461B-AD51-BE1D1C159921
+	ProgID ProgID of the ActiveX control to load, e.g., VLC player control VideoLAN.VLCPlugin
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting.
+BarW and BarH are the reserved areas on the right and bottom of the webpage, ScrollTop is the reserved height for top scrolling.
+The actual display of the webpage component is first based on the coordinates and size specified in Url or Web, then corrected based on the values set by IframeX, IframeY, BarW, BarH.
+Option: Optional parameters, configure as needed.
+Open: The document path to open or the downloadable HTTP protocol address, use / for disk directory slashes.
+Note: If Open, Web contain special characters = & double quotes or Chinese, etc., they need to be URL encoded before passing.
+Examples:
+Start with automatic recognition of the current browser at specified position and size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"OCX Embedded Web Applet","NodeName":"OcxWebApplet","PID":"OcxWebApplet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":210,"BarW":0,"BarH":0,"Option":"0","Option":"0","Web":{"DataPath":"c:/OcxDoc","ClassID":"{CA8A9780-280D-11CF-A24D-444553540000}"}}}
+
+Start with automatic recognition of the current browser adapting to webpage size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"OCX Embedded Web Applet","NodeName":"OcxWebApplet","PID":"OcxWebApplet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"Option":"0","Option":"0","Zoom":100,"ScrollTop":0,"Web":{"DataPath":"c:/OcxDoc","ClassID":"{CA8A9780-280D-11CF-A24D-444553540000}"}}}
+
+Start VLC player control to play
+{"req":"Wrl_AppletStart","rid":99,"para":{"Type":"0","Title":"ActiveX Web Applet","NodeName":"OcxWebApplet","PID":"OcxWebApplet","Flag":4168,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"Option":"0","Zoom":100,"ScrollTop":0,"Web": {"ClassID":"{9BE31822-FDAD-461B-AD51-BE1D1C159921}"},"Open":"http://test.yuanmaster.com/Files/RTSP.mp4"}}
+
+Current page loading test at specified position adapting to webpage
+http://test.yuanmaster.com/Ocxframe.html
+
+After starting, three JSON data packets will be received sequentially:
+A. {"ret":0,"rid":8,"data":{"ID":7}}
+Indicates the applet WS listening service is ready.
+B. {"event":"Wrl_Listen","aid":7,"rid":8,"data":{"SID":"123","PID":"OcxWebApplet","port":3000}}
+Returns the listening port. After establishing another Web Socket connection, you can call related functions in the applet, such as zooming the drawing.
+Indicates the applet was created successfully, returning the ID as the current applet running instance ID. Using this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C. {"event":"Wrl_AppletOK","aid":7,"rid":8,"data":{"SID":"123","PID":"OcxWebApplet","Port":3000}}
+
+2) Request to control the OCX embedded web applet:
+When the frontend no longer needs the applet, it can be closed, or shown/hidden, fullscreen displayed, etc.
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup. Code represents the control type mask: 1: Normal close, 128: Force close immediately, 2: Fullscreen display, 4: Auto hide, 8: Restore display, 16: Toggle auto-adapt to webpage height and width display mode, 32: Force hide. Among them, fullscreen display 2 can be canceled directly via the ESC hotkey. After hiding with 4 or 32, it can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll the OCX embedded web applet:
+When the frontend captures a webpage scroll notification, this interface needs to be called to achieve scroll linkage between the applet and the webpage.
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup.
+Code is the scroll direction: 1: Horizontal, 2: Vertical, 3: Both.
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change the display position or size of the OCX embedded web applet:
+When the frontend webpage display area is scaled, the applet's display position or size can be dynamically modified.
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup. Width and Height are the new width and height. X and Y are the new display positions. If not specified, they remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or set the applet display start coordinates simultaneously
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:
+When the applet display area exceeds the current webpage, the impact of the scrollbar display needs to be removed.
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup. BarW is the reserved right width. BarH is the reserved bottom height.
+Code 1: Horizontal scrollbar exists, 2: Vertical scrollbar exists, 3: Both exist.
+ScrollTop vertical scrollbar position, ScrollTop horizontal scrollbar position (Note: JSON uses ScrollLeft for horizontal).
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to perform Alpha transparency processing on the applet window, facilitating the frontend to temporarily display menus covering the applet window, etc.:
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup. Alpha is the transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to take a screenshot of the applet window content:
+ID: The aid instance value returned in the startup JSON.
+File: Specify the screenshot file save path or extension.
+Base64: Specify as 1 to return BASE64 encoded image content.
+Flag: If the screenshot of the embedded applet window (e.g., DirectUI or Direct3D drawing) is abnormal, additionally specify as 1 to see the effect. Furthermore, if multiple screenshots or box selection screenshots are needed, add 2 or 4 to start the screenshot tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to zoom the embedded web applet, used for proportional zooming of the browser webpage, generally not needed:
+ID is the ID value returned in the JSON from Wrl_AppletStart specifying OcxWebApplet startup. If Scale is not specified, get the current zoom percentage used by the applet, generally consistent with the system zoom ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Applet Installation, Update, Uninstallation
+1) Request to install the OCX embedded web applet
+Please enter the following request in the test webpage input box, then click send to complete installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"OCX Web Applet","PID":"OcxWebApplet","Date":"2025-05-30","Desc":"Cross-browser specified OCX embedded web applet on ApeMaster, supports embedding specified OCX controls in the latest Chrome, Edge, Firefox, IE, Oprea, 360, QQ, etc. browser webpages","DownAddr":"http://local.zorrosoft.com/Files/Net/OcxWebApplet.pid","MD5":"9149BD6CF380E9F4753CBDF690358133","Version":"2.2.17.6","Size":2883584,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"5EB45D2C545564EB6EF68F746BA3DFEB2BFD57024F63EBA609743776EEFBF91CFE3EC54B9E25C4EFB1AC851577278663B58440B0927456F864BD8425482A1C7A8CAD1D02A821E83023ECBDD9FBCE4BC25D556ACEA5F9CDBBC6548354D72073A7233386A3AAA37BE6D88C7826549E1C5F594FE5CEEA3375733C66F4B29D7D7ECCD5C87319414C1542DDB0984CCE663B1D60DF02C6FBE382BE754BC8EDD4B4E6036A9540E17DDD3A89CDCFF8AF8B19C384E64B129505629195A6091F67277316F19990E5D819B6DD06F08848C6ED1B40EC8401EFEFD706555D8F6E6B81F88DD5B29C068B1520EEEA2CA638BCBECBFEFA7536D3A5BBB1F3B3CBC40C637237F5A00A"}}
+
+After starting installation, installation progress will be continuously received until completion.
+When distributing, this applet directory files can also be packaged together with the middleware for release, without separate distribution.
+
+2) Request to update the OCX embedded web applet:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"OCX Web Applet","PID":"OcxWebApplet","Date":"2025-05-30","Desc":"Cross-browser specified OCX embedded web applet on ApeMaster, supports embedding specified OCX controls in the latest Chrome, Edge, Firefox, IE, Oprea, 360, QQ, etc. browser webpages","DownAddr":"http://local.zorrosoft.com/Files/Net/OcxWebApplet_Update.pid","MD5":"606BB13701036675EA8EA856042C6147","Version":"2.2.17.6","Size":2883584,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"7CE9F37C9252F626C2E4325DDB34B6E418DA650BEB494B9A6CA9A8163A7378FFC3743FFE4C1690DE8F139EFAF88ADCE0CE53F2C4BE4885C899A0B9459F7C6344AE1E1D2CAEAB8282D9077DE6B65B51420E4358C022B081719D976AF4175F1CD33829C52D41228545B23BCD21CA8C7FA8FBDAFE93B7E64172A048B32FAF2CD4A041980B413A87FC44895719FFDDCE2C125C0ADF39A66706B3A6A2FB9380E696264C91CCFE4E7C0A95F1DCD225104EBBF0628CA807A1F160F2116CD940A982156827C8079DFB350E87C545F577D20CC5CB490E13BAF3C249D0B49C99572582AFE47E36FBBD6589F7A0C263A032499B4E7867FD3A427CAFF9E55C47E5BE914235AB"}}
+
+The JSON request packets for installation and update above may differ due to version upgrades. If errors occur during installation or update, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall the OCX embedded web applet:
+The official version requires adding TK verification. Specific rules please refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. The packaging program ZbaPackage.exe in the SDK package can generate requests with TK in middleware maintenance.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"OcxWebApplet","Type":8}}
+
+/// The following are ClassIDs of OCX controls for testing. The corresponding controls need to be installed in advance:
+NTKO WebOffice Control:{A39F1330-3322-4A1D-9BF0-0BA2BB90E970}
+Kinggrid iWebOffice2015 Smart Document Middleware:{D89F482C-5045-4DB5-8C53-D2C9EE71D025}
+officectrl WebOffice Control:{FF09E4FA-BFAA-486E-ACB4-86EB0AE875D5}
+DSOFramer WebOffice Control:{00460182-9E5E-11D5-B7C8-B8269041DD57}
+Dianju WebOffice Control:{E77E049B-23FC-4DB8-B756-60529A35FAD5}
+Foxit OFD Office Suite OCX:{9A9F603B-51A8-4630-AE99-4BBF01675575}
+Pdf Reader:{CA8A9780-280D-11CF-A24D-444553540000}
+VLC Player:{9BE31822-FDAD-461B-AD51-BE1D1C159921}
+IE WebBrowser:{8856F961-340A-11D0-A96B-00C04FD705A2}
+Flash Player:{D27CDB6E-AE6D-11cf-96B8-444553540000}
+DWG TureView:{4E871D32-203E-4777-B42A-451FC1B2FC90}
+Autodesk Design Review:{A662DA7E-CCB7-4743-B71A-D817F6D575DF}
+EDrawing Viewer:{22945A69-1191-4DCF-9E6F-409BDE94D101}
+SolidWorks Composer Player:{410B702D-FCFC-46B7-A954-E876C84AE4C0}
+PTC Creo View:{F07443A6-02CF-4215-9413-55EE10D509CC}
+Hanwang Handwriting Signature OCX:{E8F5278C-0C72-4561-8F7E-CCBC3E48C2E3}
+
+4. OCX embedded web applet calls specified OCX control interfaces. First, establish a new WebSocket connection based on the port number returned after starting the applet via `Wrl_AppletStart` specifying OcxWebApplet. Then execute the following commands:
+A. Common function requests:
+
+1) Request to exit the applet
+Normal applet close procedure and method: First request this function in this WS connection. When the frontend receives the notification to close this connection, then close the WS connection to the middleware.
+{"req":"OCX_Exit","rid":1,"para":{}}
+No return.
+
+2) Load and open a local or server file
+File: Local file path or network path. Replace \ slashes with forward slashes /. URLEncode special characters or Chinese.
+Other parameters refer to the Web sub-node settings at startup.
+Request 1: {"req":"OCX_Open","rid":2,"para":{"Open":"d:/Zorro/test.pdf"}}
+Request 2: {"req":"OCX_Open","rid":2,"para":{"Open":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}}
+ret is the request return value.
+
+3) Request to pop up a message dialog box within the embedded window area
+Title: Popup title. URLEncode if Chinese or special symbols.
+Content: Popup content. URLEncode if Chinese or special symbols.
+Wait: Wait how many seconds to disappear automatically. 0 means do not disappear automatically.
+Type: Popup type. 0 is MB_OK. See https://learn.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-messagebox uType definition.
+{"req":"OCX_MsgBox","rid":3,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}}
+
+4) Network file operation
+Type: 1 Upload file, 0 Download file
+Asyn: Default 0. Specify 1 for asynchronous upload/download. Asynchronous upload requires separate use with the file operation applet.
+Agent, Cookie, Auth Cookie: Can pass the browser's Cookie or use Auth for upload permission verification. Default empty. If not empty, URLEncode first.
+Local: Local path of file to upload or save path for download. If not specified, uses the currently opened document by default. Needs URLEncode.
+Url: Address for upload/download. Needs URLEncode.
+When Type is 1, you can add parameter Para, corresponding to the param parameter in the POST data packet. Default upload filename is upfile. Otherwise, set your own file parameter name via NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, the hash and size of the downloaded file, used to verify the integrity of the downloaded file. Can be empty or 0 by default.
+{"req":"OCX_NetFile","rid":4,"para":{"Type":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/PdfDoc/test.pdf","Url":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+{"req":"OCX_NetFile","rid":4,"para":{"Type":1,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://www.yuanmaster.com"}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0"}}
+
+5) Switch fullscreen editing state
+{"req":"OCX_SwitchFullScreen","rid":5,"para":{}}
+Return: {"ret":0,"rid":5,"data":{"Ret":"0"}}
+
+6) Request to set the WebSocket connection object into the OCX control
+Requires the OCX to implement a method named Name, with two parameters: First IDispatch*, Second BSTR type, the WS connection unique identifier.
+Flag switch: 1 means set, 0 means release.
+The WebSocket connection object represented by the first parameter can call the following two functions to send strings or byte streams:
+[id(31)] HRESULT AsynSendText([in] BSTR bstrSID,[in] BSTR bstrContent,[out, retval] ULONG* pVal);
+[id(32)] HRESULT AsynSendByte([in] BSTR bstrSID,[in] BYTE* pContent,[in] ULONG nLength,[out, retval] ULONG* pVal);
+{"req":"OCX_SetWSConn","rid":6,"para":{"Name":"WebSocket","Flag":1}}
+Return: {"ret":0,"rid":6,"data":{"Ret":"0"}}
+
+7) Add event reception notification
+EventID: Event interface UUID
+EventList: List of event IDs to notify
+Example for VLC player control:
+{"req":"OCX_AddEvent","rid":7,"para":{"EventID":"{DF48072F-5EF8-434E-9B40-E2F3AE759B5F}","EventList":[202,203,207,209,211]}}
+Return: {"ret":0,"rid":7,"data":{"Ret":"0"}}
+
+8) Remove event reception notification
+EventList: List of event IDs to notify
+Example for VLC player control:
+{"req":"OCX_RemoveEvent","rid":8,"para":{"EventList":[202,211]}}
+Return: {"ret":0,"rid":8,"data":{"Ret":"0"}}
+
+9) Get OCX program file version
+{"req":"OCX_Version","rid":9,"para":{}}
+Return: {"ret":0,"rid":9,"data":{"Ret":"0","Version":"3.0.3"}}
+
+10) Overlay web rendering content on the specified ID window. Normally supported on Windows 8 and above operating systems. Requires Microsoft Edge WebView2 Runtime installed locally.
+Url: Transparent webpage address. URLEncode if special symbols. Set to empty string to cancel overlay.
+Alpha: Transparency (0-255). Default 255 opaque. Windows 7 and below systems do not support transparency.
+Rect node sets overlay window position and size. Not setting means the entire area. E represents margin, default 1. X/Y/W/H represent the starting point and width/height of the overlay window within the split screen window. P is the display position type, replacing X and Y if greater than 0: 1: Top-left, 2: Top-right, 3: Bottom-left, 4: Bottom-right.
+{"req":"OCX_FloatWebInfo","rid":10,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"OCX_FloatWebInfo","rid":10,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":10,"data":{"Ret":0}}
+
+11) Overlay webpage inject script execution on the specified ID window
+Script: Script content. URLEncode first. Set to empty string to cancel overlay.
+Init: Initialize.
+{"req":"OCX_FloatWebInjectScript","rid":11,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}
+Return: {"ret":0,"rid":11,"data":{"Ret":0}}
+
+The following are general request methods for OCX control interface functions not separately encapsulated.
+21) Request to get property value
+Name: Specified property name. If accessing sub-interface properties, append the sub-interface name, supports multiple levels. E.g., to get VLC playlist item count, name is `playlist.itemCount`. Same below.
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"src"}}
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"volume"}}
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"Toolbar"}}
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"playlist.itemCount"}}
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"input.rate"}}
+{"req":"OCX_GetProperty","rid":21,"para":{"Name":"video.logo.opacity"}}
+Return: {"ret":0,"rid":21,"data":{"Ret":0,"Val":""}}
+If an automation interface is returned, the Val value might be like this: `playlist={CatchDispatch}`. When continuing to call properties or methods of this automation interface, specify the parameter `{CatchDispatch}` in subsequent requests. Otherwise, it defaults to calling the main interface of the control. Same below.
+
+22) Request to set property
+Name: Specified property name. If setting sub-interface properties, append the sub-interface name, supports multiple levels.
+Val: Specified property value. Strings enclosed in "". Escape \ or " within strings with \. Numeric types don't need "". BOOL true is -1.
+To release a cached automation interface, Name can be specified like `playlist={CatchDispatch}`, Val set to 0 or empty.
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"src","Val":"d:/zorro/test.pdf"}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"Toolbar","Val":-1}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"Visible","Val":-1}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"volume","Val":0}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"input.rate","Val":2}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"video.logo.opacity","Val":50}}
+{"req":"OCX_PutProperty","rid":22,"para":{"Name":"playlist={CatchDispatch}","Val":0}}
+Return: {"ret":0,"rid":22,"data":{"Ret":0}}
+
+23) Request method with no input parameters
+Name: Specified method name. If calling sub-interface methods, append the sub-interface name, supports multiple levels. E.g., to call VLC playlist play method, name is `playlist.play`. Same below.
+DID: Can also specify method ID.
+{"req":"OCX_Invoke0","rid":23,"para":{"Name":"gotoFirstPage"}}
+{"req":"OCX_Invoke0","rid":23,"para":{"Name":"gotoNextPage"}}
+{"req":"OCX_Invoke0","rid":23,"para":{"Name":"playlist.play"}}
+Return: {"ret":0,"rid":23,"data":{"Ret":0,"Val":""}}
+
+24) Request method with 1 input parameter
+Name: Specified method name. If calling sub-interface methods, append the sub-interface name, supports multiple levels. E.g., to call VLC playlist add method, name is `playlist.add`. Same below.
+DID: Can also specify method ID.
+Para1: Corresponding parameter value. Strings enclosed in "". Escape \ or " within strings with \. Numeric types don't need "". If the parameter requires a value obtained by calling an automation interface again, pass like `{DispatchPara}=playlist.itemCount`. Same below.
+{"req":"OCX_Invoke1","rid":24,"para":{"Name":"LoadFile","Para1":"d:/zorro/test.pdf"}}
+{"req":"OCX_Invoke1","rid":24,"para":{"Name":"setShowToolbar","Para1":0}}
+{"req":"OCX_Invoke1","rid":24,"para":{"Name":"video.logo.file","Para1":"D:\\Zorro\\test.png"}}
+{"req":"OCX_Invoke1","rid":24,"para":{"Name":"playlist.add","Para1":"http://test.yuanmaster.com/Files/RTSP.mp4"}}
+Return: {"ret":0,"rid":24,"data":{"Ret":0,"Val":""}}
+
+25) Request method with 2 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1 and Para2 correspond to parameter 1 and 2 values. If needing to pass a cached automation interface, pass like `{CatchDispatch}=playlist`
+{"req":"OCX_Invoke2","rid":25,"para":{"Name":"printPages","Para1":1,"Para2":2}}
+Return: {"ret":0,"rid":25,"data":{"Ret":0,"Val":""}}
+
+26) Request method with 3 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values.
+{"req":"OCX_Invoke3","rid":26,"para":{"Name":"printPagesFit","Para1":"1","Para2":"2","Para3":"0"}}
+Return: {"ret":0,"rid":26,"data":{"Ret":0,"Val":""}}
+
+27) Request method with 4 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values.
+{"req":"OCX_Invoke4","rid":27,"para":{"Name":"setCurrentHighlight","Para1":255,"Para2":0,"Para3":255,"Para4":0}}
+Return: {"ret":0,"rid":27,"data":{"Ret":0,"Val":""}}
+
+28) Request method with 5 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values.
+Foxit OFD Office Suite OCX call to open document
+{"req":"OCX_Invoke5","rid":28,"para":{"Name":"openFile","Para1":"d:/zorro/test.pdf","Para2":"0","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":28,"data":{"Ret":0,"Val":""}}
+
+29) Request method with 6 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para6 correspond to parameter 1-6 values.
+{"req":"OCX_Invoke6","rid":29,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":29,"data":{"Ret":0,"Val":""}}
+
+30) Request method with 7 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para7 correspond to parameter 1-7 values.
+{"req":"OCX_Invoke7","rid":30,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":30,"data":{"Ret":0,"Val":""}}
+
+31) Request method with 8 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para8 correspond to parameter 1-8 values.
+{"req":"OCX_Invoke8","rid":31,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":31,"data":{"Ret":0,"Val":""}}
+
+32) Request method with 9 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para9 correspond to parameter 1-9 values.
+{"req":"OCX_Invoke9","rid":32,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":32,"data":{"Ret":0,"Val":""}}
+
+33) Request method with 10 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para10 correspond to parameter 1-10 values.
+{"req":"OCX_InvokeA","rid":33,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":33,"data":{"Ret":0,"Val":""}}
+
+34) Request method with 11 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para11 correspond to parameter 1-11 values.
+{"req":"OCX_InvokeB","rid":34,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":34,"data":{"Ret":0,"Val":""}}
+
+35) Request method with 12 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para12 correspond to parameter 1-12 values.
+{"req":"OCX_InvokeC","rid":35,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":35,"data":{"Ret":0,"Val":""}}
+
+36) Request method with 13 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para13 correspond to parameter 1-13 values.
+{"req":"OCX_InvokeD","rid":36,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":36,"data":{"Ret":0,"Val":""}}
+
+37) Request method with 14 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para14 correspond to parameter 1-14 values.
+{"req":"OCX_InvokeE","rid":37,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":37,"data":{"Ret":0,"Val":""}}
+
+38) Request method with 15 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para15 correspond to parameter 1-15 values.
+{"req":"OCX_InvokeF","rid":38,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":38,"data":{"Ret":0,"Val":""}}
+
+39) Request method with 16 input parameters
+Name: Specified method name.
+DID: Can also specify method ID.
+Para1-Para16 correspond to parameter 1-16 values.
+{"req":"OCX_InvokeG","rid":39,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":39,"data":{"Ret":0,"Val":""}}
+
+5. Event Notification:
+A. OCX control event notification example (VLC):
+{"event":"OCX_Event","DispID":203,"data":{}} /// Represents playback started
+{"event":"OCX_Event","DispID":211,"data":{"Para1":0.903101}} /// Notifies playback position
+
+B. Supported event notifications:
+
+1) Whether the applet responded to the hotkey fullscreen
+{"event":"OCX_FullScreen","data":{"FullScreen":0}} FullScreen is the current fullscreen flag
+
+2) Wrl_AppletExit Applet exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+6. Other
+Ensure JSON data packets for request parameters are encoded in UTF-8 without BOM.
+For more interface request descriptions, please refer to the document TestWrl.txt in the installation directory, and "Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.

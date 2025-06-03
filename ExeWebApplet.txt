@@ -1,0 +1,163 @@
+﻿EXE Web Applet: Developed based on the cross-browser native applet system - ApeMaster Middleware Network Advanced Edition. It embeds desktop WIN32 EXE programs to run within web pages, requiring installation or deployment of the corresponding desktop WIN32 software. After installation, ensure the software can start normally and display its main window without requiring authorization, login popups, etc.
+Usable in Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Speed/Safe, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qizhi Anxin, Red Lotus, Dual-core and other browser low versions, also compatible with the latest versions of these browsers.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a portable package, please extract it to a disk directory, then double-click "InstallWrl.bat" for installation;
+3) Upon completion of installation, the ApeMaster Middleware service will start. The operation status is output in the ZbaService.txt log file in the Data subdirectory under the installation directory.
+
+2. EXE Web Applet Control Related Interfaces:
+Note: The following functions can be executed after establishing a Web Socket connection to the ApeMaster main service (ws://localhost:83?sid=12345&flag=1. If the embedded exe is started with administrator privileges, first ensure the browser itself is started with administrator privileges and set flag to 4 or 5). If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), please specify the port number in the connection address.
+HTTP webpage online test: http://test.yuanmaster.com/exefull.html       HTTPS webpage online test: https://test.yuanmaster.com/exeframe.html
+For IE browser compatibility, in the network version test webpage, the CLSID in <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Frontend integration can refer to the above test webpages. The required JS scripts need to be embedded; the script programs are completely open source.
+
+1) Request to start EXE Web Applet:
+Type is the browser type, pass 0 for automatic judgment (prerequisite is that the current browser is started and displayed in the foreground, Flag must be 0 when the current page loads). Can force specify browser type Type (1 represents IE, 2 represents Chrome, 4 represents Firefox, 5 represents Brave (English), 8 represents Opera, 9 represents Vivaldi (English), 10 represents Yandex, 16 represents Edge (Chromium kernel), 20 represents Electron, 32 represents 360 Speed Browser, 33 represents 360 Safe Browser, 34 represents 360 Speed Browser, 35 represents 360 Enterprise Security Browser, 36 represents 360 Game Browser, 37 represents 360 AI Browser, 40 represents Lenovo Browser, 45 represents Dual-core Browser, 50 represents QQ Browser, 51 represents WeChat Webpage, 55 represents Qizhi Anxin Browser, 57 represents Red Lotus Browser, 60 represents Sogou Browser, 61 represents Quark, 62 represents Maxthon Browser, 63 represents Liebao Browser, 66 represents Doubao, 70 represents Huawei Browser).
+When Type needs to be specified, first use the Wrl_BrowserInfo interface in the TestWrl.txt document to get the current browser's Type, main window handle BrowserWnd, drawing window handle DrawWnd, and current webpage title Title. Decide whether to continue starting by judging if the Title is the webpage needing embedding. If continuing, setting the obtained parameters Type, BrowserWnd, DrawWnd in the current request parameters can speed up startup.
+Title: Keyword in the webpage title to identify the specific embedded webpage.
+Url: The actual address of the webpage where the applet is loaded, specifying the display position and size of the applet within the webpage. Not recommended, suggest using Web parameter instead.
+Flag: Mask flag. 1 specifies new tab load (current page load if neither 1 nor 16 is specified). 2 shows applet window border. 4 disables automatic cropping of out-of-bounds windows. 8 automatically adapts display to webpage height and width. 64 enables Web parameter. 128 anti-screenshot. 256 forces display to secondary screen. 512 allows multiple instances on the same webpage.
+Web: Opening configuration (new method), can replace Url. Flag value +64 to use this configuration. When using Web, Left, Top, Width, Height values must be specified.
+Parameter description in Web:
+    Edit represents edit permission. 1 read-only open.
+    Flag represents option mask value. 1 represents directly embedding the specified already opened program. 2 means open without downloading. 4 means do not check if the opened document filename is displayed in the main window.
+    DataPath represents the default local save path if the document is downloaded.
+    ExeName represents the actual running program name when it differs from the started exe filename.
+    Cookie When the document opened by Open is a Url address on the server, set Cookie for the network request Url to gain download permission.
+    Auth When the document opened by Open is a Url address on the server, set Auth for the network request Url to gain download permission.
+    MD5 MD5 value of the complete document when it needs to be downloaded.
+    FileSize File length when the document needs to be downloaded.
+
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting.
+BarW and BarH are reserved areas on the right and bottom of the webpage, ScrollTop is the height reserved for top scrolling.
+The applet's actual display is first based on the coordinates and size specified in Url or Web, then corrected according to the values set by IframeX, IframeY, BarW, BarH.
+Option: Default 0 is Shuke OFD Reader, 1: Start Foxit OFD Office Suite.
+Open: File or server address that the exe program needs to open. Use / for disk directory slashes.
+Note: If Open, Web, and Url contain special characters =, &, double quotes, or Chinese, etc., they need to be URL encoded before passing.
+Example:
+Start by automatically identifying the current browser at a specified position and size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"EXE Web Applet","NodeName":"ExeWebApplet","PID":"ExeWebApplet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":210,"BarW":0,"BarH":0,"Option":"0","Option":"0","Web":{"DataPath":"c:/ExeDoc","ExeName":"","ExePath":"","PathType":""},"Open":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+
+Start by automatically identifying the current browser and adapting to webpage size:
+{"req":"Wrl_AppletStart","rid":2,"para":{"Type":"0","Title":"EXE Web Applet","NodeName":"ExeWebApplet","PID":"ExeWebApplet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"Option":"0","Option":"0","Zoom":100,"ScrollTop":0,"Web":{"DataPath":"c:/ExeDoc","ExeName":"","ExePath":"","PathType":""},"Open":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+
+Current page specified position automatic adaptation webpage load test
+http://test.yuanmaster.com/exeframe.html
+
+After starting, three JSON data packets will be received successively:
+A. {"ret":0,"rid":2,"data":{"ID":2}}
+Represents the applet WS listening service is ready.
+B. {"event":"Wrl_Listen","aid":2,"rid":2,"data":{"SID":"123","PID":"ExeWebApplet","port":2000}}
+Returns the listening port. A new Web Socket connection can be established to call related functions in the applet, e.g., playing a new Flash.
+Represents successful applet creation. Returns ID as the current applet running instance ID. Using this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C. {"event":"Wrl_AppletOK","aid":2,"rid":2,"data":{"SID":"123","PID":"ExeWebApplet","Port":2000}}
+
+2) Request to control OFD Web Applet:
+When the frontend no longer needs the applet, specify to close it, or show/hide, fullscreen display, etc.
+ID is the ID value returned in the JSON when starting the applet with Wrl_AppletStart specifying ExeWebApplet. Code represents control type mask: 1 normal close, 128 force immediate close, 2 fullscreen display, 4 auto hide, 8 restore display, 16 toggle auto adapt to webpage height and width display mode, 32 force hide. Among them, fullscreen display (2) can be canceled directly by hotkey ESC. After hiding with 4 or 32, can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll EXE Web Applet in webpage:
+When the frontend detects webpage scroll notification, this interface needs to be called to achieve scroll linkage between the applet and the webpage.
+ID is the ID value returned when starting the applet.
+Code is scroll direction: 1 horizontal, 2 vertical, 3 both.
+Left is horizontal scrollbar position, Top is vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change display position or size of EXE Web Applet in webpage:
+When the frontend webpage display area zooms, dynamically modify the applet's display position or size.
+ID is the ID value returned in the JSON when starting the applet with Wrl_AppletStart specifying ExeWebApplet. Width and Height are the new width and height respectively.
+X and Y are the new display positions. If not specified, remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or, modify the applet display start coordinates simultaneously:
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:
+When the applet display area exceeds the current webpage, the impact of scrollbars needs to be removed.
+ID is the ID value returned in the JSON when starting the applet with Wrl_AppletStart specifying ExeWebApplet. BarW is reserved right width. BarH is reserved bottom height.
+Code 1 represents horizontal scrollbar exists, 2 represents vertical scrollbar exists, 3 represents both exist.
+ScrollTop vertical scrollbar position. ScrollLeft horizontal scrollbar position.
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to apply Alpha transparency to the applet window, facilitating the frontend to temporarily display menus covering the applet window:
+ID is the ID value returned in the JSON when starting the applet with Wrl_AppletStart specifying ExeWebApplet. Alpha is transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to capture a screenshot of the applet window content:
+ID: The aid instance value returned in the JSON when starting the applet.
+File: Specifies the screenshot file save path or extension.
+Base64: Specify as 1 to return BASE64 encoded image content.
+Flag: If the embedded applet window (e.g., DirectUI or Direct3D drawn) capture is abnormal, can additionally specify 1 to see the effect. Furthermore, if multiple captures or selection captures are needed, can add 2 or 4 to start the capture tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to zoom the embedded web applet, used for browser webpage proportional zooming. Generally not needed:
+ID is the ID value returned in the JSON when starting the applet with Wrl_AppletStart specifying ExeWebApplet. If Scale is not specified, gets the current zoom percentage used by the applet, generally consistent with the system zoom ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+9) Overlay web rendering content on the specified ID window. Normally supported on Windows 8 and above operating systems. Microsoft Edge WebView2 Runtime needs to be installed locally.
+Url is the transparent webpage address. If there are special symbols, please URL encode first. Set to empty string to cancel overlay.
+Alpha Transparency (0-255), default 255 opaque. Windows 7 and below systems do not support transparency.
+Rect node sets overlay window position and size. If not set, represents the entire area. E represents margin, default 1. X/Y/W/H represent the starting point and width/height of the overlay window displayed in the split-screen window. P is display position type, greater than 0 replaces X and Y: 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right.
+{"req":"EXE_FloatWebInfo","rid":9,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"EXE_FloatWebInfo","rid":9,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":9,"data":{"Ret":0}}
+
+3. Applet Installation, Upgrade, Uninstallation
+1) Request to install EXE Web Applet
+Please enter the following request in the test webpage input box, then click Send to complete the installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"EXE Web Applet","PID":"ExeWebApplet","Date":"2025-05-30","Desc":"The cross-browser EXE embedded web applet on ApeMaster, supports embedding various desktop programs in the latest versions of Chrome, Edge, Firefox, IE, Opera, 360, QQ, and other browsers' webpages","DownAddr":"http://local.zorrosoft.com/Files/Net/ExeWebApplet.pid","MD5":"DA9FF9951D930BC737476BDA7F9E5420","Version":"2.2.17.6","Size":622592,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"AB8491F6852981EEA3E97AB11FF9284DDCF7C382282C32E6321A43DAB501DEC40C510A14E0CCBEFFF7DCEB7538BA912FF02F55C80619940933744CB3E300E044B90B174CBAFAE3672AACACC212B316A196D7959D7D5C5053691398BE1FC2CD88FB96C236D219E0FF042E9AD96BE9D156B13A9C5509D7F93FAD9E4AA4E3762022BF440E9EF73ADC6C7CD29501F0D75C6020EE712427BEC380F4892ECDF7745179C2DD2327CF0F4CCE98E68DB4AF71294A7C56A3A520941B6CB5DA35879F85641CCBE645969916D907A997CB42A26A1F9F4EE20ED0509FFE99086A7C0E626AD6657AF1DBC9ED90AC550DE7B9F6ABDEC68EB38E9EFD53B4F08C36C3730E81FEF885"}}
+
+After starting the installation, installation progress will be continuously received until installation ends.
+
+2) Request to upgrade EXE Web Applet:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"EXE Web Applet","PID":"ExeWebApplet","Date":"2025-05-30","Desc":"The cross-browser EXE embedded web applet on ApeMaster, supports embedding various desktop programs in the latest versions of Chrome, Edge, Firefox, IE, Opera, 360, QQ, and other browsers' webpages","DownAddr":"http://local.zorrosoft.com/Files/Net/ExeWebApplet_Update.pid","MD5":"2B4BA51268FFD05BE2A198D2DFDA7F9B","Version":"2.2.17.6","Size":622592,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"1ECF71AC733ED66F371544E91164B52EB290FB3B8965FF28010933D28360195691AA126E375E82BFBB8C9A70E09CCFF698AAE191218A2FEACA6D31B0922F734F3410801C97795216AA2B157D9FB509E02635FABB915CF5920887650CADD6311684DC6FB6FFDF10D8A6758539D867374C1EE8A1BB40A6858EE4E8C504063A53B2D4715458F96F76FE495C997757E5B544FB131ED8B4A000733DE96CBEE0B3AD4D8442D78B839A2AA3CEF782A446F229198EA92E7790B35926004AE4FE77EC84F95E66D7DD085871AF3BC4D7C10D975135BEF0153E14A616DD8553782DE12C780ADC88A109E78F5D72F2A6D5E972A74578B1B8FE2694AB1A3BBBF60B57D5AED88C"}}
+
+The JSON request packets for installation and upgrade above may differ due to version upgrades. If errors occur during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall EXE Web Applet:
+The official version requires adding TK verification. Specific rules please refer to the document "ApeMaster Middleware Security Solution.doc" in the SDK package. You can use the middleware maintenance in the packaging program ZbaPackage.exe in the SDK package to generate requests with TK.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"ExeWebApplet","Type":8}}
+
+4. EXE Web Applet calls the specified EXE program to open a document. First, based on the port number returned after starting with Wrl_AppletStart specifying ExeWebApplet, establish a new WebSocket connection to execute the following instructions:
+A. Common function requests:
+1) Load and open a specified file
+File Local file path or network path. Replace \ slash with forward slash /. Perform UrlEncode encoding if there are special characters or Chinese.
+Other parameters refer to the Web sub-node settings at startup.
+Request 1: {"req":"EXE_LoadFile","rid":50,"para":{"File":"d:/Zorro/test.pdf"}}
+Request 2: {"req":"EXE_LoadFile","rid":50,"para":{"File":"http://test.yuanmaster.com/Files/apemaster.pdf"}}
+Return: {"ret":0,"rid":50,"data":{"Ret":"0"}}
+ret is the request return value, 0 normal, non-zero abnormal. When abnormal, get the error description err at the same level as ret. (Same below)
+
+2) Get version information
+Request: {"req":"EXE_GetVersion","rid":51,"para":{}}
+Return: {"ret":0,"rid":51,"data":{"Ret":"0","Version":""}}
+
+3) Send simulated keystrokes to the embedded window
+VK is the virtual key, e.g., corresponding to CTRL, can be omitted.
+MENU is the menu key, e.g., corresponding to ALT, can be omitted.
+KEY is the letter ASCII code, e.g., uppercase P, can be omitted.
+At least one of the above three parameters must be passed; they can be combined.
+Example request: {"req":"EXE_SendInput","rid":52,"para":{"VK":17,"MENU":0,"KEY":80}} Simulates sending CTRL+P to print.
+Example request: {"req":"EXE_SendInput","rid":52,"para":{"VK":17,"MENU":0,"KEY":83}} Simulates sending CTRL+S to save.
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}
+
+5) Request to exit the applet
+If not connected to the applet's listening WS port, simply close the WS connection to the middleware.
+Request: {"req":"EXE_Exit","rid":80,"para":{}}
+No return
+
+5. Notifications received by EXE Web Applet:
+These notifications can only be received by establishing a WebSocket connection to the port listened to by this applet.
+1) EXE_FullScreen Whether the applet responded to the fullscreen hotkey
+{"event":"EXE_FullScreen","data":{"FullScreen":0}} FullScreen is the current fullscreen flag.
+
+2) Wrl_AppletExit Applet exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+6. Other
+For the JSON data packet of request parameters, please ensure it is UTF-8 encoding without BOM.
+For more interface request descriptions, please refer to the document TestWrl.txt in the installation directory and "ApeMaster Developer Manual.pdf" in the SDK package.

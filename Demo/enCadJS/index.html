@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/websocket.js"></script>
+    <script src="js/CADApplet.js"></script>
+</head>
+<body>
+<div class="mainContainer">
+    <div class="tool">
+        <div class="item">Width</div>
+        <div class="item">
+            <input class="input" name="width" onblur="resize(0)" value="1158">
+        </div>
+        <div class="item">Height</div>
+        <div class="item">
+            <input class="input" name="height" value="480" onblur="resize(0)">
+        </div>
+        <div class="item">left margin</div>
+        <div class="item">
+            <input class="input" name="left" value="48" onblur="resize(1)">
+        </div>
+        <div class="item">top margin</div>
+        <div class="item">
+            <input class="input" value="188" name="top" onblur="resize(1)">
+        </div>
+
+        <div class="item">
+            <button class="closeSecondApplet hidden" onclick="closeSecondAppletHandle(this)">
+                Close the Dwg viewing
+            </button>
+            <button class="openSecondApplet" onclick="openSecondAppletHandle(this)">
+                Start Dwg viewing
+            </button>
+        </div>
+        <div class="item">
+            <button onclick="startTabApplet(6)">Tag start JT2Go viewing</button>
+        </div>
+    </div>
+    <div class="tool">
+        <div class="item">
+            <button onclick="saveFile()">Save drawings</button>
+        </div>
+        <div class="item">
+            <button onclick="saveAsFile()">Save as Drawing</button>
+        </div>
+        <div class="item">
+            <button onclick="ExportFile()">Export drawings</button>
+        </div>
+        <div class="item">
+            <button onclick="printFile()">Print drawings</button>
+        </div>
+
+    <div class="item">
+            <button onclick="startTabApplet(2)">Tag Start Solidworks Editing</button>
+        </div>
+        <div class="item">
+            <button onclick="startTabApplet(3)">Tag Start CATIA Editing</button>
+        </div>
+        <div class="item">
+            <button onclick="startTabApplet(4)">Tag Start Zhongwang CAD Editing</button>
+        </div>
+       <div class="item">
+            <button onclick="startTabApplet(5)">Tag Start CreoView viewing</button>
+        </div>
+    </div>
+    <div class="urlbox">
+        <div class="item">Drawing Path</div>
+        <div class="item input">
+            <input name="myOpenDwg" value="C:/CadDoc/test.dwg" placeholder="这里演示切换图纸"></input>
+        </div>
+        <div class="item" style="margin-left: 10px;">
+            <button class="button-primary" onclick="changeOpen()" size="small">Switch Open</button>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab-item active" onclick="change(this,1)">
+            <div class="close" onclick="closeTab(this,1)">x</div>
+            AutoCAD Components
+        </div>
+        <div class="tab-item hide" onclick="change(this,2)">
+            <div class="close" onclick="closeTab(this,2)">x</div>
+            Solidworks Components
+        </div>
+        <div class="tab-item hide" onclick="change(this,3)">
+            <div class="close" onclick="closeTab(this,3)">x</div>
+            CATIA components
+        </div>
+        <div class="tab-item hide" onclick="change(this,4)">
+            <div class="close" onclick="closeTab(this,4)">x</div>
+            Zhongwang CAD Components
+        </div>
+        <div class="tab-item hide" onclick="change(this,5)">
+            <div class="close" onclick="closeTab(this,5)">x</div>
+            ProE components
+        </div>
+        <div class="tab-item hide" onclick="change(this,6)">
+            <div class="close" onclick="closeTab(this,6)">x</div>
+            JT2Go component
+        </div>
+    </div>
+    <div class="video-container">
+        Area of CAD Web Components
+    </div>
+    <div class="tool" style="justify-content: flex-start">
+        <div class="item">
+            <button onclick="appletFullEdit()" class="button-primary">Full screen editing</button>
+            <button type="primary" onclick="closeAllApplet()" class="button-primary">Close all components</button>
+        </div>
+        <div class="item">Latest version number</div>
+        <div class="item">
+            <input name="version" value="2.2.17.1" size="small"></input>
+        </div>
+        <button onclick="checkUpdate()" class="button-primary">Verify upgrade</button>
+    </div>
+    <textarea type="textarea" :rows="5" placeholder="调试日志" class="DebugLog"></textarea>
+</div>
+<div class="alert">
+    55
+</div>
+<script>
+
+    /**
+     * 规则说明 必须遵守以下规则
+     * rid 为请求的唯一标识，100以下的数字为特有map标识 其它操作不能使用
+     * *************************************************************
+     * websocket 2个为一组  一个连接到中间件服务端口负责启动并控制网页组件  另外一个为请求网页组件里实现的独有功能  按数字依此类推
+     * *************************************************************
+     * rid = 1 代表初始化 发送Wrl_CadInfo信息初始化
+     * *************************************************************
+     * 1-1代表第一个Applet 启动第一个websocket  同时启动第一个Applet rid = 2
+     * 1-2代表第一个Applet控制websocket  启动第二个websocket
+     **************************************************************
+     * 2-1代表启动第二个Applet启动  启动第三个websocket rid = 3myOpenDwg
+     * 2-2代表启动第二个Applet控制websocket  启动第四个websocket
+     *
+     */
+
+    let currentIndex = 0
+    let edit = 0
+    let selectDlgType = 0  // 选择对话框类型 0另存 1导出
+    let resultLog = [] //保存结果数组
+    let position = {} //保存初始化applet位置的信息
+    let aid = 0 //当前操作的applet ID
+    let applet = null
+    let myFirstDwg = 'http://local.zorrosoft.com/Files/Test.dwg'
+    let openType = 0 // 加载类型 可通过请求Wrl_CadInfo获得当前电脑安装的CAD软件及OCX控件信息
+    let myOpenDwg = 'C:/CadDoc/test.dwg'
+    let myOpenSld = 'http://test.yuanmaster.com/Files/Test.sldprt'
+    let myOpenCatia = 'http://test.yuanmaster.com/Files/Test.CATPart'
+    let myOpenProE = 'http://test.yuanmaster.com/Files/Test.frm'
+    let myOpenJT = 'http://test.yuanmaster.com/Files/Test.jt'
+    let saveAsDoc = 'C:/CadDoc/SaveAs.dwg'
+    let exportDoc = 'C:/CadDoc/test.pdf'
+    let printPathFile = 'C:/CadDoc/dwgprint.pdf'
+
+
+    //初始化用到的浏览器事件 例如切换标签、侦听滚动条等
+    initEvent()
+    //初始化程序运行 启动websocket等
+    initConfig()
+
+    async function initConfig() {
+
+        // 获取需要加载小程序的位置 然后设置位置
+        let res = await getAppletPosition()
+
+        position = res
+        //设置文本框数值为初始化位置
+        document.querySelector("input[name=left]").value = position.left
+        document.querySelector("input[name=top]").value = position.top
+        document.querySelector("input[name=width]").value = position.width
+        document.querySelector("input[name=height]").value = position.height
+        //创建一个CADApplet示例
+        applet = new CADApplet()
+        //启动websocket
+        let result = await startWebsocket()
+        applet.ws = result.ws
+        //映射ws
+        CADApplet.setAidArr(2,0,1,result.ws)
+        //启动第一个CAD网页组件，加延迟等待Wrl_CADInfo的请求返回
+        setTimeout(()=>{startACADApplet(2, openType,myFirstDwg)},500)
+    }
+
+    function startACADApplet(rid, openType, OpenDwg) {
+        applet.openType = openType
+        applet.startACAD(rid, position.left, position.top, position.width, position.height, OpenDwg, edit)
+    }
+
+    function StartDwgViewApplet(rid, openType, OpenDwg) {
+
+        applet.openType = openType
+        applet.StartDwgView(rid, position.left + position.width / 2, position.top, position.width / 2, position.height, OpenDwg)
+    }
+
+    async function startTabApplet(index){
+        //这里启动的rid是固定的，因为上面演示的嵌入打开已经占用了3以及以下的数字，所以标签页面打开rid从4开始
+        currentIndex = index
+        let rid = index + 2
+
+        //切换标签
+        document.querySelectorAll('.tab-item').forEach((item,index)=>{
+            item.classList.remove("active")
+            if((index+1)==currentIndex){
+                item.classList.add("active")
+                item.classList.remove("hide")
+            }
+        })
+        //隐藏其它applet
+        hideAllApp(rid)
+        //启动websocket
+        let result = await startWebsocket()
+        //映射ws
+        applet.ws = result.ws
+        CADApplet.setAidArr(rid,0,1,result.ws)
+
+        if(index==2)
+        {
+            //默认支持启动Soklidworks在线编辑图纸 也可设置1调用eDrawings看图
+            applet.openType = 0
+            applet.StartSolidworksApplet(rid, position.left, position.top, position.width, position.height, myOpenSld, edit)
+        }
+        else if(index==3)
+        {
+            //支持启动CatiaCAD在线编辑图纸
+            applet.openType = 0
+            applet.StartCatiaApplet(rid, position.left, position.top, position.width, position.height, myOpenCatia, edit)
+        }
+        else if(index==4)
+        {
+            //支持启动中望CAD在线编辑图纸
+            applet.openType = 0
+            applet.StartZWCadApplet(rid, position.left, position.top, position.width, position.height, myOpenDwg, edit)
+        }
+        else if(index==6)
+        {
+            //支持启动JT2Go在线查看图纸
+            applet.openType = 1
+            applet.StartUGApplet(rid, position.left, position.top, position.width, position.height, myOpenJT, edit)
+        }
+        else
+        {
+            //暂时不支持启动在线编辑图纸，只支持调用Creo View看图
+            applet.openType = 1
+            applet.StartProEApplet(rid, position.left, position.top, position.width, position.height, myOpenProE, edit)
+        }
+
+    }
+
+    function startWebsocket(port = '') {
+        return new Promise((resolve, reject) => {
+            //启动websocket
+            const ws = new websocket(port)
+            console.log(ws.getInstance())
+            ws.success = () => {
+                resolve({
+                    ws: ws
+                })
+            }
+            ws.getInstance().onmessage = (e) => {
+                const res = JSON.parse(e.data)
+                console.log(res)
+                switch (res.req) {
+                    case 'Wrl_CADInfo':
+                        // 这里可以检测当前电脑是否已经安装相关软件，没有的话提示下载安装
+                        resultLog.push("CAD安装信息:" + res.data.Info)
+                        break;
+                    case 'Wrl_Version':
+                        if (res.data.Update == 1) {
+                            /// 先强制隐藏CAD网页组件，避免弹框显示不出来
+                            hideApp(32);
+                            let isBool = confirm('提示：有新版本发布, 是否马上升级?')
+                            if (isBool) {
+                                closeAllApplet()
+                                applet.ws = websocket.wsArr[0]
+                                applet.sendUpdateJson()
+                            } else {
+                                showApp()
+                            }
+                        } else {
+                            alert('已经是最新版本！')
+                            /// 说明：即使版本号是最新的，也是可以发起升级请求SendUpdateJson()的，相当于覆盖安装，用于更新比如中间件或网页组件的配置文件等
+                        }
+                        break;
+                    case 'Wrl_AppletSnap':
+                        alertHandle('截图成功，路径：'+res.data.File)
+                        break;
+                }
+                switch (res.event) {
+                    case 'Wrl_AppletOK':
+
+                        break
+                    case 'Wrl_Listen':
+                        //网页组件建立侦听成功 这里得到当前网页组件返回的端口
+                        //这里创建另外一个websocket到CAD网页组件端口 来实现重新打开图纸、保存及打印等操作
+                        aid = res.aid
+                        startWebsocket(res.data.port).then((result)=>{
+                            CADApplet.setAidArr(res.rid,res.aid,2,result.ws)
+                        })
+                        break
+                    case 'Wrl_SelectFile':
+                        handelSelectFile(res)
+                        break
+                    case 'CAD_Save':
+                        alertHandle('保存成功，路径：'+res.data.File)
+                        break
+                }
+                if (res.err) {
+                    // 请求返回错误
+                    console.log(res.err)
+                }
+                //记录日志
+                if (resultLog.length > 100) {
+                    resultLog = []
+                }
+                resultLog.push(e.data)
+                document.querySelector(".DebugLog").value = resultLog.join("\n")
+            }
+
+            ws.getInstance().onError = (e) => {
+                let isBool = confirm('提示：猿大师CAD助手-图纸在线编辑组件 服务端口连接失败，可能是尚未安装，是否马上下载安装？')
+						if (isBool) {
+							window.open('http://www.yuanmaster.com/Yuandashi.exe') // 建议打包为zip等格式下载，解压后安装，EXE文件下载浏览器会提示是否保留
+						}
+            }
+        })
+    }
+
+    function initEvent() {
+        //浏览器尺寸发生变化
+        window.onresize = () => {
+            pageResize()
+        }
+        //监听浏览器切换标签页面
+        if (document.addEventListener)
+            document.addEventListener('visibilitychange', handleVisiable, false)
+        else
+            document.attachEvent('visibilitychange', handleVisiable, false)	/// 老版本浏览器
+        //侦听滚动条
+        window.addEventListener('scroll', windowScroll, true)
+        //监听当页面离开时候
+        window.addEventListener('unload', unloadHandler, false)
+    }
+
+    async function pageResize() {
+        // 获取需要加载小程序的位置 然后设置位置
+        let res = await getAppletPosition()
+        applet.setWebsocket(aid)
+        applet.sendScrollInfo(res.BarCode, res.s_left, res.s_top)
+    }
+
+    function handleVisiable(e) {
+        //浏览器页面切换侦听回调函数
+        if (e.target.visibilityState == 'hidden') {
+            //切离该页面时执行 当前页自己实现标签切换或需要在CAD程序窗口区域临时显示内容时，设置32强制隐藏
+            hideApp(4)
+        } else if (e.target.visibilityState == 'visible') {
+            //切换到该页面时执行
+            showApp(0)
+        }
+    }
+
+    function showApp(rid=0) {
+        //如果rid=0 显示所有app
+        //如果rid>0 显示rid所属的applet
+        CADApplet.aidArr.forEach((item, index) => {
+            if(rid==0 && item.aid>0){
+                applet.setWebsocket(item.aid, 1)
+                applet.showApp()
+            }
+            if(rid > 0 && item.aid>0 && item.rid == rid) {
+                applet.setWebsocket(item.aid, 1)
+                applet.showApp()
+            }
+        })
+    }
+
+    function hideApp(code) {
+        console.log(CADApplet.aidArr,websocket.wsArr)
+        hideAllApp(0,code)
+    }
+    function hideAllApp(rid=0,code=32){
+        //如果rid=0 隐藏所有app
+        //如果rid>0 隐藏除rid以外的所有app
+        CADApplet.aidArr.forEach((item, index) => {
+            if(rid==0 && item.aid>0){
+                applet.setWebsocket(item.aid, 1)
+                applet.hideApp(code)
+            }
+            if(rid > 0 && item.aid>0 && item.rid != rid) {
+                applet.setWebsocket(item.aid, 1)
+                applet.hideApp(code)
+            }
+        })
+    }
+    function windowScroll(e) {
+        // 滚动条距离页面顶部的距离
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+
+        CADApplet.aidArr.forEach((item, index) => {
+            if(item.aid>0){
+                applet.aid = item.aid
+                applet.ws = item.ws1
+                applet.appScroll(0,scrollTop)
+            }
+        })
+
+    }
+
+    function unloadHandler() {
+        //关闭所有websoket链接
+        closeAllApplet()
+        //关闭侦听浏览器页面切换
+        if (document.addEventListener)
+            document.removeEventListener('visibilitychange', handleVisiable, false)
+        else
+            document.detachEvent('visibilitychange', handleVisiable, false)	/// 老版本浏览器
+        //关闭侦听滚动条
+        document.body.removeEventListener('scroll', windowScroll, false)
+        //关闭侦听滚动条
+        window.removeEventListener('unload', unloadHandler, false)
+    }
+
+    function saveFile() {
+        applet.setWebsocket(aid, 2)
+        applet.saveFile()
+    }
+
+    function saveAsFile() {
+        selectDlgType = 0
+        applet.setWebsocket(aid, 1)
+        applet.saveAsFile()
+    }
+
+    function ExportFile() {
+        selectDlgType = 1
+        applet.setWebsocket(aid, 1)
+        applet.ExportFile()
+    }
+
+    function printFile() {
+        applet.setWebsocket(aid, 2)
+        applet.printFile(printPathFile)
+    }
+
+    function appletFullEdit() {
+        applet.setWebsocket(aid, 2)
+        applet.appletFullEdit()
+    }
+
+    function closeAllApplet(rid=0) {
+        CADApplet.aidArr.forEach((item, index) => {
+            if(rid==0 && item.aid>0 && item.rid>2){
+                CADApplet.aidArr[index].aid = 0
+                CADApplet.aidArr[index].ws1 = null
+                CADApplet.aidArr[index].ws2 = null
+            }
+        })
+        websocket.wsArr.forEach((item, index) => {
+            if(index>1){
+                websocket.wsArr[index].getInstance().close()
+            }
+        })
+
+        document.querySelectorAll('.tab-item').forEach((item,index)=>{
+            item.classList.remove("active")
+            if(index==0){
+                item.classList.add("active")
+            }
+            if(index>0){
+                item.classList.add("hide")
+            }
+        })
+
+        currentIndex = 1
+        showApp(2)
+        websocket.wsArr.splice(2,websocket.wsArr.length)
+        aid = CADApplet.getAidArr(2)
+    }
+
+    function checkUpdate() {
+        let version = document.querySelector("input[name=version]").value
+        applet.aid = CADApplet.getAidArr(2)
+        applet.ws = websocket.wsArr[0]
+        applet.checkUpdate(version)
+    }
+
+    function changeOpen() {
+
+        applet.setWebsocket(CADApplet.getAidArr(2),2)
+        let myOpenDwg = document.querySelector("input[name=myOpenDwg]").value
+        applet.changeOpen(myOpenDwg)
+    }
+
+    function appletSnap() {
+        applet.setWebsocket(aid, 1)
+        applet.snapDoc()
+    }
+
+    function closeFirstApplet() {
+        if (websocket.wsArr.length == 2) {
+            applet.setWebsocket(aid,1)
+            applet.closeApplet()
+            //关闭websocket
+            websocket.wsArr[1].getInstance().close()
+            websocket.wsArr.splice(1, 1)
+            //复位aid
+            CADApplet.setAidArr(2,0,2,null)
+            aid = 0
+        }
+    }
+
+    function closeSecondApplet() {
+        //是不是启动了第二个网页组件
+        if (websocket.wsArr.length > 2) {
+            websocket.wsArr[3].getInstance().close()
+            websocket.wsArr[2].getInstance().close()
+            websocket.wsArr.splice(2, 2)
+        }
+        //复位aid
+        CADApplet.setAidArr(3,0,0,null)
+        aid = CADApplet.getAidArr(2)
+    }
+
+    function reLoadFirst(version) {
+
+        //设置文本框数值为初始化位置
+
+        document.querySelector("input[name=left]").value = position.left
+        document.querySelector("input[name=top]").value = position.top
+        document.querySelector("input[name=width]").value = position.width
+        document.querySelector("input[name=height]").value = position.height
+
+        closeFirstApplet()
+
+        applet.ws = websocket.wsArr[0]
+
+        startACADApplet(2, openType, myOpenDwg)
+
+    }
+
+    function resize(index) {
+        let left = document.querySelector("input[name=left]").value
+        let top = document.querySelector("input[name=top]").value
+        let width = document.querySelector("input[name=width]").value
+        let height = document.querySelector("input[name=height]").value
+
+        applet.setWebsocket(aid,1)
+        if (index == 1) {
+            applet.resizeMargin(left, top, width, height)
+        }
+        if (index == 0) {
+            applet.resize(width, height)
+        }
+
+    }
+
+    function handelSelectFile(res) {
+        if (!res.data) {
+            return
+        }
+        if (0 == selectDlgType) {
+            if (res.data.length) {
+                applet.setWebsocket(aid, 2)
+                applet.beginSaveAsFile(res.data[0].File) /// 使用返回的文件位置
+            } else {
+                applet.beginSaveAsFile(saveAsDoc) // 取消指定，使用默认位置文件
+            }
+        } else if (1 == selectDlgType) {
+            if (res.data.length) {
+                applet.setWebsocket(aid, 2)
+                applet.beginExpportFile(res.data[0].File) /// 使用返回的文件位置
+            } else {
+                applet.beginExpportFile(exportDoc) // 取消指定，使用默认位置文件
+            }
+        }
+    }
+
+    async function openSecondAppletHandle(obj) {
+        obj.classList.add("hidden")
+        document.querySelector(".closeSecondApplet").classList.remove("hidden")
+
+        //先修改第一个applet的位置
+        document.querySelector("input[name=width]").value = position.width / 2 - 20
+        resize(0)
+        //启动websocket
+        let result = await startWebsocket()
+        applet.ws = result.ws
+        //映射ws
+        CADApplet.setAidArr(3,0,1,result.ws)
+        //设置1调用DWG TrueView看图 设置2调用Design Review审图
+        if(0 == openType)
+            StartDwgViewApplet(3, openType + 1, myOpenDwg)
+        else
+            StartDwgViewApplet(3, openType, myOpenDwg)
+    }
+
+    function closeSecondAppletHandle(obj) {
+        obj.classList.add("hidden")
+        document.querySelector(".openSecondApplet").classList.remove("hidden")
+        //先修改第一个applet的位置
+        closeSecondApplet()
+        document.querySelector("input[name=width]").value = position.width
+        resize(0)
+    }
+
+    function hasVerticalScrollbar() {
+        if (document.documentElement.clientHeight)
+            return document.body.scrollHeight > document.documentElement.clientHeight
+        return document.body.scrollHeight > window.innerHeight
+    }
+
+    function hasHorizontalScrollbar() {
+        if (document.documentElement.clientWidth)
+            return document.body.scrollWidth > document.documentElement.clientWidth
+        return document.body.scrollWidth > window.innerWidth
+    }
+
+    /**
+     * 获取Applet启动时候相关位置信息
+     * return {left,top,width,height}
+     */
+    function getAppletPosition() {
+        //获取网页组件位置节点信息
+        return new Promise((resolve, reject) => {
+            let BarCode = 0
+            let nScrollTop = 0
+            let nScrollLeft = 0
+            let bHorizontalBar = hasHorizontalScrollbar()
+            let bVerticalBar = hasVerticalScrollbar()
+            if (bHorizontalBar) {
+                if (window.pageXOffset != undefined)
+                    nScrollLeft = Math.round(window.pageXOffset)
+                else {                //获取页面的scrollLeft(兼容写法)
+                    nScrollLeft = Math.round(document.documentElement.scrollLeft || document.body.scrollLeft)
+                }
+            }
+            if (bVerticalBar) {
+                if (window.pageYOffset != undefined)
+                    nScrollTop = Math.round(window.pageYOffset)
+                else {
+                    //获取页面的scrollTop(兼容写法)
+                    nScrollTop = Math.round(document.documentElement.scrollTop || document.body.scrollTop)
+                }
+            }
+            if (bHorizontalBar)
+                BarCode = 1
+            if (bVerticalBar)
+                BarCode += 2
+            let react = document.querySelector(".video-container").getBoundingClientRect()
+            let left = Math.round(react.left) + nScrollLeft
+            let top = Math.round(react.top) + nScrollTop
+            let s_left = nScrollLeft
+            let s_top = nScrollTop
+            resolve({
+                'left': left,
+                'top': top,
+                's_left': s_left,
+                's_top': s_top,
+                'width': react.width,
+                'height': react.height,
+                'BarCode': BarCode
+            })
+        })
+    }
+
+    //tab切换
+    function change(obj,index){
+
+        document.querySelectorAll('.tab-item').forEach(item=>{
+            item.classList.remove("active")
+            if(item==obj){
+                obj.classList.add("active")
+            }
+        })
+
+        currentIndex = index
+
+        if(index==1){
+            showApp(index+1)
+            hideAllApp(index+1)
+            aid = CADApplet.getAidArr(index+1)
+        }else{
+            hideAllApp(index+2)
+            showApp(index+2)
+            aid = CADApplet.getAidArr(index+2)
+        }
+    }
+    function alertHandle(msg){
+        document.querySelector('.alert').classList.add('show')
+        document.querySelector('.alert').innerHTML=msg
+        setTimeout(()=>{
+            document.querySelector('.alert').classList.add('hide')
+            document.querySelector('.alert').classList.remove('show')
+        },3000)
+    }
+    function closeTab(obj,current){
+        let rid = 0
+        if(current==1){
+            rid = 2
+        }else{
+            rid = current+2
+        }
+
+        obj.parentNode.classList.remove("active")
+        obj.parentNode.classList.add("hide")
+
+
+        CADApplet.aidArr.forEach((item, index) => {
+            if(rid==item.rid && item.aid>0){
+                CADApplet.aidArr[index].aid = 0
+                CADApplet.aidArr[index].ws1.getInstance().close()
+                CADApplet.aidArr[index].ws1 = null
+                CADApplet.aidArr[index].ws2.getInstance().close()
+                CADApplet.aidArr[index].ws2 = null
+            }
+        })
+        setTimeout(()=>{
+            document.querySelectorAll('.tab-item').forEach((item,index)=>{
+                if(index==0){
+                    change(item,1)
+                }
+            })
+        },500)
+
+    }
+
+</script>
+</body>
+</html>

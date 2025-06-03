@@ -1,0 +1,153 @@
+File Operation Browser Applet, based on the cross-browser native applet system - ApeMaster Middleware Network Standard Edition development, provides local file HTTP protocol upload and download, local image file rotation and scaling, local file access, local program running and other services. Usable in all browsers supporting WebSocket connection, including IE8 and above.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a green version program package, please extract it to a disk directory, then double-click "InstallWrl.bat" to install;
+3) Upon completion of installation, the ApeMaster middleware service will start. The log file ZbaService.txt in the Data subdirectory under the installation directory outputs the running status.
+
+2. Request to install the file operation applet. On the test webpage, enter ws://localhost:83?sid=123&flag=1 to first connect to the middleware service, then enter the following content and click Send:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"File Operation Applet","PID":"199BB8A7-9DD5-41F5-AE9D-2AA94300B0B3","Date":"2025-05-30","Desc":"ApeMaster Middleware-based cross-browser file operation applet, provides file HTTP protocol upload and download, local image file scaling and rotation, local file access, local program running and other services, can be called in Chrome, Edge, Firefox, IE, Opera, 360, QQ, etc. browser latest versions","DownAddr":"http://local.zorrosoft.com/Files/Net/WrlFileApplet.pid","MD5":"E1DFD1DA28559C41150E2E0B80D6D75E","Version":"2.2.17.6","Size":524288,"HideIns":0,"Type":1,"Cookie":"","Auth":"","TK":"6B18B6F02EB7EB8033B2566D4FBBAF7A294E270F41D2A6A18FE17ED89545749115E1A9AA1E174698C34521D09FE9578DC134315F8C2C04F4AAADFEAF1DC9DE29D4B2D99D62D302868D863CB96B3977415C715B5557E6D16592B8024488C9BF5E8ED42F096224C31E325FD3D90AADEDC2D4F976EA68D3842724D0D25D131C9F725602E136F8828D36385F1BAC85365BAD6473F22089283E9690E764278849F6372A0DBD361CC255ECD9A1419E13D8624045E6CBC0158DC8779B8B8EC81012B63993F8F745A2CB88F9A587CB0795B5B14CB5B9E93469439BAD746D674CB76A2EA19EFAF9E2CA3F90646924486CDBB64663B2F7D9540A902378E88DE76624AAC36D"}}
+
+3. Request to update the file operation applet:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"File Operation Applet","PID":"199BB8A7-9DD5-41F5-AE9D-2AA94300B0B3","Date":"2025-05-30","Desc":"ApeMaster Middleware-based cross-browser file operation applet, provides file HTTP protocol upload and download, local image file scaling and rotation, local file access, local program running and other services, can be called in Chrome, Edge, Firefox, IE, Opera, 360, QQ, etc. browser latest versions","DownAddr":"http://local.zorrosoft.com/Files/Net/WrlFileApplet_Update.pid","MD5":"43CEB9EB45AEA78EDD080EEDEEC35461","Version":"2.2.17.6","Size":524288,"HideIns":0,"Type":1,"Cookie":"","Auth":"","TK":"AA48993FEFD34A425316CE87ECC3BD44FAF4CB88D952C731E2CB633126D3C42B0D3FF4A314C1E90E6943B8630B3EB7B7EC3254C7395AB8D393C3D035D33951A8C281AEFBF26C47F4F132D029FEC50899EB07AA9EF9D1DD634501E4D949F9243E0142311C22B16F77A69E9250F8CDBEBFC90BE81BFC0E0A7D73B77507F7AFF9D5DCC6DD2ECBE1EC06F53F1CB82973DC113ED94E6954ECADF836FC89C6D1D6A893C214F6DFC6DDC00D803FCED8ADE60A872649BCD10F2F59EDD61BF830496883E22379D305C759E849D0C239840D6FE3C22430C9C9B617CEB64E0CC7842246E7A2AFD280195E26C7EFEF6B3BFB04686DC0F59449745713D708B3C9123D5AA5B54D"}}
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If encountering errors during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+4. Connecting to request the file operation applet service:
+1) Image file processing and local file operation service
+Note: The following functions can be executed after connecting via Web Socket. If the default listening port is not 80 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), specify the port number in the connection address.
+Open the test webpage, enter the address: ws://localhost:83?sid=667&pid=D325C871-AB46-479B-B20E-1D861D26CA89&flag=1 click Connect;
+
+Supported protocol functions are as follows:
+A. Batch rotate image files
+SrcFile, DestFile need UrlEncode encoding before passing. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_RotateImg","rid":1,"para":{"Angle":90,"Items":[{"ID":"11","SrcFile":"C:/Users/trade/Pictures/test/test.png","DestFile":"C:/Users/trade/Pictures/test/testnew.png"}]}}
+Rotate the specified file SrcFile by the specified angle Angle. DestFile, if specified, represents generating a new image file. If not specified, directly overwrites the original image.
+Return content {"ret":0,"rid":1,"data":{"Ret":[{"ID":"","Ret":1},{"ID":"","Ret":1}]}} Ret represents success.
+
+B. Request BASE64 encoded data of the specified image file.
+File needs UrlEncode encoding before passing. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_GetImg","rid":2,"para":{"File":"C:/test.jpg","Original":1,"Thumb":{"Width":200,"Height":300,"File":"C:/Newtest.jpg"}}}
+Specify Original as 1 to get the original image simultaneously. When there is a Thumb node, get a thumbnail of the specified size. Specifying File filename in the Thumb node means save to local. If not specified, get the original image data. {"ret":0,"rid":2,"data":{"Thumb":"","Original":"","ThumbFile":"","Ret":1}}
+
+C. Associate and open the specified file or open with specified executable program.
+File needs UrlEncode encoding before passing. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_Open","rid":3,"para":{"File":"D:/Zorro/WRL/Data/WrlService.txt"}} File is a local path.
+Specify executable program to open specified file.
+{"req":"File_Open","rid":4,"para":{"File":"C:/Windows/System32/notepad.exe D:/Zorro/WRL/Data/WrlService.txt"}}
+
+D. Delete local files.
+Items sub-items need UrlEncode encoding before passing. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_Delete","rid":5,"para":{"Day":7,"Items":["c:/Newtest.jpg","c:/test.jpg"]}} Delete local files specified by Items, supports multiple.
+
+E. Create specified directory.
+Dir needs UrlEncode encoding before passing. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_CreateDir","rid":6,"para":{"Dir":"D:/Zorro/WRL/Data/Temp"}} Dir is a local path.
+Return information like:
+{"ret":0,"rid":6,"data":{"Ret":"1","ErrCode":0}}
+
+F. Delete specified directory and all files in subdirectories.
+Dir needs UrlEncode encoding. Cannot delete disk root directories, system, or program directories, etc. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_DelDir","rid":7,"para":{"Dir":"D:/Zorro/WRL/Data/Temp"}} Dir is a local path.
+Return information like:
+{"ret":0,"rid":7,"data":{"Ret":"1"}}
+
+G. Get specified file attributes.
+Dir needs UrlEncode encoding. Cannot delete disk root directories, system, or program directories, etc. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_Info","rid":8,"para":{"File":"C:/Users/trade/Pictures/test/test.png"}} File is a local path.
+Return similar information:
+{"ret":0,"rid":8,"data":{"Ret":"1","Size":92095,"MD5":"B28B987EC70E1E7853F89A52CEDE68F0","Attribute":32,"CreateTime":"2020-10-07 13:07:20","LastWriteTime":"2020-07-14 10:09:43","Ver":"","CorpName":"","Desc":"","Width":1280,"Height":720}}
+
+H. Get file and directory list under specified directory.
+Dir needs UrlEncode encoding. Cannot delete disk root directories, system, or program directories, etc. Supports relative paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"File_List","rid":8,"para":{"Dir":"D:/Zorro/WRL","Find":"*.*"}} Dir is a local path.
+Return similar information:
+{"ret":0,"rid":8,"data":[{"Name":"WrlSetup.exe","Size":157184,"Attr":2080,"Write":"2020-10-07 15:00:15"},{"Name":"X64"}]}
+Items without Attr, Size, and Write are directories, otherwise they are files.
+
+I. Copy file.
+Src Source file or directory to copy. Dest Destination file path or directory. Type File type for directory copy, e.g., *.doc.
+For file copy, Src and Dest support relative paths. If not full paths, the middleware program's Data subdirectory is used as the root directory by default.
+Src and Dest need UrlEncode encoding if containing Chinese or special characters.
+File copy:
+{"req":"File_Copy","rid":9,"para":{"Src":"D:/Zorro/test.doc","Dest":"E:/Zorro/test.doc"}}
+Return similar information:
+{"ret":0,"rid":9,"data":{"Ret":1}}
+Directory copy:
+{"req":"File_Copy","rid":9,"para":{"Src":"D:/Zorro/Wrl/","Dest":"E:/Zorro/Wrl/","Type":"*.doc"}}
+
+J. Execute CMD command.
+Flag Request mark mask. 1 requires running without administrator privileges. 2 requires returning result.
+Wait When Flag requires returning result, wait time in milliseconds.
+Para CMD command parameters, need UrlEncode encoding first.
+{"req":"File_Cmd","rid":10,"para":{"Flag":0,"Wait":0,"Para":"net share D=D:%5C /grant:everyone,FULL"}}
+Return similar information:
+{"ret":0,"rid":10,"data":{"Ret":1}}
+
+K. Read file and return binary data stream.
+File The file name to read, can be full path or relative path file name. Need UrlEncode encoding first.
+Begin Read start position (in bytes), default 0 reads from start. Needs self-calculation for batch reading.
+Size Size to read each time, in MB. If the file is too large, it needs to be read in batches. This also sets the maximum data length obtained per time.
+{"req":"File_GetData","rid":11,"para":{"File":"C:/Users/trade/Pictures/test/test.png","Begin":0,"Size":8}}
+The caller first receives similar information:
+{"ret":0,"rid":11,"data":{"Ret":1,"Begin":0,"Size":8}} Where Ret is the returned file length, Begin is the passed start position (bytes), Size is the size read this time (bytes).
+Then receives the actual sent binary data stream.
+
+2) File HTTP Upload and Download Service
+Open the test webpage, enter the address: ws://localhost:83?sid=678&pid=762C3400-B3E5-4F00-8AA7-18E00F13E414&flag=1 click Connect;
+Supported protocol functions are as follows:
+
+A. Download files, supports batch operations.
+Url, File need UrlEncode encoding before passing. Supports full paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default.
+Cookie or Auth sets download permission parameters, need Base64 encoding before passing. Also need to specify download URL, local save path, File parameter, etc. PID is the applet unique ID, can be empty.
+ID is the unique task ID specified by the requester. MD5 is used to verify file download integrity. Size is used to determine if the file download is complete and notify progress.
+{"req":"File_Download","rid":1,"para":{"Cookie":"","Auth":"","PID":"","Items":[{"ID":"123","Url":"http://www.yuanmaster.com/Files/template.doc","File":"","MD5":""}]}}
+Return the number successfully added, duplicates not counted.
+
+B. Upload local files to the specified URL, supports batch.
+Url, Items sub-items need UrlEncode encoding before passing. Url is the upload receiving file URL address. ID is the unique upload number assigned by the requester.
+Para The param parameter that needs to be passed in the POST data packet. Default upload node name is upfile, otherwise set your own file parameter name via NodeName.
+Items Files to upload support full paths. If not a full path, the middleware program's Data subdirectory is used as the root directory by default. PID is the applet unique ID, can be empty.
+DelSrc Whether to delete the source file after successful upload, default 0 not delete.
+{"req":"File_Upload","rid":2,"para":{"ID":"","Url":"","Cookie":"","Auth":"","PID":"","DelSrc":0,"Para":"","Items":["c:/Newtest.jpg","c:/test.jpg"]}}
+Return the number successfully added, duplicates not counted.
+
+C. Stop Upload/Download Generally used when the page exits.
+If not specified, stop all. When Type is specified: 1 represents download, 2 represents upload.
+{"req":"File_Stop","rid":3,"para":{"Type":1}}
+
+D. Delete data records.
+Delete upload or download task records in the database before the specified Day.
+PID is the applet PID, can be unspecified.
+{"req":"File_Delete","rid":4,"para":{"Day":7,"PID":""}}
+
+E. Query upload or download record list.
+Type 1 represents download, 2 represents upload. Default 1.
+Status Record status. Default 0 all.
+Day Specifies records in the database within the specified number of days.
+PID is the applet PID, can be unspecified.
+{"req":"File_GetList","rid":5,"para":{"Type":1,"Day":7,"PID":""}}
+
+F. Start upload or download.
+Type 1 represents download, 2 represents upload. Default 1.
+PID is the applet PID, can be unspecified.
+{"req":"File_Start","rid":6"para":{"Type":1,"PID":""}}
+
+Upload and Download Progress and Status Event Notifications:
+
+/// Single download task notification.
+ ID is the unique download ID specified by the requester. Status is the status code (1 Waiting, 2 In Progress, 4 Success, 8 Canceled, 16 Error). Percent is the percentage. Error error description.
+{"event":"File_Status","data":{"ID":"","Url":"","File":"","Type":1,"Status":0,"Percent":0,"Error":""}}
+
+/// Single upload task notification.
+ ID is the unique upload ID specified by the requester. Status is the status code (1 Waiting, 2 In Progress, 4 Success, 8 Canceled, 16 Error). Percent is the percentage. Error error description. Ret is the BASE64 encoded data packet returned by the server upon successful upload.
+{"event":"File_Status","data":{"ID":"","Ret":"","Type":2,"Status":0,"Percent":0,"Error":""}}
+
+/// Upload or download all completed notification.
+{"event":"File_OK","data":{"Type":1"}} Notifies upload or download completion. Type 1 represents all downloads completed. 2 represents all uploads completed.
+
+5. Others
+The JSON data packets for request parameters must be UTF-8 encoding without BOM.
+For more interface request descriptions, please refer to the document TestWrl.txt in the installation directory, "ApeMaster Developer Manual.pdf" and "ApeMaster Middleware Security Solution.pdf" in the SDK package.

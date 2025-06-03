@@ -1,0 +1,995 @@
+﻿Microsoft Office Web Components: A native mini-program system based on cross-browser - ApeMaster Middleware Network Advanced Edition development, underlying calls to Microsoft Office's VBA interfaces to achieve programmatically driven web online editing office controls. Can embed and control Word, Excel, PowerPoint software windows within specified areas of a webpage.
+Compatible with Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Speed/Secure, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, Qizhi Anxin, RedLotus, Dual-core browsers and other low versions, also compatible with the latest versions of these browsers.
+Supports Microsoft Office 2007 and above desktop installed versions. It is recommended to use the officially released Office 2013 and above Professional or Professional Plus editions. If using Home, Personal, or Education editions, VBA support may need to be installed manually.
+
+1. Installation of ApeMaster Middleware:
+1) If it is an exe installation program, please run it directly for installation;
+2) If it is a green version program package, please unzip it to a disk directory, then double-click "InstallWrl.bat" to install;
+3) Upon completion of installation, the ApeMaster middleware service will start. The log file ZbaService.txt in the Data subdirectory of the installation directory outputs the running status.
+
+2. Control interfaces related to Microsoft Office Web Components:
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), please specify the port number in the connection address.
+For front-end integration using ordinary JS scripts, please refer mainly to: http://test.yuanmaster.com/OfficeJS. The JS script programs needed for embedding are completely open source. For the VUE framework, please refer to http://test.yuanmaster.com/Office/. For simple testing startup, you can refer to the following webpages:
+HTTP webpage online test: http://test.yuanmaster.com/wordfull.html HTTPS webpage online test: https://test.yuanmaster.com/officeframe.html
+If compatibility with IE browser is still needed, in the network version test webpage, the CLSID in <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Front-end integration can refer to the above test webpages. The JS scripts needed for embedding are completely open source.
+
+1) Request to start Microsoft Office Web Components to load and display doc/xls/ppt documents locally within a webpage:
+Type is the browser type. Pass 0 for automatic judgment (premise is that the current browser is already started and displayed in the foreground, Flag must be 0 when the current page loads). Can forcibly specify browser type Type (1 represents IE, 2 represents Chrome, 4 represents Firefox, 5 represents Brave (English version), 8 represents Opera, 9 represents Vivaldi (English version), 10 represents Yandex, 16 represents Edge (Chromium kernel), 20 represents Electron, 32 represents 360 Speed Browser, 33 represents 360 Security Browser, 34 represents 360 Speed Browser, 35 represents 360 Enterprise Security Browser, 36 represents 360 Game Browser, 37 represents 360 AI Browser, 40 represents Lenovo Browser, 45 represents Dual-core Browser, 50 represents QQ Browser, 51 represents WeChat Webpage, 55 represents Qizhi Anxin Browser, 57 represents RedLotus Browser, 60 represents Sogou Browser, 61 represents Quark, 62 represents Maxthon Browser, 63 represents Liebao Browser, 66 represents Doubao, 70 represents Huawei Browser)
+When Type needs to specify the browser type, you can first obtain the current browser's type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title through the interface Wrl_BrowserInfo in the TestWrl.txt document. Decide whether to continue starting by judging if the Title matches the webpage that needs embedding. If continuing, setting the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters can speed up the startup.
+Title: Keywords in the webpage title
+Url: The actual address of the webpage where the mini-program is loaded, specifying the display position and size of the mini-program within the webpage. Not recommended for use anymore, suggest using the Web parameter instead.
+Flag mask flags: 1 specifies new tab loading (if neither 1 nor 16 is specified, it's current page loading) 2 shows title bar 4 does not automatically crop out-of-bounds windows 8 automatically adapts to webpage height and width display 64 enables Web parameter 128 anti-screenshot 256 forces display to secondary screen 512 allows multiple instances to be loaded on the same webpage
+Web: Open configuration (new method), can replace Url. Use this configuration when Flag value +64 is used. When using Web, the values of Left, Top, Width, Height must be specified.
+Parameter description in Web:
+	Edit represents editing permissions (supports 1, 256, 512, 1024; others are only supported in WORD. 1024 only takes effect in OLE embedding mode. Among them, 1, 2, 16, 32, 64, 128 are mutually exclusive) 1 read-only open 2 automatically in revision mode after opening 4 prohibit save as 8 prohibit print 16 prohibit copy content 32 can only revise 64 can only comment 128 preview mode 256 prohibit pasting content out of the editing window 512 supports upload/download documents in PageHi menu 1024 secure document (automatically deletes local document after loading and uploading) 2048 disable full-screen editing
+	Hide represents hidden interface elements (currently, only 8 and 16 are supported in full embedding mode) 1 hide menu 2 hide standard toolbar 4 hide formatting toolbar 8 hide status bar 16 hide right-click menu
+	User represents the name of the user editing the document
+	PW represents the password needed to open the document. Not supported in OLE embedding mode.
+	DataPath represents the default path for document lookup and save
+	WaterMark automatically adds watermark node information after opening or creating a file, content consistent with the interface Office_InsertWaterMark
+	Cookie when the document opened by Open is a Url address on the server, set Cookie for network request Url to obtain download permission
+	Auth when the document opened by Open is a Url address on the server, set Auth for network request Url to obtain download permission
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting, respectively.
+BarW and BarH are the reserved areas on the right and bottom of the webpage, respectively. ScrollTop is the reserved height for top scrolling.
+The actual display of the web component is first based on the coordinates and size specified in Url or Web, then corrected based on the values set in IframeX, IframeY, BarW, BarH.
+Option: 1 starts Microsoft Word, 2 starts Microsoft Excel, 3 starts Microsoft PPT, 5 uses Adobe Pdf Reader or Foxit OFD Office Suite OCX control to open pdf, 8 uses Foxit OFD Office Suite OCX control to open ofd.
+Version: 0: OLE embedding mode loading 1: Full loading (supports document comparison operations) 2: OLE embedding mode loading (difference from 0 is that WPS Professional Edition and higher versions of Microsoft Office start the Office process in advance to support multiple documents and improve startup performance) When Option is 5, Version automatically defaults to 1.
+Open: The document path that needs to be opened. Use / or \\ for directory slashes on disk. Supports server HTTP protocol file download paths (please ensure Auth or Cookies etc. are set for login-free download). If the download address contains a file name, try to put the file name as the last parameter in the Url address; if it does not contain a file name, please specify the filename in Content-Disposition.
+If this parameter is not a full path, including server paths, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default. If using byte stream file opening, no need to specify here.
+Note: If Open or Url contains special characters = & double quotes or Chinese, etc., they need to be URL encoded before passing.
+Example:
+Automatically identify the current browser and start Microsoft Word program
+{"req":"Wrl_OfficeApplet","rid":5,"para":{"Type":"0","Version":2,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":7,"Hide":0,"User":"test","PW":"","DataPath":"c:/OfficeDoc"},"Option":"1","Open":"D:/Zorro/test.doc"}}
+
+Automatically identify the current browser and start Microsoft Excel program
+{"req":"Wrl_OfficeApplet","rid":5,"para":{"Type":"0","Version":1,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":3,"Hide":0,"PW":""},"Option":"2","Open":"D:/Zorro/test.xls"}}
+
+Automatically identify the current browser and start Microsoft PPT program
+{"req":"Wrl_OfficeApplet","rid":5,"para":{"Type":"0","Version":0,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":1,"Hide":0,"PW":""},"Option":"3","Open":"D:/Zorro/test.ppt"}}
+
+Automatically identify the current browser, specify position, automatically adapt to webpage size to start:
+{"req":"Wrl_OfficeApplet","rid":5,"para":{"Type":"0","Version":2,"Title":"Office Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":7,"Hide":0,"User":"test","PW":"","DataPath":"c:/OfficeDoc"},"Option":"1","Open":"D:/Zorro/test.doc"}}
+
+Open server document, change the Open parameter to an address similar to the following
+"Open":"http://www.yuanmaster.com/Files/template.doc"
+
+After startup, three JSON data packets will be received sequentially
+A、{"ret":0,"rid":5,"data":{"ID":3}}
+Represents the webpage component WS listening service is ready.
+B、{"event":"Wrl_Listen","aid":3,"rid":5,"data":{"SID":"123","PID":"MSOfficeApplet","port":950}}
+Returns the listening port. You can establish another Web Socket connection and call related functions in the web component, such as opening a document.
+Represents the web component was successfully created, returns ID as the current web component running instance ID. Through this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C、{"event":"Wrl_AppletOK","aid":3,"rid":5,"data":{"SID":"123","PID":"MSOfficeApplet","Port":950}}
+
+Regarding the Option parameter, if unsure whether to call to start Microsoft Office Web Components, Kingsoft WPS embedded web components, or Yongzhong Office embedded web components, please first call the command
+X64 is 1 to specify only getting the currently valid 64-bit version, 0 to get all.
+{"req":"Wrl_OfficeInfo","rid":2,"para":{"X64":0}} Obtains the installation status of Office and Adobe Acrobat on the current computer. Return value
+{"ret":0,"rid":2,"req":"Wrl_OfficeInfo","data":{"Info":[{"Type":1,"X64":0,"Cur":0,"Ver":"15.0.5389.1000"},{"Type":11,"X64":0,"Cur":0,"Ver":"11.1.0.11045"},{"Type":21,"X64":0,"Cur":1,"Ver":"8.0.0.0"},{"Type":5,"X64":0,"Cur":0,"Ver":"","Path":"C:/Program Files (x86)/Common Files/Adobe/Acrobat/ActiveX/AcroPDF.dll"}]}}
+Type 1 represents Microsoft Office, 11 represents Kingsoft WPS, 21 represents Yongzhong Office, 5 represents Adobe Acrobat.
+X64 represents whether it is a 64-bit version.
+Cur represents whether it is currently valid.
+Ver represents file version information.
+
+2) Request to control Microsoft Office Web Components:
+When the front-end no longer needs the web component, it can be specified to close, or show/hide, full screen display, etc.
+ID is the ID value returned in the JSON when starting the web component. Code represents the control type mask: 1 normal close 128 force close quickly 2 full screen display 4 auto hide 8 restore display 16 auto adapt to webpage height and width display mode switch 32 force hide. Among them, full screen display 2, can be canceled directly via hotkey ESC or cancel. After hiding with 4 and 32, it can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3) Request to scroll Microsoft Office Web Components:
+When the front-end intercepts webpage scroll notifications, this interface needs to be called to achieve scroll linkage between the web component and the webpage.
+ID is the ID value returned in the JSON when starting the web component.
+Code is the scroll direction, 1 is horizontal, 2 is vertical, 3 is both.
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4) Request to change the display position or size of Microsoft Office Web Components:
+When the front-end webpage display area zooms, the display position or size of the web component can be dynamically modified.
+ID is the ID value returned in the JSON when starting the web component. Width and Height are the new width and height, respectively. X and Y are the new display positions. If not specified, remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or simultaneously set the web component display start coordinates
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5) Request to set the webpage reserved right width and bottom height, scrollbar information, vertical and horizontal scroll positions:
+When the web component display area exceeds the current webpage, the influence of the scrollbar display needs to be removed.
+ID is the ID value returned in the JSON when starting the web component. BarW is the reserved right width. BarH is the reserved bottom height.
+Code 1 represents having a horizontal scrollbar, 2 represents having a vertical scrollbar, 3 represents having both.
+ScrollTop vertical scrollbar position ScrollLeft horizontal scrollbar position.
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6) Request to perform Alpha transparency processing on the web component window, facilitating the front-end to temporarily display menus, etc., covering the web component window:
+ID is the ID value returned when starting the web component with Wrl_OfficeApplet. Alpha is the transparency percentage, 1-100.
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7) Request to take a screenshot of the web component window content:
+ID: The aid instance value returned in the JSON when starting the mini-program.
+File: Specifies the screenshot file save path or extension.
+Base64: Specify 1 to return BASE64 encoded image content.
+Flag: If the embedded mini-program window (e.g., DirectUI or Direct3D drawing) captures incorrectly, you can additionally specify 1 to see the effect. Also, if multiple or box-selection captures are needed, you can add 2 or 4 to start the capture tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8) Request to scale the web component, used for browser webpage proportional scaling, generally not needed:
+ID is the ID value returned in the JSON when starting the web component. If Scale is not specified, get the current scaling percentage used by the web component, generally consistent with the system scaling ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Web Component Installation, Upgrade, Uninstallation
+1) Request to install Microsoft Office Web Components
+Please enter the following request in the test webpage input box, then click send to complete installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"Microsoft Office Web Components","PID":"MSOfficeApplet","Date":"2025-05-30","Desc":"ApeMaster's cross-browser Microsoft Office embedded web online editing components, support embedding Word, Excel, PowerPoint and other documents in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest version browser webpages for online editing or reviewing various office documents","DownAddr":"http://local.zorrosoft.com/Files/Net/MSOfficeApplet.pid","MD5":"00166ABCEAB4455261D731CED8198228","Version":"2.2.17.6","Size":9535488,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"6B43E3048EC28C6C91249BDEE2922BADC9FD70FBA7B2CCCF7DFAE7F8F2E044D32BF521159C873769215CDD3E70EA8D1C035B5E15DD1C577F7418E8B101051818A46D64854B385B6A28773AF3A26121938D92B88EDA70FCFF85C2EAA4204ABFBBF4806D89D71BD49C8FB3BFDE90C728F410627AFE2BFD8F0A91F20E6148E3EED2EC2FEED18C2A3B6C24408B1FDE9E13FB659B4885B2BAC577E6AAA34D1AA8CE2B2C9C5E70500BE0EC84F862F3C2A3C52F5225EAF28FFF95885BAB9939A3C448801082FF5E0ABB890582D6E78A0A64941A8FB4A81DAF20F26AAF1569E762849596657EC185D927CE418457D20EEF868BD105FEF98C3663826090648EBC42CEDEC7"}}
+
+After starting the installation, installation progress will be continuously received until installation ends.
+When releasing, you can also package this web component directory files together with the middleware and release them, no need to distribute separately.
+
+2) Request to upgrade Microsoft Office Web Components:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"Microsoft Office Web Components","PID":"MSOfficeApplet","Date":"2025-05-30","Desc":"ApeMaster's cross-browser Microsoft Office embedded web online editing components, support embedding Word, Excel, PowerPoint and other documents in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest version browser webpages for online editing or reviewing various office documents","DownAddr":"http://local.zorrosoft.com/Files/Net/MSOfficeApplet_Update.pid","MD5":"45621DEF0D6D96E6E6518A8A7E986ED0","Version":"2.2.17.6","Size":9535488,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"17C3D4D6478DAA0DC4F7788B12CD7DE4F92488CD04D821153BB38C10690F864BA30A8BF19E57B3802DA8CFA3899F12BF447CF618603C29A6872C0F8C3D108745C2A96A5FF98383F97E31A95F184EBD3EB2634D8F8C2EA218A13975D26636ECFD76F92E6C626218DB8050731CF633D4142319149442BC274FBE05A40D376DA4C7625BA963E41E12291D2B1DFA5377CEE6069C49A1FA27CDB88BA6810838A1FB05CE4AE2828D7A759470D0C3E2F4868F00A523E66A48648C38CF302ABAEC2E6B323C3CFE579D038DD2EBF202E7776261E785175DA80E11C94C09D7CB4914E141D405E08F7D3F88765A4C408C84FEF92765054968AF460214818FF64DC8FBA2EB20"}}
+
+The above installation and upgrade JSON request packets may differ due to version upgrades. If errors are encountered during installation or upgrade, please contact customer service to obtain the latest request packet.
+
+3) Request to uninstall Microsoft Office Web Components:
+The official version requires adding TK verification. Specific rules please refer to the document "Middleware Security Solution.pdf" in the SDK package. You can generate requests with TK using the packaging program ZbaPackage.exe in the SDK package under middleware maintenance.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"MSOfficeApplet","Type":8}}
+
+4. Microsoft Office Web Components call Office software's VBA interfaces. First, establish a new WebSocket connection based on the port number returned after the Wrl_OfficeApplet request starts, then execute the following commands:
+A. Common function requests:
+
+1) Get whether the document has been modified and needs saving, applicable to Word, Excel, PPT software.
+{"req":"Office_IsSaved","rid":1,"para":{}}
+Return: {"ret":0,"rid":1,"data":{"Ret":"0","IsSaved":0}}
+IsSaved is true, means it has been saved, no modifications, no need to call save again.
+
+2) Set whether the document has been saved flag, applicable to Word, Excel, PPT software.
+Set Saved to true to avoid save prompts when exiting.
+{"req":"Office_PutSaved","rid":2,"para":{"Saved":"1"}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}}
+
+3) Request to open a document. Open is the document path to open. If containing Chinese or special characters, UrlEncode encoding is needed. Applicable to Word, Excel, PPT software.
+If a document is already open before opening, it will automatically close the previous document to avoid opening multiple documents simultaneously.
+Open opens the document (creates a new document if not specified). If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+User sets the editing username. Edit sets editing permissions, meaning same as at startup. Hide controls interface display flags.
+If byte stream file opening needs support, specify the parameter Byte, representing the file stream length. After this request returns, the front-end continues sending the byte stream.
+If opening a Word document, you can specify NoRepair, default 0, specify 1 to open without repair warning dialog.
+{"req":"Office_Open","rid":3,"para":{"Open":"D:/Zorro/test.doc","User":"test","Edit":0,"Hide":0}}
+Open server document
+{"req":"Office_Open","rid":3,"para":{"Open":"http://www.yuanmaster.com/Files/template.doc","Edit":0}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}}
+
+4) Request to save, applicable to Word, Excel, PPT software. If it's a new document, a temporary file name will be created for saving.
+If the Url and other parameters in the Office_NetFile interface are specified, it represents saving to the local while uploading to the server. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the data packet size and MD5 hash value respectively.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues receiving the file byte stream.
+{"req":"Office_Save","rid":4,"para":{}}
+{"req":"Office_Save","rid":4,"para":{"Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","FilePath":"","Info":{}}} FilePath is the actual save path. Info is the data packet returned by the upload interface, must be described using JSON.
+
+5) Request to save as. NewFile is the save as path. If containing Chinese or special characters, UrlEncode encoding is needed. Applicable to Word, Excel, PPT software.
+Supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+If the Url and other parameters in the Office_NetFile interface are specified, it represents saving to the local while uploading to the server. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the data packet size and MD5 hash value respectively.
+When saving as ppt or pptx, you can specify the parameter EmbedFonts whether to embed TrueType fonts, default embed.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues receiving the file byte stream.
+{"req":"Office_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/test.xml"}}
+{"req":"Office_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/testSA.doc"}}
+{"req":"Office_SaveAs","rid":5,"para":{"Format":17,"NewFile":"D:/Zorro/test.pdf"}}
+{"req":"Office_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/testSA.doc","Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":5,"data":{"Ret":"0","FilePath":"","Info":{}}} FilePath is the actual save path. Info is the data packet returned by the upload interface, must be described using JSON.
+
+6) Request to export to PDF or XPS format. NewFile is the export document path. If containing Chinese or special characters, UrlEncode encoding is needed. Applicable to Word, Excel software.
+If NewFile is not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+If the Url and other parameters in the Office_NetFile interface are specified, it represents saving to the local while uploading to the server. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the data packet size and MD5 hash value respectively.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues receiving the file byte stream.
+{"req":"Office_Export","rid":6,"para":{"NewFile":"D:/Zorro/test1.pdf"}}
+{"req":"Office_Export","rid":6,"para":{"NewFile":"D:/Zorro/testExport.pdf","Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":6,"data":{"Ret":"0"}}
+
+7) Request to insert an image at the current cursor position or a specified position. ImgFile is the image path (supports network paths). If containing Chinese or special characters, UrlEncode encoding is needed. Applicable to Word, Excel, PPT software.
+Pos specifies the insertion position. If not specified, inserts at the current position. Word specifies bookmark name. Excel specifies names like A1, B2, etc.
+Link is 1 then only link to the file (network paths do not support 1)
+Save whether to automatically save to the document after insertion.
+ImgFile needs UrlEncode encoding. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+Order sets the image-text relationship, applicable to Word. 5 represents image floating above text. If not needed, set -1 or don't pass this parameter.
+Wrap image text wrapping type, applicable to Word. Specific reference definition: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdwraptype
+For Word, Excel, specifying Width, Height represents setting the display width and height after insertion.
+In PPT presentations, you can specify the insertion position and dimensions.
+Left, Top, Width, Height. If not specified, Left and Top default to 0, Width and Height are the width and height of the image, respectively.
+{"req":"Office_InsertImg","rid":7,"para":{"ImgFile":"D:/Zorro/test.png","Link":"0","Save":"1","Order":"-1"}}
+Or
+{"req":"Office_InsertImg","rid":7,"para":{"ImgFile":"http://www.yuanofficer.com/uploads/allimg/20230407/1-23040G51633X9.jpg","Link":"0","Save":"1","Order":"5"}}
+Return: {"ret":0,"rid":7,"data":{"Ret":"0","Width":"1","Height":"1"}} Width and Height are the width and height of the inserted image, respectively.
+
+8) Request to batch insert text at the current cursor position, applicable to Word software.
+FontSize font size
+FontName font name
+Color font color
+Bold bold size
+The above parameters can also be directly specified by style Style.
+Paragraph represents the number of line breaks.
+Alignment is the alignment method 0 left align 1 center 2 right align
+{"req":"Office_Insert","rid":8,"para":[{"Paragraph":1},{"FontSize":"16","FontName":"宋体","Color":"0","Alignment":"0","Bold":"8","Text":"详情请点击这里："},{"Paragraph":1},{"Address":"http://www.yuanmaster.com","Display":"猿大师官方网站"}]}
+Respectively: line break, insert text with specified font and color value, then line break, insert a hyperlink.
+Return: {"ret":0,"rid":8,"data":{"Ret":"0"}}
+
+9) Request to perform Backspace operation at the current cursor position, applicable to Word software.
+{"req":"Office_Backspace","rid":9,"para":{}}
+Return: {"ret":0,"rid":9,"data":{"Ret":"0"}}
+
+10) Request batch printing, applicable to Word, Excel, PPT software. Copies is the number of copies, defaults to printing all pages. When printing to file, OutFile needs to be specified. If containing Chinese or special characters, UrlEncode encoding is needed.
+If OutFile is not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+{"req":"Office_PrintOut","rid":10,"para":{"Copies":"1","OutFile":"D:/Zorro/testprint.pdf"}}
+Return: {"ret":0,"rid":10,"data":{"Ret":"0"}}
+
+11) Request to move the cursor position, applicable to Word software.
+Up is upward, default is downward. Up is 1 upward. Unit movement unit (5 is text lines, 7 is screen area) Count is the movement count.
+{"req":"Office_MoveLine","rid":11,"para":{"Up":"0","Unit":"5","Count":"6"}}
+Return: {"ret":0,"rid":11,"data":{"Ret":"0"}}
+
+12) Request to get the current username, applicable to Word, Excel software.
+{"req":"Office_GetUserName","rid":12,"para":{}}
+Return: {"ret":0,"rid":12,"data":{"Ret":"0","User":"test"}}
+
+13) Request to set the current username, applicable to Word, Excel software.
+{"req":"Office_PutUserName","rid":13,"para":{"User":"test"}}
+Return: {"ret":0,"rid":13,"data":{"Ret":"0"}}
+
+14) Request to get whether currently in revision mode, applicable to Word software.
+{"req":"Office_GetTrackRevisions","rid":14,"para":{}}
+Return: {"ret":0,"rid":14,"data":{"Ret":"0","TrackRevisions":"0"}}
+
+15) Request to set whether currently in revision mode, applicable to Word software.
+TrackRevisions 1 enable revision mode 2 force revision mode.
+{"req":"Office_PutTrackRevisions","rid":15,"para":{"TrackRevisions":"1"}}
+Return: {"ret":0,"rid":15,"data":{"Ret":"0"}}
+
+16) Request subsequent operations for revision mode, applicable to Word software.
+Type is the operation type, 0 default represents toggle modification mode, 1 represents accept all revisions, 2 represents reject all revisions.
+{"req":"Office_TrackRevisions","rid":16,"para":{"Type":"1"}}
+Return: {"ret":0,"rid":16,"data":{"Ret":"0"}}
+
+17) Request to get whether revision information is displayed, applicable to Word software.
+{"req":"Office_GetShowRevisions","rid":17,"para":{}}
+Return: {"ret":0,"rid":17,"data":{"Ret":"0","ShowRevisions":"0"}}
+
+18) Request to set whether to display revision information, applicable to Word software.
+{"req":"Office_PutShowRevisions","rid":18,"para":{"ShowRevisions":"1"}}
+Return: {"ret":0,"rid":18,"data":{"Ret":"0"}}
+
+19) Request to add a comment at the current position, applicable to Word software.
+Text is the text description of the comment.
+{"req":"Office_InsertComment","rid":19,"para":{"Text":"批注内容"}}
+Return: {"ret":0,"rid":19,"data":{"Ret":"0"}}
+
+20) Request to get the number of bookmarks in the current document, applicable to Word software.
+Hidden whether to include hidden bookmarks.
+Sort sort type 0 default by name 1 by position.
+{"req":"Office_MarkCount","rid":20,"para":{"Hidden":0,"Sort":0}}
+Return: {"ret":0,"rid":2018,"data":{"Ret":"0"}}
+
+21) Request to judge if the current bookmark exists, applicable to Word software.
+Name is the bookmark name.
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding.
+{"req":"Office_MarkIsExist","rid":21,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":21,"data":{"Ret":"0"}}
+
+22) Request to get all bookmarks in the current document, applicable to Word software.
+Encode default 0, 1 represents bookmark name and content use UrlEncode encoding.
+Hidden whether to include hidden bookmarks.
+Sort sort type 0 default by name 1 by position.
+{"req":"Office_AllMark","rid":22,"para":{"Encode":0,"Hidden":0,"Sort":0}}
+Return: {"ret":0,"rid":22,"data":{"Ret":[{"Name":"Caption","Text":"[请输入标题]"},{"Name":"Content","Text":"[公文内容]"},{"Name":"Description","Text":"[公文说明或描叙]"},{"Name":"Sec","Text":"[公文密级]"},{"Name":"Subject","Text":"[公文主题词]"]}]}}
+
+23) Request the bookmark name by specified serial number or the text content by specified name, applicable to Word software.
+Index is the bookmark serial number. Name is the bookmark name.
+Detail is 1 to get details, default is 0 only returns bookmark name.
+Encode default 0, 1 represents bookmark name and content use UrlEncode encoding.
+{"req":"Office_GetMarkInfo","rid":23,"para":{"Index":"1","Detail":"1"}}
+{"req":"Office_GetMarkInfo","rid":23,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":23,"data":{"Ret":"0"}}
+
+24) Request to replace the content of a specified bookmark name, applicable to Word software.
+Name is the bookmark name. Text is the bookmark content. Inserting ^p in the content can achieve line break.
+Encode default 0, 1 represents bookmark name and content use UrlEncode encoding.
+Word:{"req":"Office_PutMarkText","rid":24,"para":{"Marks":[{"Name":"Caption","Text":"公文标题"},{"Name":"Content","Text":"公文内容"},{"Name":"Description","Text":"公文说明或描叙"},{"Name":"Sec","Text":"公文密级"},{"Name":"Subject","Text":"公文主题词"}]}}
+Return: {"ret":0,"rid":24,"data":{"Ret":"0"}}
+
+25) Jump the cursor to the bookmark with the specified name, applicable to Word software.
+Name is the bookmark name. NoSelect is 1 represents remove the bookmark selection state.
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding.
+{"req":"Office_GotoMark","rid":25,"para":{"Name":"Caption","NoSelect":1}}
+Return: {"ret":0,"rid":25,"data":{"Ret":"0"}}
+
+26) Get the number of revisions, applicable to Word software.
+{"req":"Office_GetRevisionsCount","rid":26,"para":{}}
+Return: {"ret":0,"rid":26,"data":{"Ret":"0","Count":0}}
+
+27) Create a specified directory, applicable to Word, Excel, PPT software.
+Dir is the subdirectory name, can be a full path. Need to ensure permission to create subdirectories. If not a full path, it is a subdirectory of the startup specified data file path DataPath. If DataPath is not specified, it is the middleware data subdirectory.
+{"req":"Office_CreateDir","rid":27,"para":{"Dir":"/doc"}}
+Return: {"ret":0,"rid":27,"data":{"Ret":"0"}}
+
+28) Find images in the document and return BASE64 encoded data, applicable to Word software.
+Index is the image serial number, starting from 1. Search Shapes first, then InlineShapes.
+File is the local file save path, can use relative path. If this parameter is specified, it means directly save this image to local, Code returns the local file full path.
+{"req":"Office_GetImage","rid":28,"para":{"Index":1}}
+Return: {"ret":0,"rid":28,"data":{"Ret":"0","Code":""}} Code by default returns the encoded data.
+
+29) Request to merge a document into the content of a specified bookmark, applicable to Word software.
+File is the full path of the document to be merged. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+Marks specifies the array of bookmark names that need to be replaced.
+By default, it looks for content corresponding to the bookmark name in the File document to replace. If there is no corresponding bookmark, it inserts the entire file.
+{"req":"Office_MarkMerge","rid":29,"para":{"File":"D:/Zorro/TestMark.docx","Marks":["Letter","Title"]}}
+Return: {"ret":0,"rid":29,"data":{"Ret":"0"}}
+
+30) Request to merge specified documents into a new page of the current document, applicable to Word software.
+Files is the array of documents to be merged. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+{"req":"Office_FileMerge","rid":30,"para":{"Files":["D:/Zorro/TestMark.docx","D:/Zorro/Test.docx"]}}
+Return: {"ret":0,"rid":30,"data":{"Ret":"0"}}
+
+31) Call menu and toolbar button functions, applicable to Word, Excel, PPT software.
+BarName: Menu bar name BtnName: Requested function name or function number.
+Example, call Beijing Dianju electronic seal stamping function: {"req":"Office_CallCmdbar","rid":31,"para":{"BarName":"电子印章","BtnName":"盖章"}} or {"req":"Office_CallCmdbar","rid":31,"para":{"BarName":"电子印章","BtnName":"1"}}
+Return: {"ret":0,"rid":31,"data":{"Ret":"0"}}
+
+32) Display document differences with revision marks, applicable to Word software. Must specify Version as 1 at startup, non-OLE embedding mode support.
+Prerequisite is that the current document is already open and compared with the document specified by Name.
+Name document to compare, must be specified.
+Target is the target type, optional 0 is selected 1 is current 2 is new document, default 2.
+{"req":"Office_ShowDifferent","rid":32,"para":{"Name":"D:/Zorro/Test7.doc","Target":"2"}}
+Return: {"ret":0,"rid":32,"data":{"Ret":"0"}}
+
+33) Specify a new document to compare with the currently opened document, applicable to Word software. Must specify Version as 1 at startup, non-OLE embedding mode support.
+Prerequisite is that the current document is already open and compared with the document specified by Name.
+Name document to compare, must be specified.
+Target is the target type, optional 0 in original document 1 in original document 2 is revision document, default 2 is new document.
+Out save the comparison result document.
+{"req":"Office_DocCompare","rid":33,"para":{"Name":"D:/Zorro/Test7.doc","Target":"2","Out":"D:/Zorro/Result.doc"}}
+Return: {"ret":0,"rid":33,"data":{"Ret":"0"}}
+
+34) Toggle full-screen editing state, applicable to Word, Excel, PPT software.
+{"req":"Office_SwitchFullScreen","rid":34,"para":{}}
+Return: {"ret":0,"rid":34,"data":{"Ret":"0"}}
+
+35) Network file operations, applicable to Word, Excel, PPT software.
+Type 1 upload file 0 download file.
+Asyn default 0, specify 1 for asynchronous upload or download. Asynchronous upload requires separate use with the file operation mini-program.
+Agent, Cookie and Auth Cookie can pass the browser's Cookie or authorize upload permission via Auth, default empty. If not empty, UrlEnocde encoding is needed first.
+Local upload file local path or download file save path. If not specified, uses the currently opened document by default. UrlEncode encoding needed.
+Url upload or download address, UrlEncode encoding needed. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the Url address, representing the data packet size and MD5 hash value respectively.
+When Type is 1, you can add parameter Para, corresponding to the param parameter that needs to be passed in the POST data packet. Default upload file name is upfile, otherwise you can set your own file parameter name with NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, the hash value and size of the download file, used to verify the integrity of the downloaded file. Can be default empty or 0.
+{"req":"Office_NetFile","rid":35,"para":{"Type":0,"Asyn":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/OfficeDoc/test.docx","Url":"http://local.zorrosoft.com/Files/PHDefault.docx"}}
+{"req":"Office_NetFile","rid":35,"para":{"Type":1,"Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":35,"data":{"Ret":"0","Info":{}}} Info is the information returned by the server after upload, must be described in JSON format.
+
+36) Convert specified page number or range to image, returns Base64 encoded data by default, applicable to Word, Excel and PPT software.
+Index is the page number or slide number, starting from 1. Pass 0 to get the current page. Word and PPT valid.
+Range is the table range. If not specified, takes the currently selected table. Excel valid.
+File if extension is not specified, Type is the image type. 3 defaults to JPG, 4 is PNG, 1 is BMP, 2 is GIF.
+File is the local file save path, can include extension. Can use relative path. If this parameter is specified, it means directly save the conversion result image to local, Code returns the local file full path.
+For documents with formulas, extracting images may show garbled characters or require automatic cropping. You can specify parameter Math as 1 to solve. AutoCrop automatic cropping, default 1, can manually specify 0 not to crop. Word valid.
+Example 1: {"req":"Office_ConvertImage","rid":36,"para":{"Index":1,"Type":3}}
+Example 2: {"req":"Office_ConvertImage","rid":36,"para":{"Index":1,"Math":1,"AutoCrop":1,"File":"test1.png"}}
+Example 3: {"req":"Office_ConvertImage","rid":36,"para":{"Range":"A1:D5","File":"test2.png"}}
+Return: {"ret":0,"rid":36,"data":{"Ret":"0","Code":""}} Code by default returns the Base64 encoded data of the image or the image file path.
+
+37) Get the currently opened document and other information, applicable to Word, Excel, PPT software.
+File: Local document path User: Current editing username
+ProtType ProtStatus are the current document protection type (0 read-only 1 can only revise 2 can only comment 3 fill form) and status (0 not protected 1 document self-protected 2 web component temporarily added protection) respectively.
+Edit: Editing permission Option: Used option Hide: Interface hidden type
+LastWriteTime: Document last modification time
+{"req":"Office_GetCurOpen","rid":37,"para":{}}
+Return: {"ret":0,"rid":37,"data":{"Ret":"0","File":"C:/OfficeDoc/test.docx","User":"test","ProtType":0,"ProtStatus":0,"Edit":0,"Option":0,"Hide":0,"LastWriteTime":0}}
+
+38) Set or unset document protection. If already in protected state, calling again cancels protection, and vice versa. Applicable to Word software.
+Type protection type 0 read-only 1 can only revise 2 can only comment 3 fill form.
+PW is the password. If containing special characters, UrlEncode encoding needed first.
+{"req":"Office_Protect","rid":38,"para":{"Type":0,"PW":""}}
+Return: {"ret":0,"rid":38,"data":{"Ret":"0","Status":0}}
+Status returns the document protection status, 1 is protected.
+
+39) Insert table, applicable to Word software.
+RowNum number of rows ColumnNum number of columns.
+{"req":"Office_InsertTable","rid":39,"para":{"RowNum":2,"ColumnNum":5}}
+Return: {"ret":0,"rid":39,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+40) Insert watermark, applicable to Word software.
+Type watermark type. Type default 0 system text watermark 1 custom text watermark 2 image watermark.
+Content when type is 0, system text watermark name; when type is 1, text watermark content; when type is 2, image file path or server watermark image download address. If containing non-English, special characters or symbols, UrlEncode encoding needed.
+Insert "绝密 1" system text watermark.
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":0,"Content":"%E6%9C%BA%E5%AF%86%201"}}
+Insert "TestWaterMark" custom text watermark. TextEffect text effect (refer to MsoPresetTextEffect definition). FontSize font size default 1 automatic.
+FontBold whether bold FontItalic whether italic FontName font name (needs UrlEncode encoding first) FillColor fill color default RGB(192, 192, 192) Transparency default 0.5 Rotation angle default 0.
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":1,"Content":"TestWaterMark","TextEffect":0,"FontSize":1,"FontBold":1,"FontItalic":1,"FontName":"%E7%AD%89%E7%BA%BF","FillColor":"#C0C0C0","Transparency":0.5,"Rotation":0}}
+Insert image watermark from server. Width display width (unit: cm) Height display height (unit: cm).
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":2,"Content":"http://www.yuanofficer.com/uploads/allimg/20230407/1-23040G51633X9.jpg","Width":15,"Height":18}}
+Insert local image watermark. Width display width (unit: cm) Height display height (unit: cm).
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":2,"Content":"C:/Users/administrator/Pictures/TestWaterMark.jpg","Width":15,"Height":18}}
+
+Return: {"ret":0,"rid":40,"data":{"Ret":"0"}}
+
+41) Remove all existing watermarks, applicable to Word software.
+{"req":"Office_DelWaterMark","rid":41,"para":{}}
+Return: {"ret":0,"rid":41,"data":{"Ret":"0"}}
+
+42) Set upload/download addresses, needed for PageHi upload/download functions. Applicable to Word, Excel, PPT software.
+PageHi upload/download functions require the Edit mask value in the startup command's Web node to add 512 to open.
+DownUrl document download address
+AsynDown whether asynchronous download
+DownFileSize download file size
+DownMD5 download file MD5
+DownCookie download Cookie
+DownAuth download Auth
+UploadUrl document server save address
+AsynUp whether asynchronous upload
+UpCookie upload Cookie
+UpAuth upload Auth
+UpPara upload parameters
+{"req":"Office_PutNetUrl","rid":42,"para":{"DownUrl":"http://www.yuanmaster.com/Files/template.doc","UploadUrl":"http://zorrosoft.com/wp-admin/admin-ajax.php","AsynDown":1,"AsynUp":0,"DownCookie":"","UpCookie":"","DownAuth":"","UpAuth":"","UpPara":{}}}
+Return: {"ret":0,"rid":42,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+43) Request to hide or show the content of a bookmark specified by serial number or name, applicable to Word software.
+Index is the bookmark serial number. Name is the bookmark name. Use one of the two.
+Show whether to show 0 hide 1 show.
+{"req":"Office_ShowMarkContent","rid":43,"para":{"Index":"1","Show":"0"}}
+{"req":"Office_ShowMarkContent","rid":43,"para":{"Name":"Caption","Show":"0"}}
+Return: {"ret":0,"rid":43,"data":{"Ret":"0"}}
+
+44) Request to find and replace specified text content, applicable to Word software.
+Find: Text content to be replaced Replace: Replacement text content. Both need UrlEncode encoding before passing in.
+Case: Whether case-sensitive. Default 0, 1 represents case-sensitive. Corresponds to the "Match case" checkbox in the "Find and Replace" dialog box ("Edit" menu).
+Forward: Default 1 forward search (towards end of document) 0 backward search, towards start of document.
+WholeWord: Whether exact match. Default 0. Specify 1 to only find matching complete words, not text that is part of a longer word. Equivalent to the "Find whole words only" checkbox in the "Find and Replace" dialog box ("Edit" menu).
+Wildcards: Whether to specify wildcards and other advanced search conditions, default 0. Specify 1 for "*(ing)" will find all words ending with "ing". Corresponds to the "Use wildcards" checkbox in the Find and Replace dialog box.
+Type: Replacement type 2: wdReplaceAll (replace all matches, default) 1: wdReplaceOne (replace the first match encountered) 0: wdReplaceNone (replace no matches).
+Wrap: Action type after search ends. 2: wdFindAsk (after searching the selected content or area, Microsoft Word displays a message asking whether to search other parts of the document)
+	1: wdFindContinue (when the start or end of the search range is reached, continue the find operation) 0: wdFindStop (when the start or end of the search range is reached, stop the find operation, default).
+{"req":"Office_Replace","rid":44,"para":{"Find":"test","Replace":"test content","Case":1,"WholeWord":1,"Wildcards":1}}
+Return: {"ret":0,"rid":44,"data":{"Ret":"0"}}
+
+45) Insert bookmark, applicable to Word software.
+Start Bookmark start position
+End Bookmark end position. If Start and End are not specified, the inserted bookmark position is the current cursor position or selected content area.
+Name Bookmark name, cannot be empty. Bookmark naming has specific requirements: It must only contain letters A-Z, a-z, Arabic numerals 0-9, and underscore _. And must start with a letter. If containing Chinese or other special characters, UrlEncode encoding is needed.
+Content Insert bookmark content, optional parameter. If containing Chinese or other special characters, UrlEncode encoding is needed.
+{"req":"Office_InsertMark","rid":45,"para":{"Name":"Test","Content":"[InsertMark]","Start":0,"End":0}}
+Return: {"ret":0,"rid":45,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+46) Request to delete a specified bookmark, applicable to Word software.
+Name is the bookmark name.
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding.
+DelContent whether to simultaneously delete bookmark content, default 0 do not delete.
+{"req":"Office_DelMark","rid":46,"para":{"Name":"Test","DelContent":0}}
+Return: {"ret":0,"rid":46,"data":{"Ret":"0"}}
+
+47) Get revision information for a specified serial number, applicable to Word software.
+Index is the revision number, default 1. Total obtained via Office_GetRevisionsCount. Specifying 0 represents returning all revision data.
+When Index is specified as 0, you can specify Type revision type, default 0 returns all types.
+{"req":"Office_GetRevisionInfo","rid":47,"para":{"Index":1}}
+Return: {"ret":0,"rid":47,"data":{"Ret":"0","Revisions":[]}}
+
+48) Get comment count, applicable to Word software.
+{"req":"Office_GetCommentCount","rid":48,"para":{}}
+Return: {"ret":0,"rid":48,"data":{"Ret":"0","Count":0}}
+
+49) Get comment information for a specified serial number, applicable to Word software.
+Index is the comment number, default 1. Total obtained via Office_GetCommentCount. Specifying 0 represents returning all comment data.
+{"req":"Office_GetCommentInfo","rid":49,"para":{"Index":1}}
+Return: {"ret":0,"rid":49,"data":{"Ret":"0","Comments":[]}}
+
+50) Request to perform a "taohong" (template filling) operation on the current document, applicable to Word software.
+Position The starting position of the template body, please set a bookmark name or skip lines. If not set or the specified bookmark is not found, starts from the second line position of the document.
+File is the template file. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+Template file local {"req":"Office_RedTemplate","rid":50,"para":{"Position":"Content","File":"D:/Zorro/template.doc"}}
+Template file on server {"req":"Office_RedTemplate","rid":50,"para":{"Position":"Content","File":"http://www.yuanmaster.com/Files/template.doc"}}
+Return: {"ret":0,"rid":50,"data":{"Ret":"0"}}
+
+51) Call built-in macro procedure (Sub) or function (Function) in VBA, applicable to Word, Excel, PPT software. Requires enabling macro code in the software options Trust Center macro settings.
+Name Name of the Sub or Function to call.
+Para1-Para7 Parameters 1-7. If no parameter is needed, don't pass it. Currently supports up to 7 parameters. If more parameters are needed, please contact us.
+Example 1: {"req":"Office_CallMacro","rid":51,"para":{"Name":"SetMyFont"}}
+Return: {"ret":0,"rid":51,"data":{"Ret":"0"}}
+Example 2: {"req":"Office_CallMacro","rid":51,"para":{"Name":"SetFontFunc","Para1":"宋体"}}
+Return 2: {"ret":0,"rid":51,"data":{"Ret":"0","Val":"宋体"}}
+Macro code example:
+Function SetFontFunc(MyFont As String)
+   ActiveDocument.Content.Font.Name = "Times New Roman"
+   Selection.Find.ClearFormatting
+   Selection.Find.Replacement.ClearFormatting
+   With Selection.Find
+       .Text = "[" & ChrW(8220) & ChrW(8221) & "]"
+       .Replacement.Text = ""
+       .Forward = True
+       .Wrap = wdFindContinue
+       .Format = True
+       .MatchCase = False
+       .MatchWholeWord = False
+       .MatchByte = False
+       .MatchAllWordForms = False
+       .MatchSoundsLike = False
+       .MatchWildcards = True
+       .Replacement.Font.Name = MyFont
+   End With
+   Selection.Find.Execute Replace:=wdReplaceAll
+ SetFontFunc = MyFont
+End Function
+
+Sub SetMyFont()
+  SetFontFunc ("宋体")
+End Sub
+
+52) Request to pop up a message dialog box within the embedded window area, applicable to Word, Excel, PPT software.
+Title is the popup title. If Chinese or special symbols, UrlEncode needed first.
+Content is the popup content. If Chinese or special symbols, UrlEncode needed first.
+Wait is how many seconds to wait before automatically disappearing. 0 represents does not disappear automatically.
+Type represents popup type. 0 is MB_OK, see Windows SDK definitions for specifics.
+{"req":"Office_MsgBox","rid":52,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}
+
+53) Insert hyperlink, applicable to Word, EXCEL software.
+Address Hyperlink address
+SubAddress Sub address
+ScreenTip Screen tip
+TextToDisplay Whether text displays on screen
+{"req":"Office_InsertHyperlink","rid":53,"para":{"Address":"Test","SubAddress":"Sheet1!A1","ScreenTip":"","TextToDisplay":"Sheet1!A1"}}
+Return: {"ret":0,"rid":53,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+54) Request to get the number of hyperlinks in the current document, applicable to Word, Excel, PPT software.
+Slide Specifies the slide number. If not specified, defaults to the current slide. Word and Excel do not need this.
+{"req":"Office_HyperlinkCount","rid":54,"para":{}}
+Return: {"ret":0,"rid":54,"data":{"Ret":"0"}}
+
+55) Request to judge if the current hyperlink exists, applicable to Word, Excel, PPT software.
+Name is the hyperlink name. PPT does not support Name.
+Address is the address.
+Slide Specifies the slide number. If not specified, defaults to the current slide. Word and Excel do not need this.
+{"req":"Office_HyperlinkIsExist","rid":55,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":55,"data":{"Ret":"0"}}
+
+56) Request to get all hyperlinks in the current document, applicable to Word, Excel, PPT software.
+Slide Specifies the slide number. If not specified, defaults to the current slide. Word and Excel do not need this.
+{"req":"Office_AllHyperlink","rid":56,"para":{}}
+Return: {"ret":0,"rid":56,"data":{"Ret":[{"Name":"Caption","Text":"[请输入标题]"},{"Name":"Content","Text":"[公文内容]"},{"Name":"Description","Text":"[公文说明或描叙]"},{"Name":"Sec","Text":"[公文密级]"},{"Name":"Subject","Text":"[公文主题词]"]}]}}
+
+57) Request the text content of the hyperlink specified by serial number or specified name, applicable to Word, Excel, PPT software.
+Index is the hyperlink number.
+Name is the hyperlink name. PPT does not support Name.
+Address is the address. Word does not support.
+Slide Specifies the slide number. If not specified, defaults to the current slide. Word and Excel do not need this.
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Index":"1"}}
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Name":"Caption"}}
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Address":"http://www.yuanmaster.com"}}
+Return: {"ret":0,"rid":57,"data":{"Ret":"0"}}
+
+58) Request to replace the content of a specified hyperlink name, applicable to Word, Excel, PPT software.
+Name is the hyperlink name. PPT does not support.
+Text hyperlink content.
+Slide Specifies the slide number. If not specified, defaults to the current slide. Word and Excel do not need this.
+Word or Excel:{"req":"Office_PutHyperlinkText","rid":58,"para":{"Hyperlinks":[{"Name":"http://www.yuanmaster.com","Text":{"Address":"http://www.yuanmaster.com","ScreenTip":"zorrosoft"}}]}}
+PPT:{"req":"Office_PutHyperlinkText","rid":58,"para":{"Slide":1,"Hyperlinks":[{"Address":"http://www.yuanmaster.com","Text":{"Address":"http://www.yuanmaster.com","ScreenTip":"zorrosoft"}}]}}
+Return: {"ret":0,"rid":58,"data":{"Ret":"0"}}
+
+59) Request to delete a specified hyperlink, applicable to Word, Excel, PPT software.
+Name is the hyperlink name. PPT does not support Name.
+Addr is the hyperlink address.
+Index is the serial number. Only PPT supports Index.
+{"req":"Office_DelHyperlink","rid":59,"para":{"Name":"Test"}}
+{"req":"Office_DelHyperlink","rid":59,"para":{"Address":"http://www.yuanmaster.com"}}
+{"req":"Office_DelHyperlink","rid":59,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":59,"data":{"Ret":"0"}}
+
+60) Request to get the number of fields in the current document, applicable to Word software.
+{"req":"Office_FieldCount","rid":60,"para":{}}
+Return: {"ret":0,"rid":60,"data":{"Ret":"0"}}
+
+61) Request to judge if the current field exists, applicable to Word software.
+Type is the field type.
+Code is the field code.
+{"req":"Office_FieldIsExist","rid":61,"para":{"Type":"3","Code":"REF%20%20Caption%20"}}
+Return: {"ret":0,"rid":61,"data":{"Ret":"0"}}
+
+62) Request to get all fields in the current document, applicable to Word software.
+{"req":"Office_AllField","rid":62,"para":{}}
+Return: {"ret":0,"rid":62,"data":{"Ret":[{"Index":1,"Type":1,"Data":"","Code":"","Result":"","Kind":1,"Locked":0,"ShowCodes":0}]}}
+
+63) Request information for the field specified by serial number, applicable to Word software.
+Index is the Field number.
+{"req":"Office_GetFieldInfo","rid":63,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":63,"data":{"Ret":{"Index":1,"Type":1,"Data":"","Code":"","Result":"","Kind":1,"Locked":0,"ShowCodes":0}}}
+
+64) Request to replace the content of a specified field, applicable to Word software.
+Data Field data. Needs UrlEncode first.
+Code Field code. Needs UrlEncode first.
+Result Result. Needs UrlEncode first.
+Locked Whether locked.
+ShowCodes Whether to show codes.
+Example:{"req":"Office_PutFieldInfo","rid":64,"para":{"Fields":[{"Index":1,"Code":"REF%20%20Caption%20","Locked":0,"ShowCodes":0}]}}
+Return: {"ret":0,"rid":64,"data":{"Ret":"0"}}
+
+65) Insert a field at the current position, applicable to Word software.
+Text Field text. Needs UrlEncode encoding first.
+Type Field type. Definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdfieldtype
+PreserveFormatting Whether to preserve formatting.
+Example, insert page number: {"req":"Office_InsertField","rid":65,"para":{"Text":"SECTIONPAGES","Type":"-1","PreserveFormatting":1}}
+Example, insert reference to bookmark Caption: {"req":"Office_InsertField","rid":65,"para":{"Text":"REF%20%20Caption%20","Type":"3","PreserveFormatting":0}}
+Return: {"ret":0,"rid":65,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+66) Request to delete the field specified by serial number, applicable to Word software.
+Index is the serial number.
+{"req":"Office_DelField","rid":66,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":66,"data":{"Ret":"0"}}
+
+67) Request to get the current view mode, applicable to Word, Excel, PPT software.
+Regarding the definition of view mode ViewType, please search and refer to the definitions of WdViewType, XlWindowView, PpViewType respectively.
+{"req":"Office_GetViewType","rid":67,"para":{}}
+Return: {"ret":0,"rid":67,"data":{"Ret":"0","ViewType":"0"}}
+
+68) Request to set the view mode, applicable to Word, Excel, PPT software.
+ViewType View mode.
+{"req":"Office_SetViewType","rid":68,"para":{"ViewType":"1"}}
+Return: {"ret":0,"rid":68,"data":{"Ret":"0"}}
+
+69) Request to highlight or unhighlight the content of a specified bookmark, applicable to Word software.
+Index is the bookmark serial number. Name is the bookmark name. Use one of the two.
+Color Highlight color. Set 0 to unhighlight. Highlight default 7: wdYellow. Detailed definition: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdcolorindex
+{"req":"Office_HighLight","rid":69,"para":{"Name":"Caption","Color":7}}
+Return: {"ret":0,"rid":69,"data":{"Ret":"0"}}
+
+70) Specified ID window overlays rendering content from the webpage. Windows 8 and above operating systems support normally. This machine needs to install Microsoft Edge WebView2 Runtime.
+Url is the transparent webpage address. If containing special symbols, please perform UrlEncode first. Set to empty string to cancel overlay.
+Alpha Transparency (0-255) default 255 opaque. Windows 7 and below systems do not support transparency.
+Rect node sets the overlay window position and size. Not set means the entire area. E represents margin default 1. X/Y/W/H represent the start point and width/height of the overlay window displayed in the split-screen window, respectively. P is the display position type. When greater than 0, replaces X and Y. 1 top-left 2 top-right 3 bottom-left 4 bottom-right.
+{"req":"Office_FloatWebInfo","rid":70,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"Office_FloatWebInfo","rid":70,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":70,"data":{"Ret":0}}
+
+71) Specified ID window overlay webpage injects script to run.
+Script is the script content. Please perform UrlEncode first. Set to empty string to cancel overlay.
+Init Initialize.
+{"req":"Office_FloatWebInjectScript","rid":71,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}
+Return: {"ret":0,"rid":71,"data":{"Ret":0}}
+
+72) Request to control revision display content, applicable to Word software. Markup and View require Office 2013 or later to support.
+Mode Display mode for revisions. https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsmode
+View View type. https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsview
+Markup Markup type. https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsmarkup
+The above parameters can be set individually. If not set, it means getting this parameter's value.
+Can also directly set Toggle to 1 to represent toggling (show or hide) all revisions in the document including comments and revisions.
+{"req":"Office_RevisionsFilter","rid":72,"para":{"Mode":0,"Markup":2,"View":0}}
+Return: {"ret":0,"rid":72,"data":{"Ret":0,"Mode":0,"Markup":2,"View":0}}
+
+73) Request to get local document information, applicable to Word, Excel, PPT software.
+File Local file full path. If the path is not specified, takes the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+{"req":"Office_FileInfo","rid":73,"para":{"File":"C:/OfficeDoc/test.doc"}}
+Return: {"ret":0,"rid":73,"data":{"Ret":"0","Size":92095,"MD5":"B28B987EC70E1E7853F89A52CEDE68F0","Attribute":32,"CreateTime":"2020-10-07 13:07:20","LastWriteTime":"2020-07-14 10:09:43","Ver":"","CorpName":"","Desc":""}}
+If it's an image, also returns image width and height values.
+
+74) Request to get local document properties, applicable to Word, Excel, PPT software.
+File Local file full path. If the path is not specified, takes the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+74) Request to get local document properties, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software.
+File Local file full path. If the path is not specified, takes the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+Class Property type, 1 built-in properties 2 custom properties 1+2 gets built-in and custom properties.
+{"req":"Office_GetDocProp","rid":74,"para":{"File":"C:/OfficeDoc/test.doc","Class":3}}
+Return: {"ret":0,"rid":74,"data":[]}
+
+75) Request to operate on local document properties, applicable to Word, Excel, PPT software.
+File Local file full path. If the path is not specified, takes the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+Props The property group that needs to be operated on, supports batch operations.
+Name Property name
+Val Property value. Needs UrlEncode encoding before passing.
+Class Property type, 1 built-in property 2 custom property.
+Type Property type. Definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/office.msodocproperties
+LinkTo Whether linked to source.
+Source Source. Needs UrlEncode encoding before passing.
+Opt Operation type 1 set, add if not exists. Cannot add built-in properties. 2 delete, can only delete custom properties. Cannot delete built-in properties.
+{"req":"Office_SetDocProp","rid":75,"para":{"File":"C:/OfficeDoc/test.doc","Props":[{"Class":1,"Type":4,"Name":"Title","Val":"test","Opt":1}]}}
+Return: {"ret":0,"rid":75,"data":{"Ret":"0"}}
+
+76) Get document style count, applicable to Word software.
+Base Whether to get basic style information. Default 0 not get, set 1 to get. Information returned in Styles node.
+{"req":"Office_GetStyleCount","rid":76,"para":{"Base":0}}
+Return: {"ret":0,"rid":76,"data":{"Ret":"0","Count":0,"Styles":[]}}
+
+77) Get specified style information for the document, applicable to Word software.
+Type Built-in style type. Detailed reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index Style serial number, supports custom styles, serial number starts from 1.
+Name Style name. Use by type, serial number, or name, choose one. Supports custom style names. Custom styles only support getting by name. To get multiple styles, separate names with |.
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Type":-1}}
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Index":1}}
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Name":"HTML 打字机|HTML 样本"}}
+Return: {"ret":0,"rid":77,"data":{"Ret":"0","Styles":[{"Type":2,"Name":"HTML 打字机","Desc":"%E5%AD%97%E4%BD%93%3A%20(%E9%BB%98%E8%AE%A4)%20Courier%20New,%2010%20%E7%A3%85%5Cr%20%20%20%20%E5%9F%BA%E4%BA%8E%3A%20%E9%BB%98%E8%AE%A4%E6%AE%B5%E8%90%BD%E5%AD%97%E4%BD%93","BuiltIn":1,"InUse":0,"Hidden":0,"Locked":0,"Visibility":0,"Linked":0,"AutoUpdate":0,"UnhideWhenUsed":0,"QuickStyle":0,"NoSpace":0,"FontInfo":{"Name":"Courier New","Size":10.000,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":10.000,"NameFarEast":"+中文正文","NameAscii":"Courier New","NameOther":"Courier New","NameBi":"Courier New","DisableCharacterSpaceGrid":0},"ParagraphFormat":{}},{"Type":2,"Name":"HTML 样本","Desc":"%E5%AD%97%E4%BD%93%3A%20(%E9%BB%98%E8%AE%A4)%20Courier%20New%5Cr%20%20%20%20%E5%9F%BA%E4%BA%8E%3A%20%E9%BB%98%E8%AE%A4%E6%AE%B5%E8%90%BD%E5%AD%97%E4%BD%93","BuiltIn":1,"InUse":0,"Hidden":0,"Locked":0,"Visibility":0,"Linked":0,"AutoUpdate":0,"UnhideWhenUsed":0,"QuickStyle":0,"NoSpace":0,"FontInfo":{"Name":"Courier New","Size":10.500,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":12.000,"NameFarEast":"+中文正文","NameAscii":"Courier New","NameOther":"Courier New","NameBi":"Courier New","DisableCharacterSpaceGrid":0},"ParagraphFormat":{}}]}}
+The Type definition in the returned Styles node, reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdstyletype
+
+78) Set document style information, applicable to Word software.
+Type Built-in style type. Detailed reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index Style serial number, supports custom styles, serial number starts from 1.
+Name Style name. Use by type, serial number, or name, choose one. Supports custom style names. Custom styles only support setting by name. If the custom style name does not exist yet, you can set CopyName, representing copying from a style with the specified name and then setting some parameters.
+Para Style parameters.
+{"req":"Office_SetStyleInfo","rid":78,"para":{"Name":"TestStyle","CreateType":2,"CopyName":"标题 1","Para":{"Hidden":0,"Locked":0,"Visibility":1,"AutoUpdate":0,"UnhideWhenUsed":1,"QuickStyle":1,"NoSpace":0,"FontInfo":{"Name":"Calibri Light","Size":10.500,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":10.500,"DisableCharacterSpaceGrid":0},"ParagraphFormat":{"WordWrap":-1,"KeepTogether":-1,"KeepWithNext":-1,"PageBreakBefore":0,"NoLineNumber":0,"Hyphenation":-1,"WidowControl":0,"FarEastLineBreakControl":-1,"HangingPunctuation":-1,"HalfWidthPunctuationOnTopOfLine":0,"AddSpaceBetweenFarEastAndAlpha":-1,"AddSpaceBetweenFarEastAndDigit":-1,"MirrorIndents":0,"AutoAdjustRightIndent":-1,"DisableLineHeightGrid":0,"SpaceBeforeAuto":0,"SpaceAfterAuto":0,"RightIndent":0.0,"LeftIndent":0.0,"FirstLineIndent":0.0,"LineSpacing":16.0,"SpaceBefore":12.0,"SpaceAfter":3.2,"CharacterUnitRightIndent":0.0,"LineUnitBefore,":0.0,"LineUnitAfter":0.0,"CharacterUnitLeftIndent":0.0,"CharacterUnitFirstLineIndent":0.0,"Alignment":3,"LineSpacingRule":5,"BaselineAlignment":4,"OutlineLevel":9,"ReadingOrder":1,"TextboxTightWrap":0}}}}}
+Return: {"ret":0,"rid":78,"data":{"Ret":"0"}}
+
+79) Delete custom document styles, applicable to Word software.
+Index Style serial number, only supports custom styles, serial number starts from 1. Must first call Office_GetStyleCount and set Base to 1 to get the ID.
+Name Style name, only supports custom style names. Use one of the two. To delete multiple styles, separate names with |.
+{"req":"Office_DelStyle","rid":79,"para":{"Name":"TestStyle"}}
+Return: {"ret":0,"rid":79,"data":{"Ret":"0"}}
+
+80) Request to start playing slides, applicable to PPT software.
+Slide Specifies the starting slide number. If not set, starts from beginning. -1 starts from current slide.
+FullScreen Default full screen play, 0 play within window.
+{"req":"Office_BeginPlay","rid":80,"para":{"Slide":1,"FullScreen":1}}
+Return: {"ret":0,"rid":80,"data":{"Ret":"0"}}
+
+81) Request to exit slide play, applicable to PPT software.
+{"req":"Office_EndPlay","rid":81,"para":{}}
+Return: {"ret":0,"rid":81,"data":{"Ret":"0"}}
+
+82) Request to insert multimedia in slides, applicable to PPT software.
+Link is 1 then only link to the file (network paths do not support 1)
+Save whether to automatically save to the document after insertion.
+Slide Specifies the slide number. If not set, takes the current one.
+MediaFile needs UrlEncode encoding. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+Specify the insertion multimedia display position and dimensions Left, Top, Width, Height. If not specified, Left and Top default to 0, Width and Height must be specified.
+{"req":"Office_InsertMedia","rid":81,"para":{"Slide":1,"MediaFile":"d:/zorro/test.mp4","Width":300,"Height":300}}
+Return: {"ret":0,"rid":81,"data":{"Ret":"0"}}
+
+83) Request to set or get the page display scale and view settings, applicable to Word software.
+Scall Display scale.
+Fit Fit method. https://learn.microsoft.com/zh-cn/office/vba/api/word.wdpagefit
+Setting any of the above 2 parameters represents setting. Not passing parameters represents getting.
+{"req":"Office_PageZoom","rid":83,"para":{"Scall":"100"}}
+Return: {"ret":0,"rid":83,"data":{"Ret":"0","Scall":"100","Fit":"3"}}
+
+84) Request to insert 3D model in slides, applicable to PPT 2016 and newer software.
+Link is 1 then only link to the file (network paths do not support 1)
+Save whether to automatically save to the document after insertion.
+Slide Specifies the slide number. If not set, takes the current one.
+ModelFile needs UrlEncode encoding. If not a full path, unless the data file directory DataPath is specified at startup, the Data subdirectory of the middleware program is used as the root directory by default.
+Specify the insertion model display position and dimensions Left, Top, Width, Height. If not specified, Left and Top default to 0, Width and Height must be specified.
+{"req":"Office_Insert3DModel","rid":84,"para":{"Slide":1,"ModelFile":"d:/zorro/test.glb","Width":300,"Height":300}}
+Return: {"ret":0,"rid":84,"data":{"Ret":"0"}}
+
+85) Request link jump, applicable to Word, Excel, PPT software.
+Name is the hyperlink name. PPT does not support Name.
+Addr is the hyperlink address.
+Index is the serial number. Only PPT supports Index.
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Name":"Test"}}
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Address":"http://www.yuanmaster.com"}}
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":85,"data":{"Ret":"0"}}
+
+86) Request to get current cell content, applicable to Excel software.
+{"req":"Office_GetCurCell","rid":86,"para":{}}
+Return: {"ret":0,"rid":86,"data":{"Ret":"0","Addr":"C1","Val":""}}
+
+87) Request to set current cell content, applicable to Excel software.
+Formula Set formula.
+Formula Set value.
+{"req":"Office_SetCurCell","rid":87,"para":{"Formula":"A1=1","Val":"test1"}}
+Return: {"ret":0,"rid":87,"data":{"Ret":"0"}}
+
+88) Request to get cell content, applicable to Excel software.
+{"req":"Office_GetCellData","rid":88,"para":["A1","A2","B1","C3"]}
+Return: {"ret":0,"rid":88,"data":{"Ret":"0","Data":[]}}
+
+89) Request to set cell content, applicable to Excel software.
+Addr Cell address.
+Formula Set formula.
+Formula Set value.
+{"req":"Office_PutCellData","rid":89,"para":[{"Addr":"C1","Val":"test1","Formula":"A1=1"},{"Addr":"C1","Val":"test1"}]}
+Return: {"ret":0,"rid":89,"data":{"Ret":"0"}}
+
+90) Set the style of the selected content in the document, applicable to Word software.
+Type Built-in style type. Detailed reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index Style serial number, supports custom styles, serial number starts from 1.
+Name Style name. Use by type, serial number, or name, choose one. Supports custom style names. Custom styles only support setting by name.
+{"req":"Office_SetSelectStyle","rid":90,"para":{"Style":"TestStyle"}}
+Return: {"ret":0,"rid":90,"data":{"Ret":"0"}}
+
+91) Request to get the auto-save flag on close, applicable to Word, Excel, PPT software.
+{"req":"Office_GetAutoSave","rid":91,"para":{}}
+Return: {"ret":0,"rid":91,"data":{"Ret":"0","AutoSave":0}}
+
+92) Request to set the auto-save flag on close, applicable to Word, Excel, PPT software.
+{"req":"Office_SetAutoSave","rid":92,"para":{"AutoSave":1}}
+Return: {"ret":0,"rid":92,"data":{"Ret":"0","AutoSave":1}}
+
+93) Request to insert chart from table, applicable to Word software.
+File specifies Excel sheet file path, needs UrlEncode encoding. Supports server path download addresses.
+SheetName Sheet name, default Sheet1.
+Index, chart number, default 1. Not set represents all.
+{"req":"Office_InsertChart","rid":93,"para":{"File":"d:/Zorro/Chart.xlsx","Index":1}}
+{"req":"Office_InsertChart","rid":93,"para":{"File":"http://test.yuanmaster.com/Files/Chart.xlsx","SheetName":"Dashboard","Index":1}}
+Return: {"ret":0,"rid":93,"data":{"Ret":"0"}}
+
+The following are general request methods for functionality not separately encapsulated in VBA interfaces.
+100) Request to get property value.
+Name specifies the property name. Application defaults as the top level. If encountering getting sub-interface properties, add the sub-interface name to the name, supports multi-level. For example, to get the name of the current document use ActiveDocument.Name. Same below.
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Version"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"ActiveDocument.Name"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Text"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Start"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.End"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Information","Para1":"2"}}
+Return: {"ret":0,"rid":100,"data":{"Ret":0,"Val":""}}
+
+101) Request to set property.
+Name specifies the property name. If encountering setting sub-interface properties, add the sub-interface name to the name, supports multi-level.
+Set application window visibility.
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"Visible","Val":"-1"}}
+Set WORD document saved flag.
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Set PPT presentation play interface enable laser pointer.
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"ActivePresentation.SlideShowWindow.View.PointerType","Val":"2"}}
+Return: {"ret":0,"rid":101,"data":{"Ret":0}}
+
+102) Request method with no input parameters.
+Name specifies the method name. If encountering calling sub-interface methods, add the sub-interface name to the name, supports multi-level. For example, current document print preview name ActiveDocument.PrintPreview. Same below.
+DID can also specify the method number.
+{"req":"Office_Invoke0","rid":102,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":102,"data":{"Ret":0,"Val":""}}
+
+103) Request method with only 1 input parameter.
+Name specifies the method name. If encountering calling sub-interface methods, add the sub-interface name to the name, supports multi-level. For example, call current document compatibility mode name ActiveDocument.SetCompatibilityMode. Same below.
+DID can also specify the method number.
+Para1 corresponds to the parameter value.
+{"req":"Office_Invoke1","rid":103,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":103,"data":{"Ret":0,"Val":""}}
+
+104) Request method with only 2 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1 and Para2 correspond to parameter 1 and 2 values, respectively. If values can be omitted, can not pass, e.g., only pass Para1. Same below.
+{"req":"Office_Invoke2","rid":104,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":104,"data":{"Ret":0,"Val":""}}
+
+105) Request method with only 3 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values, respectively.
+{"req":"Office_Invoke3","rid":105,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}
+Return: {"ret":0,"rid":105,"data":{"Ret":0,"Val":""}}
+
+106) Request method with only 4 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values, respectively.
+{"req":"Office_Invoke4","rid":106,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}
+Return: {"ret":0,"rid":106,"data":{"Ret":0,"Val":""}}
+
+107) Request method with only 5 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values, respectively.
+{"req":"Office_Invoke5","rid":107,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":107,"data":{"Ret":0,"Val":""}}
+
+108) Request method with only 6 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values, respectively.
+{"req":"Office_Invoke6","rid":108,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":108,"data":{"Ret":0,"Val":""}}
+
+109) Request method with only 7 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values, respectively.
+{"req":"Office_Invoke7","rid":109,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":109,"data":{"Ret":0,"Val":""}}
+
+110) Request method with only 8 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values, respectively.
+{"req":"Office_Invoke8","rid":110,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":110,"data":{"Ret":0,"Val":""}}
+
+111) Request method with only 9 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values, respectively.
+{"req":"Office_Invoke9","rid":111,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":111,"data":{"Ret":0,"Val":""}}
+
+112) Request method with only 10 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values, respectively.
+{"req":"Office_InvokeA","rid":112,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":112,"data":{"Ret":0,"Val":""}}
+
+113) Request method with only 11 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values, respectively.
+{"req":"Office_InvokeB","rid":113,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":113,"data":{"Ret":0,"Val":""}}
+
+114) Request method with only 12 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values, respectively.
+{"req":"Office_InvokeC","rid":114,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":114,"data":{"Ret":0,"Val":""}}
+
+115) Request method with only 13 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values, respectively.
+{"req":"Office_InvokeD","rid":115,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":115,"data":{"Ret":0,"Val":""}}
+
+116) Request method with only 14 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values, respectively.
+{"req":"Office_InvokeE","rid":116,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":116,"data":{"Ret":0,"Val":""}}
+
+117) Request method with only 15 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values, respectively.
+{"req":"Office_InvokeF","rid":117,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":117,"data":{"Ret":0,"Val":""}}
+
+118) Request method with only 16 input parameters.
+Name specifies the method name.
+DID can also specify the method number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values, respectively.
+{"req":"Office_InvokeG","rid":118,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":118,"data":{"Ret":0,"Val":""}}
+
+5. Event Notifications:
+A. The following are Word program notifications.
+
+B. Supported event notifications:
+
+1) Whether the web component responded to the hotkey full screen.
+The following are full-screen event notifications for Word word processing, Excel spreadsheet, Powerpoint presentation programs respectively.
+{"event":"WORD_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full screen flag.
+{"event":"EXCEL_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full screen flag.
+{"event":"PPT_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full screen flag.
+
+2) Wrl_AppletExit Web component exit notification.
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+3) Document loaded completion notification.
+File Local opened file path.
+Type Open or create.
+{"event":"WORD_LoadOK","data":{"File":"","Type":1}}
+{"event":"EXCEL_LoadOK","data":{"File":"","Type":1}}
+{"event":"PPT_LoadOK","data":{"File":"","Type":1}}
+
+4) Document save notification.
+Type 0 save 1 save as.
+Flag 0 or 1 success greater than 1 save failed -1 modified but not saved when exiting.
+{"event":"WORD_Save","data":{"File":"","Type":0,"Flag":0}}
+{"event":"EXCEL_Save","data":{"File":"","Type":0,"Flag":0}}
+{"event":"PPT_Save","data":{"File":"","Type":0,"Flag":0}}
+
+5) Document open failed notification.
+File Local opened file path.
+Err Error code.
+{"event":"WORD_LoadError","data":{"File":"","Err":0}}
+{"event":"EXCEL_LoadError","data":{"File":"","Err":0}}
+{"event":"PPT_LoadError","data":{"File":"","Err":0}}
+
+6) Server document download progress notification.
+Url Download address.
+Percent Progress percentage.
+{"event":"OFFICE_NetPercent","data":{"Url":"","Percent":0}}
+
+7) Server document download error notification.
+Url Download address.
+Code Error code.
+Desc Error description.
+{"event":"OFFICE_NetError","data":{"Url":"","Code":0,"Desc":""}}
+
+6. Other
+The JSON data packet for request parameters, please ensure it is UTF-8 encoded without BOM.
+More interface request descriptions, please refer to the document TestWrl.txt in the installation directory, and "Middleware Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.

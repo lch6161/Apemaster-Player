@@ -1,0 +1,970 @@
+﻿[file name]: WpsOfficeApplet.txt
+[file content begin]
+﻿Kingsoft WPS Web Component: Based on the cross-browser native mini-program system-ApeMaster Middleware Network Advanced Edition development, underlying calls to Kingsoft WPS (requires Enterprise or Professional Enhanced Edition) VBA interface to achieve programmatically driven web online editing office controls, can respectively embed WPS Writer, WPS Spreadsheets, WPS Presentation software windows into specified webpage areas to run and control.
+Can be used in Chrome 41, Firefox 50, Edge 80 (Chromium kernel), IE 8, Opera, Yandex, Electron, 360 Extreme/Safe, Doubao, Quark, QQ, Sogou, Maxthon, Huawei, Lenovo, Liebao, QAX, RedLotus, Dual-core and other browser low versions, also compatible with running in the latest versions of these browsers.
+Kingsoft WPS supports 2016 and above versions, strongly recommend using the 2019 and 2023 Professional Edition (also called Enterprise Edition, address: https://ep.wps.cn/download select PC version download, if PDF file processing support is needed, must choose this version), general requirements can also use WPS365 Business Edition, address: https://365.wps.cn/download365 select PC version download), not recommended to use Personal Edition (address: https://platform.wps.cn), because it does not support use in browsers launched with administrator privileges, functionality is relatively weaker than other versions.
+
+1. ApeMaster Middleware installation:
+1), If it is an exe installation program, please run the installation directly;
+2), If it is a green version program package, please unzip it to a disk directory, then double-click "InstallWrl.bat" to install;
+3), When the installation is complete, the ApeMaster Middleware service will start, and the ZbaService.txt log file in the Data subdirectory of the installation directory will output the running status.
+
+2. Kingsoft WPS Web Component control related interfaces:
+Note: The following functions can be executed after connecting to the ApeMaster main service via Web Socket (ws://localhost:83?sid=12345&flag=1). If the default listening port is not 83 (for how to configure the listening port, please refer to the document "ApeMaster Developer Manual.pdf" in the SDK package), please specify the port number in the connection address.
+For front-end integration using ordinary JS scripts, please mainly refer to: http://test.yuanmaster.com/OfficeJS, the JS script programs needed for embedding are completely open source. If using the VUE framework, please refer to http://test.yuanmaster.com/Office/ If only simple test startup is needed, you can refer to the following webpages:
+HTTP online test webpage: http://test.yuanmaster.com/wordfull.html        HTTPS online test webpage: https://test.yuanmaster.com/officeframe.html
+If compatibility with IE browser is still needed, in the network version test webpage <object ID="WrlWS" CLASSID="CLSID:C0971B90-4513-4E2D-A0B6-15B915FE748A" width="0" height="0"></object>
+the CLSID needs to be replaced with: 21ADE2E6-B4DD-4F3E-8BD5-9DDAD1785F3A
+Front-end integration can refer to the above test webpages, the JS scripts needed for embedding are completely open source.
+
+1), Request to start Kingsoft WPS Web Component to implement doc/xls/ppt document display partially loaded in the webpage:
+Type is browser type, pass 0 for automatic judgment (premise is the current browser is already started and displayed in the forefront, Flag must be 0 when the current page loads) Can force specify browser type Type (1 represents IE 2 represents Chrome 4 represents Firefox 5 represents Brave (English version) 8 represents Opera 9 represents Vivaldi (English version) 10 represents Yandex 16 represents Edge (Chromium kernel) 20 represents Electron 32 represents 360 Extreme Browser 33 represents 360 Safe Browser 34 represents 360 Extreme Browser 35 represents 360 Enterprise Security Browser 36 represents 360 Game Browser 37 represents 360 AI Browser 40 represents Lenovo Browser 45 represents Dual-core Browser 50 represents QQ Browser 51 represents WeChat Webpage 55 represents QAX Browser 57 represents RedLotus Browser 60 represents Sogou Browser 61 represents Quark 62 represents Maxthon Browser 63 represents Liebao Browser 66 represents Doubao 70 represents Huawei Browser)
+When Type needs to specify browser type, you can first get the current browser's type Type, browser main window handle BrowserWnd, browser drawing window handle DrawWnd, and current webpage title Title through the interface Wrl_BrowserInfo in TestWrl.txt document. Determine whether to continue starting by judging if Title is the webpage that needs embedding. If continuing to start, set the obtained parameters Type, BrowserWnd, DrawWnd into the current request parameters, which can speed up startup.
+Title: Keyword in the webpage title
+Url: The actual webpage address where the web component is loaded, specifies the display position and size of the mini-program in the webpage, not recommended anymore, suggest using Web parameter instead.
+Flag mask mark: 1 specifies new tab loading (when neither 1 nor 16 is specified, it's current page loading) 2 shows title bar 4 does not automatically crop out-of-bounds windows 8 automatically adapts to webpage height and width display 64 enables Web parameter 128 prevents screenshots 256 forces display to secondary screen 512 allows multiple instances to be loaded on the same webpage
+Web: Open configuration (new method), can replace Url, Flag value +64 to use this configuration. When using Web, the values of Left, Top, Width, Height must be specified.
+Web parameter description:
+	Edit represents edit permissions (except 1,256,512,1024 are all supported, others only WPS Writer supports, 1024 only takes effect under OLE embedding mode, where 1,2,16,32,64,128 are mutually exclusive) 1 read-only open 2 automatically in revision mode after opening 4 prohibit save as 8 prohibit print 16 prohibit copy content 32 only revision 64 only comment 128 preview mode 256 prohibit paste content out of edit window 512 supports upload/download documents in PageHi menu 1024 secure document (automatically deletes local document after loading and uploading) 2048 disable full-screen editing
+	Hide represents hidden interface elements (currently only 8 and 16 are supported in full embedding mode) 1 hide menu 2 hide standard toolbar 4 hide formatting toolbar 8 hide status bar 16 hide right-click menu
+	User represents the user name editing the document
+	PW represents the password needed to open the document, not supported under OLE embedding
+	DataPath represents document search and save default path
+	WaterMark automatically adds watermark node information after opening or creating a file, content consistent with interface Office_InsertWaterMark
+	Cookie when the document opened by Open is a Url address on the server, set Cookie for network request Url to obtain download permission
+	Auth when the document opened by Open is a Url address on the server, set Auth for network request Url to obtain download permission
+IframeX and IframeY are the horizontal and vertical offset correction coordinates for iframe nesting respectively.
+BarW and BarH are the reserved areas on the right and bottom of the webpage, ScrollTop is the reserved height for top scrolling.
+v actual display will first be based on the coordinates and size specified in Web or Url, then corrected according to the values set by IframeX, IframeY, BarW, BarH.
+Option: 11 is to start Kingsoft Writer 12 is to start Kingsoft Spreadsheets 13 is to start Kingsoft Presentation 15 is Adobe Pdf Reader or Foxit OFD format office suite OCX control to open pdf 16 is to start WPS PDF program to open pdf (does not support OLE embedding)  18 is Foxit OFD format office suite OCX control to open ofd
+Version: 0: OLE embedding mode load 1: Full load (supports document comparison operation) 2: OLE embedding mode load (difference from 0 is that WPS Professional Edition and Microsoft Office high versions start Office process in advance to support multiple documents and speed up startup performance) When Option is 5, Version automatically defaults to 1 WPS non-Professional Edition does not support document comparison and exporting OFD files and other operations.
+Open: The document path that needs to be opened, use / or \\ for disk directory slashes. Supports server HTTP protocol file download path (please set Auth or Cookies etc. to ensure download without login). If the download address contains a file name, try to put the file name as the last parameter in the Url address; if it does not contain a file name, please specify filename in Content-Disposition.
+If this parameter is not a full path, including server paths, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default. If opening with byte stream file, no need to specify here.
+Note: If there are special characters = & double quotes or Chinese etc. in Open, Url, they need to be URL encoded before passing.
+Example:
+Automatically identify current browser and start Kingsoft Writer program
+{"req":"Wrl_OfficeApplet","rid":6,"para":{"Type":"0","Version":2,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":7,"Hide":0,"User":"test","PW":"","DataPath":"c:/OfficeDoc"},"Option":"11","Open":"D:/Zorro/test.doc"}}
+
+Automatically identify current browser and start Kingsoft Spreadsheets program
+{"req":"Wrl_OfficeApplet","rid":6,"para":{"Type":"0","Version":1,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":3,"Hide":0,"PW":""},"Option":"12","Open":"D:/Zorro/test.xls"}}
+
+Automatically identify current browser and start Kingsoft Presentation program
+{"req":"Wrl_OfficeApplet","rid":6,"para":{"Type":"0","Version":0,"Title":"Office Applet","Flag":66,"Left":20,"Top":20,"Width":480,"Height":320,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":1,"Hide":0,"PW":""},"Option":"13","Open":"D:/Zorro/test.ppt"}}
+
+Automatically identify current browser, specify position, automatically adapt to webpage size to start:
+{"req":"Wrl_OfficeApplet","rid":6,"para":{"Type":"0","Version":2,"Title":"Office Applet","Flag":72,"Left":0,"Top":0,"Width":0,"Height":0,"IframeX":0,"IframeY":0,"BarW":0,"BarH":0,"ScrollTop":0,"Web": {"Edit":7,"Hide":0,"User":"test","PW":"","DataPath":"c:/OfficeDoc"},"Option":"11","Open":"D:/Zorro/test.doc"}}
+
+Open server document, can change Open parameter to an address like
+"Open":"http://www.yuanmaster.com/Files/template.doc"
+
+After startup, three JSON data packets will be received successively
+A, {"ret":0,"rid":6,"data":{"ID":3}}
+Represents the web component WS listening service is ready.
+B, {"event":"Wrl_Listen","aid":3,"rid":6,"data":{"SID":"123","PID":"WpsApplet","port":950}}
+Returns the listening port, you can then establish another Web Socket connection and call related functions in the web component, such as opening a document.
+Returned ID is the current web component running instance ID. Through this ID, commands like Wrl_AppletControl, Wrl_AppletScroll, Wrl_AppletResize can be executed.
+C, {"event":"Wrl_AppletOK","aid":3,"rid":6,"data":{"SID":"123","PID":"WpsApplet","Port":950}}
+
+Regarding the Option parameter, if unsure whether to call to start Microsoft Office web component, Kingsoft WPS embedded web component, or Yongzhong Office embedded web component, please first call the command
+X64 is 1 specifies to only get the current valid 64-bit version, 0 gets all
+{"req":"Wrl_OfficeInfo","rid":2,"para":{"X64":0}} Get the installation status of current computer's Office and Adobe Acrobat, return value
+{"ret":0,"rid":2,"req":"Wrl_OfficeInfo","data":{"Info":[{"Type":1,"X64":0,"Cur":0,"Ver":"15.0.5389.1000"},{"Type":11,"X64":0,"Cur":0,"Ver":"11.1.0.11045"},{"Type":21,"X64":0,"Cur":1,"Ver":"8.0.0.0"},{"Type":5,"X64":0,"Cur":0,"Ver":"","Path":"C:/Program Files (x86)/Common Files/Adobe/Acrobat/ActiveX/AcroPDF.dll"}]}}
+Type 1 represents Microsoft Office, 11 represents Kingsoft WPS, 21 represents Yongzhong Office, 5 represents Adobe Acrobat
+X64 represents whether it is 64-bit version
+Cur represents whether it is currently valid
+Ver represents file version information
+
+2), Request to control Kingsoft WPS web component:
+When the front-end no longer needs the web component, it can be specified to close, or show/hide, full screen display, etc.
+ID is the ID value returned in the JSON when starting the web component, Code represents control type mask: 1 normal close 128 force close quickly 2 full screen display 4 auto hide 8 restore display 16 auto adapt to webpage height and width display mode switch 32 force hide. Among them, full screen display 2, can be directly canceled by hotkey ESC or cancel. After hiding with 4 and 32, it can be restored with 8.
+{"req":"Wrl_AppletControl","rid":2,"para":{"ID":"1","Code":4}}
+
+3), Request to scroll Kingsoft WPS web component:
+When the front-end captures webpage scrolling, this interface needs to be called to achieve linkage between the web component and webpage scrolling.
+ID is the ID value returned in the JSON when starting the mini-program.
+Code is the scrolling direction 1 is horizontal, 2 is vertical, 3 is both.
+Left is the horizontal scrollbar position, Top is the vertical scrollbar position.
+{"req":"Wrl_AppletScroll","rid":3,"para":{"ID":"1","Code":2,"Left":0,"Top":100}}
+
+4), Request to change Kingsoft WPS web component display position or size:
+When the front-end webpage display area zooms, the display position or size of the web component can be dynamically modified.
+ID is the ID value returned in the JSON when starting the web component, Width and Height are the new width and height respectively, X and Y are the new display positions. If not specified, remain unchanged. If specified, the originally set IframeX and IframeY become invalid.
+{"req":"Wrl_AppletResize","rid":4,"para":{"ID":1,"Width":500,"Height":600}}
+Or simultaneously set the web component display starting coordinates
+{"req":"Wrl_AppletResize","rid":5,"para":{"ID":1,"Width":500,"Height":600,"X":20,"Y":20}}
+
+5), Request to set webpage reserved right width and bottom height, scrollbar information, vertical scroll and horizontal scroll position:
+When the web component display area exceeds the current webpage, the display impact of the scrollbar needs to be removed.
+ID is the ID value returned in the JSON when starting the web component, BarW is the reserved right width, BarH is the reserved bottom height.
+Code 1 represents horizontal scrollbar, 2 represents vertical scrollbar, 3 represents both.
+ScrollTop vertical scrollbar position ScrollTop horizontal scrollbar position
+{"req":"Wrl_ScrollBar","rid":6,"para":{"ID":"1","Code":2,"BarW":0,"BarH":0,"ScrollTop":0,"ScrollLeft":0}}
+
+6), Request to do Alpha transparent processing on the web component window, to facilitate the front-end to temporarily display menus etc. overlaid on the web component window:
+ID is the ID value returned by Wrl_OfficeApplet when starting the web component, Alpha is transparency percentage, 1-100
+{"req":"Wrl_AppletAlpha","rid":7,"para":{"ID":1,"Alpha":30}}
+
+7), Request to take a screenshot of the web component window content:
+ID: The aid instance value returned in the JSON when starting the mini-program
+File: Specifies the screenshot file save path or extension
+Base64: Specify as 1 to return BASE64 encoded image content
+Flag: If the embedded mini-program window (e.g., DirectUI or Direct3D drawing) has abnormal capture, you can additionally specify as 1 to see the effect. Additionally, if multiple captures or box selection captures are needed, you can add 2 or 4 to start the capture tool separately.
+{"req":"Wrl_AppletSnap","rid":10,"para":{"ID":1,"Base64":1,"Flag":2,"File":".jpg"}}
+
+8), Request to scale the web component, used for browser webpage proportional scaling, generally no need to handle:
+ID is the ID value returned in the JSON when starting the web component. If Scale is not specified, get the scaling percentage used by the current web component, generally consistent with the system scaling ratio.
+{"req":"Wrl_AppletScale","rid":11,"para":{"ID":1,"Scale":120}}
+
+3. Web component installation, upgrade, uninstallation
+1), Request to install Kingsoft WPS web component
+Please enter the following request in the test webpage input box, then click send to complete installation:
+
+{"req":"Plugin_Install","rid":1,"para":{"Name":"Kingsoft WPS Web Component","PID":"WpsApplet","Date":"2025-05-30","Desc":"Cross-browser Kingsoft WPS embedded web component on ApeMaster, supports embedding Writer, Spreadsheets, Presentation and other programs in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest version browser webpages for online editing or reviewing various office documents","DownAddr":"http://local.zorrosoft.com/Files/Net/WpsApplet.pid","MD5":"48823508C980FC43E49A6116E57DBE0C","Version":"2.2.17.6","Size":5308416,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"37ECBF09F2E77668BEB79D5F4B48A858BE2A4518537AF95BE6B7416CFFBC07633935133BB1BAA8FE303FB84A79350A9C04059A3AC0231BA1EC6068E758F04D2978D9ADA31D8C25F5B29B90C21E60F16E2C846CA56B37517351FEAF399FA59E77838B3804659E5C02D4C96FBB509AFB4FB986AB2F6C4CFD4384C8E3A1E84EC9DB9771F2998722CBB4A53A51CE8E70F298A14A12756A199FC32869D084E172C02963E59A2063DE85D3A8804303719AAFEDD0EF2F0584C40222100AAF975B021103A4ED939C27C1F32A758B14F09DFB3130AC269CE67AECE2D414D0230A1AC63C541C4E16B818B2207BFEA33121FAD89C8BAF664A97438EACEA9DBC07BDDE6D26FF"}}
+
+After starting installation, installation progress will be continuously received until installation ends.
+When distributing, you can also package this mini-program directory files with the middleware for distribution, no need for separate distribution.
+
+2), Request to upgrade Kingsoft WPS web component:
+
+{"req":"Plugin_Update","rid":1,"para":{"Name":"Kingsoft WPS Web Component","PID":"WpsApplet","Date":"2025-05-30","Desc":"Cross-browser Kingsoft WPS embedded web component on ApeMaster, supports embedding Writer, Spreadsheets, Presentation and other programs in Chrome, Edge, Firefox, IE, Opera, 360, QQ and other latest version browser webpages for online editing or reviewing various office documents","DownAddr":"http://local.zorrosoft.com/Files/Net/WpsApplet_Update.pid","MD5":"265C78BE1A61C6D472F473CF5867B2D0","Version":"2.2.17.6","Size":5308416,"HideIns":0,"Type":8,"Cookie":"","Auth":"","TK":"8914E4A6F1FD7C760318B3A6E97ECB29E5DA9FE1FE992D88F1E8F7578C0743DA42B24C6B321C9D5091BD364233224553F76E1A070B78B9BA2644960AD0BDC7CD815E0FCEC1773554A2FC34610FC7C0C4CA902C8C8CF2127802D2C46FFA132403E1FBF62695F7A5471013484BD3EF1528668B87FF7772077E4AEB563B1B05A48EF3D18451EEADA662722B1323FF8A133744D2E70D3EB795B9289664788F5FCA101D83E2094075C7F032854DD4001CE56D5B55C99C922675D57534FFA58FD226685C109CCC8EE03451451B34056FA6E6FD210BA9841DB4378ED9352347646DC0B7BE83F4AA717C67212EEC798B89621DBDC0CF45C0CBE77C5386E518EA3CDAC259"}}
+
+The above installation and upgrade JSON request packages may differ due to version upgrades. If errors occur during installation or upgrade, please contact customer service to obtain the latest request package.
+
+3), Request to uninstall Kingsoft WPS web component:
+The official version requires TK verification. Specific rules please refer to the document "Middleware Security Solution.pdf" in the SDK package. You can generate a request with TK in the packaging program ZbaPackage.exe in the SDK package under middleware maintenance.
+{"req":"Plugin_Remove","rid":3,"para":{"PID":"WpsApplet","Type":8}}
+
+4. Kingsoft WPS web component calls the WPS software VBA interface. First, based on the port number returned after the Wrl_OfficeApplet request starts, establish a new WebSocket connection to execute the following commands:
+
+A. Common function requests:
+
+1) Get whether the document has been modified and needs saving, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+{"req":"Office_IsSaved","rid":1,"para":{}}
+Return: {"ret":0,"rid":1,"data":{"Ret":"0","IsSaved":0}}
+IsSaved is true, means it has been saved, no modification, no need to call save again.
+
+2) Set whether the document needs saving mark, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Set Saved to true to avoid save prompts when exiting.
+{"req":"Office_PutSaved","rid":2,"para":{"Saved":"1"}}
+Return: {"ret":0,"rid":2,"data":{"Ret":"0"}}
+
+3) Request to open document Open is the path to open the document, Chinese or special characters need UrlEncode encoding, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+If a document is already open before opening, the previous document will be automatically closed to avoid opening multiple documents simultaneously.
+Open opens the document (create new document if not specified) Supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+User sets edit username Edit sets edit permissions, meaning same as at startup Hide controls interface display mark.
+If byte stream file opening is needed, the Byte parameter must be specified, representing the length of the file stream. After this request returns, the front-end continues to send the byte stream.
+If opening a Writer document, you can specify NoRepair, default 0, specify 1 to open without repair warning dialog.
+{"req":"Office_Open","rid":3,"para":{"Open":"D:/Zorro/test.doc","User":"test","Edit":0,"Hide":0}}
+Open server document
+{"req":"Office_Open","rid":3,"para":{"Open":"http://www.yuanmaster.com/Files/template.doc","Edit":0}}
+Return: {"ret":0,"rid":3,"data":{"Ret":"0"}}
+
+4) Request to save, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software. If it is a new document, a temporary file name will be created for saving.
+If the Url and other parameters specified in the Office_NetFile interface are specified, it means uploading to the server while saving locally. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the size and MD5 hash value of the upload data packet respectively.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues to receive the file byte stream.
+{"req":"Office_Save","rid":4,"para":{}}
+{"req":"Office_Save","rid":4,"para":{"Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","FilePath":"","Info":{}}} Where FilePath is the actual save path, Info is the data packet returned by the upload interface, must be described in JSON.
+
+5) Request to save as NewFile is the save as path, Chinese or special characters need UrlEncode encoding, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+WPS Writer supports saving as OFD file (Format is 25, Personal Edition does not support) or UOF file (Format is 103). NewFile supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+If the Url and other parameters specified in the Office_NetFile interface are specified, it means uploading to the server while saving locally. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the size and MD5 hash value of the upload data packet respectively.
+When saving as ppt or pptx, you can specify the EmbedFonts parameter whether to embed TrueType fonts, default embedded.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues to receive the file byte stream.
+{"req":"Office_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/test.xml"}}
+{"req":"Office_SaveAs","rid":5,"para":{"NewFile":"D:/Zorro/testSA.doc"}}
+{"req":"Office_SaveAs","rid":5,"para":{"Format":25,"NewFile":"D:/Zorro/test.ofd"}}
+{"req":"Office_SaveAs","rid":5,"para":{"Asyn":0,"NewFile":"D:/Zorro/testSA.doc","Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":4,"data":{"Ret":"0","FilePath":"","Info":{}}} Where FilePath is the actual save path, Info is the data packet returned by the upload interface, must be described in JSON.
+
+6) Request to export to PDF or XPS format NewFile is the export document path, Chinese or special characters need UrlEncode encoding, applicable to WPS Writer, WPS Spreadsheets software
+NewFile supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+If the Url and other parameters specified in the Office_NetFile interface are specified, it means uploading to the server while saving locally. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the size and MD5 hash value of the upload data packet respectively.
+If Byte byte stream parameter was specified when calling open, after this request returns, the front-end continues to receive the file byte stream.
+{"req":"Office_Export","rid":6,"para":{"NewFile":"D:/Zorro/test1.pdf"}}
+{"req":"Office_Export","rid":6,"para":{"NewFile":"D:/Zorro/testExport.pdf","Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":6,"data":{"Ret":"0"}}
+
+7) Request to insert image at current cursor position ImgFile is the image path (supports network path), Chinese or special characters need UrlEncode encoding, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software. ImgFile supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+Pos specifies the insertion position. If not specified, insert at current position. WPS Writer specifies bookmark name. WPS Spreadsheets specifies names like A1, B2, etc.
+Link is 1 then only link to file (network path does not support 1) Save save to document.
+ImgFile supports relative paths. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+Save whether to automatically save to document after insertion.
+Order sets the relationship between image and text, applicable to WPS Writer 5 represents the image floats above the text. If not needed, set -1 or do not pass this parameter.
+Wrap picture text wrapping type, applicable to WPS Writer. Specific reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdwraptype
+WPS Writer, WPS Spreadsheets specifying Width, Height represents setting the width and height displayed after inserting the image.
+In WPS Presentation, the position and size of the inserted image can be specified.
+Left, Top, Width, Height. If not specified, Left and Top default to 0, Width and Height are the width and height of the image respectively.
+{"req":"Office_InsertImg","rid":7,"para":{"ImgFile":"D:/Zorro/test.png","Link":"0","Save":"1","Order":"-1"}}
+Or
+{"req":"Office_InsertImg","rid":7,"para":{"ImgFile":"http://www.yuanofficer.com/uploads/allimg/20230407/1-23040G51633X9.jpg","Link":"0","Save":"1","Order":"5"}}
+Return: {"ret":0,"rid":7,"data":{"Ret":"0","Width":"1","Height":"1"}} Width and Height are the width and height of the inserted image respectively.
+
+8) Request to batch insert text at the current cursor position, applicable to WPS Writer software
+FontSize font size
+FontName font name
+Color font color
+Bold bold size
+The above parameters can also be directly specified by the style Style.
+Paragraph represents the number of line breaks.
+Alignment is the alignment method 0 left alignment 1 center 2 right alignment.
+{"req":"Office_Insert","rid":8,"para":[{"Paragraph":1},{"FontSize":"16","FontName":"宋体","Color":"0","Alignment":"0","Bold":"8","Text":"详情请点击这里："},{"Paragraph":1},{"Address":"http://www.yuanmaster.com","Display":"猿大师官方网站"}]}
+{"req":"Office_Insert","rid":8,"para":[{"Paragraph":1},{"FontSize":"16","FontName":"宋体","Color":"0","Bold":"8","Text":"详情请点击这里："},{"Paragraph":1},{"Address":"http://www.yuanmaster.com","Display":"猿大师官方网站"}]}
+Respectively: line break, insert text with specified font and color value, then line break, insert a hyperlink.
+Return: {"ret":0,"rid":8,"data":{"Ret":"0"}}
+
+9) Request to perform Backspace operation at current cursor position, applicable to WPS Writer software
+{"req":"Office_Backspace","rid":9,"para":{}}
+Return: {"ret":0,"rid":9,"data":{"Ret":"0"}}
+
+10) Request batch printing, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Copies is the number of copies, prints all pages by default. When printing to file, OutFile needs to be specified. Chinese or special characters need UrlEncode encoding.
+{"req":"Office_PrintOut","rid":10,"para":{"Copies":"1","OutFile":"D:/Zorro/testprint.pdf"}}
+Return: {"ret":0,"rid":10,"data":{"Ret":"0"}}
+
+11) Request to move cursor position, applicable to WPS Writer software
+Up is upward, downward by default. Up is 1 upward. Unit movement unit (5 is number of text lines, 7 is screen area) Count is the number of movements.
+{"req":"Office_MoveLine","rid":11,"para":{"Up":"0","Unit":"5","Count":"6"}}
+Return: {"ret":0,"rid":11,"data":{"Ret":"0"}}
+
+12) Request to get current username, applicable to WPS Writer, WPS Spreadsheets software
+{"req":"Office_GetUserName","rid":12,"para":{}}
+Return: {"ret":0,"rid":12,"data":{"Ret":"0","User":"test"}}
+
+13) Request to set current username, applicable to WPS Writer, WPS Spreadsheets software
+{"req":"Office_PutUserName","rid":13,"para":{"User":"test"}}
+Return: {"ret":0,"rid":13,"data":{"Ret":"0"}}
+
+14) Request to get whether in revision mode, applicable to WPS Writer software
+{"req":"Office_GetTrackRevisions","rid":14,"para":{}}
+Return: {"ret":0,"rid":14,"data":{"Ret":"0","TrackRevisions":"0"}}
+
+15) Request to set whether in revision mode, applicable to WPS Writer software
+TrackRevisions 1 enable revision mode 2 force revision mode
+{"req":"Office_PutTrackRevisions","rid":15,"para":{"TrackRevisions":"1"}}
+Return: {"ret":0,"rid":15,"data":{"Ret":"0"}}
+
+16) Request for subsequent operations in revision mode, applicable to WPS Writer software
+Type is the operation type, 0 default represents toggle modification mode, 1 represents accept all revisions 2 represents reject all revisions
+{"req":"Office_TrackRevisions","rid":16,"para":{"Type":"1"}}
+Return: {"ret":0,"rid":16,"data":{"Ret":"0"}}
+
+17) Request to get whether to display revision information, applicable to WPS Writer software
+{"req":"Office_GetShowRevisions","rid":17,"para":{}}
+Return: {"ret":0,"rid":17,"data":{"Ret":"0","ShowRevisions":"0"}}
+
+18) Request to set whether to display revision information, applicable to WPS Writer software
+{"req":"Office_PutShowRevisions","rid":18,"para":{"ShowRevisions":"1"}}
+Return: {"ret":0,"rid":18,"data":{"Ret":"0"}}
+
+19) Request to add comment at current position, applicable to WPS Writer software
+Text is the text description of the added comment.
+{"req":"Office_InsertComment","rid":19,"para":{"Text":"批注内容"}}
+Return: {"ret":0,"rid":19,"data":{"Ret":"0"}}
+
+20) Request to get the number of bookmarks in the current document, applicable to Word software
+Hidden whether to include hidden bookmarks
+Sort sort type 0 default by name 1 by position
+{"req":"Office_MarkCount","rid":20,"para":{"Hidden":0,"Sort":0}}
+Return: {"ret":0,"rid":2018,"data":{"Ret":"0"}}
+
+21) Request to determine if the current bookmark exists, applicable to Word software
+Name is the bookmark name
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding
+{"req":"Office_MarkIsExist","rid":21,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":21,"data":{"Ret":"0"}}
+
+22) Request to get all bookmarks in the current document, applicable to Word software
+Encode default 0, 1 represents the bookmark name and content use UrlEncode encoding
+Hidden whether to include hidden bookmarks
+Sort sort type 0 default by name 1 by position
+{"req":"Office_AllMark","rid":22,"para":{"Encode":0,"Hidden":0,"Sort":0}}
+Return: {"ret":0,"rid":22,"data":{"Ret":[{"Name":"Caption","Text":"[请输入标题]"},{"Name":"Content","Text":"[公文内容]"},{"Name":"Description","Text":"[公文说明或描叙]"},{"Name":"Sec","Text":"[公文密级]"},{"Name":"Subject","Text":"[公文主题词]"]}]}}
+
+23) Request the bookmark name by specified serial number or the text content by specified name, applicable to WPS Writer software
+Index is the bookmark serial number Name is the bookmark name
+Detail is 1 to get details, default is 0 only returns bookmark name
+Encode default 0, 1 represents the bookmark name and content use UrlEncode encoding
+{"req":"Office_GetMarkInfo","rid":23,"para":{"Index":"1","Detail":"1"}}
+{"req":"Office_GetMarkInfo","rid":23,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":23,"data":{"Ret":"0"}}
+
+24) Request to replace the content of the specified bookmark name, applicable to WPS Writer software
+Name is the bookmark name, Text is the bookmark content. Inserting ^p in the content can achieve line break.
+Encode default 0, 1 represents the bookmark name and content use UrlEncode encoding
+{"req":"Office_PutMarkText","rid":24,"para":{"Marks":[{"Name":"Caption","Text":"公文标题"},{"Name":"Content","Text":"公文内容"},{"Name":"Description","Text":"公文说明或描叙"},{"Name":"Sec","Text":"公文密级"},{"Name":"Subject","Text":"公文主题词"}]}}
+Return: {"ret":0,"rid":24,"data":{"Ret":"0"}}
+
+25) Cursor jumps to the bookmark of the specified name, applicable to WPS Writer software
+Name is the bookmark name NoSelect is 1 to remove bookmark selection state
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding
+{"req":"Office_GotoMark","rid":25,"para":{"Name":"Caption","NoSelect":1}}
+Return: {"ret":0,"rid":25,"data":{"Ret":"0"}}
+
+26) Get the number of revisions, applicable to WPS Writer software
+{"req":"Office_GetRevisionsCount","rid":26,"para":{}}
+Return: {"ret":0,"rid":26,"data":{"Ret":"0","Count":0}}
+
+27) Create specified directory, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Dir is the subdirectory name, can be a full path. Need to ensure permission to create subdirectories. If not a full path, it is a subdirectory of the startup specified data file path DataPath. If DataPath is not specified, it is the middleware data subdirectory.
+{"req":"Office_CreateDir","rid":27,"para":{"Dir":"/doc"}}
+Return: {"ret":0,"rid":27,"data":{"Ret":"0"}}
+
+28) Find images in the document and return BASE64 encoded data, applicable to WPS Writer software
+Index is the image serial number, numbered from 1. Check Shapes first, then InlineShapes.
+File is the local file save path, can use relative path. If this parameter is specified, it means directly save this image to local, Code returns the local file full path.
+{"req":"Office_GetImage","rid":28,"para":{"Index":1}}
+Return: {"ret":0,"rid":28,"data":{"Ret":"0","Code":""}} Code returns the encoded data by default.
+
+29) Request to merge document to specified bookmark content, applicable to WPS Writer software
+File is the full path of the document to be merged. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+Marks specifies the array of bookmark names that need to be replaced.
+By default, it looks for content corresponding to the bookmark name in the File document to replace. If there is no corresponding bookmark, the entire file is inserted directly.
+{"req":"Office_MarkMerge","rid":29,"para":{"File":"D:/Zorro/TestMark.docx","Marks":["Letter","Title"]}}
+Return: {"ret":0,"rid":29,"data":{"Ret":"0"}}
+
+30) Request to merge specified documents to a new page of the current document, applicable to WPS Writer software
+Files is the array of documents to be merged. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+{"req":"Office_FileMerge","rid":30,"para":{"Files":["D:/Zorro/TestMark.docx","D:/Zorro/Test.docx"]}}
+Return: {"ret":0,"rid":30,"data":{"Ret":"0"}}
+
+31) Call menu and toolbar button functions, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+BarName: Menu bar name BtnName: Requested function name or function serial number.
+Example, call Beijing Dianju electronic seal stamping function: {"req":"Office_CallCmdbar","rid":31,"para":{"BarName":"电子印章","BtnName":"盖章"}} Or {"req":"Office_CallCmdbar","rid":31,"para":{"BarName":"电子印章","BtnName":"1"}}
+Return: {"ret":0,"rid":31,"data":{"Ret":"0"}}
+
+32) Show document differences in revision marks, applicable to WPS Writer software. Must specify Version as 1 at startup, non-OLE embedding mode support.
+Prerequisite is that the current document is already open and compared with the document specified by Name.
+Name the document to compare, must be specified.
+Target is the target type, optional 0 is selected 1 is current 2 is new document Default 2
+{"req":"Office_ShowDifferent","rid":32,"para":{"Name":"D:/Zorro/Test7.doc","Target":"2"}}
+Return: {"ret":0,"rid":32,"data":{"Ret":"0"}}
+
+33) Specify a new document to compare with the currently open document, applicable to WPS Writer software. Must specify Version as 1 at startup, non-OLE embedding mode support.
+Prerequisite is that the current document is already open and compared with the document specified by Name.
+Name the document to compare, must be specified.
+Target is the target type, optional 0 in original document 1 in original document 2 is revision document Default 2 is new document.
+Out save comparison result document.
+{"req":"Office_DocCompare","rid":33,"para":{"Name":"D:/Zorro/Test7.doc","Target":"2","Out":"D:/Zorro/Result.doc"}}
+Return: {"ret":0,"rid":33,"data":{"Ret":"0"}}
+
+34) Toggle full-screen editing status, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+{"req":"Office_SwitchFullScreen","rid":34,"para":{}}
+Return: {"ret":0,"rid":34,"data":{"Ret":"0"}}
+
+35) Network file operation, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Type 1 upload file 0 download file
+Asyn default 0, specify 1 for asynchronous upload or download. Asynchronous upload requires separate use with file operation mini-program.
+Agent, Cookie and Auth Cookie can pass the browser's Cookie or Auth authorization to verify upload permissions, default empty. If not empty, UrlEncode encoding needs to be done first.
+Local upload file local path or download file save path. If not specified, the currently opened document is used by default. UrlEncode encoding is required.
+Url upload or download address. UrlEncode encoding is required. During upload, we will add parameters similar to "PHPostSize=10847&PHPostMD5=6D0FDA97DD6C5D087FE7166F49980BBC" to the upload Url address, representing the size and MD5 hash value of the upload data packet respectively.
+When Type is 1, you can add parameter Para, corresponding to the parameter param needed in the POST data packet. The default upload file name is upfile, otherwise you can set your own file parameter name through NodeName.
+When Type is 0, you can add parameters MD5 and FileSize, the hash value and size of the downloaded file, used to verify the integrity of the downloaded file. Can be left empty or 0 by default.
+{"req":"Office_NetFile","rid":35,"para":{"Type":0,"Asyn":0,"Agent":"","Cookie":"","Auth":"","FileSize":0,"MD5":"","Local":"C:/OfficeDoc/test.docx","Url":"http://local.zorrosoft.com/Files/PHDefault.docx"}}
+{"req":"Office_NetFile","rid":35,"para":{"Type":1,"Asyn":0,"Agent":"","Cookie":"","Auth":"","Para":"","Local":"","Url":"http://zorrosoft.com/wp-admin/admin-ajax.php"}}
+Return: {"ret":0,"rid":35,"data":{"Ret":"0","Info":{}}} Info is the information returned from the server upload, must be described in JSON format.
+
+36) Convert specified page number or range to image, returns Base64 encoded data by default, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Index is the page number or slide serial number, numbered from 1. Pass 0 to get the current page. Valid for WPS Writer and WPS Presentation.
+Range is the table range. If not specified, takes the currently selected table. Valid for WPS Spreadsheets.
+File if extension is not specified, Type is image type 3 default JPG 4 PNG 1 BMP 2 GIF
+File is the local file save path, can contain extension. Can use relative path. If this parameter is specified, it means directly save the converted result image locally, Code returns the local file full path.
+For documents with formulas, if extracting images results in garbled characters or automatic image cropping is needed, specify parameter Math as 1 to solve. AutoCrop automatic cropping, default 1, can manually specify 0 not to crop. Valid for WPS Writer.
+Example 1: {"req":"Office_ConvertImage","rid":36,"para":{"Index":1,"Type":3}}
+Example 2: {"req":"Office_ConvertImage","rid":36,"para":{"Index":1,"Math":1,"AutoCrop":1,"File":"test1.png"}}
+Example 3: {"req":"Office_ConvertImage","rid":36,"para":{"Range":"A1:D5","File":"test2.png"}}
+Return: {"ret":0,"rid":36,"data":{"Ret":"0","Code":""}} Code returns the Base64 encoded data of the image or the image file path by default.
+
+37) Get currently opened document and other information, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+File: Local document path User: Current edit username
+ProtType ProtStatus are the current document protection type (0 read-only 1 only revision 2 only comment 3 fill form) and status (0 unprotected 1 document self-protection 2 web component temporarily added protection) respectively.
+Edit: Edit permission Option: Used option Hide: Interface hidden type
+LastWriteTime: Document last modification time
+{"req":"Office_GetCurOpen","rid":37,"para":{}}
+Return: {"ret":0,"rid":37,"data":{"Ret":"0","File":"C:/OfficeDoc/test.docx","User":"test","ProtType":0,"ProtStatus":0,"Edit":0,"Option":0,"Hide":0,"LastWriteTime":0}}
+
+38) Set or cancel document protection. If already in protected state, calling again cancels protection, and vice versa. Applicable to WPS Writer software.
+Type protection type 0 read-only 1 only revision 2 only comment 3 fill form
+PW is the password. If there are special characters, UrlEncode encoding needs to be done first.
+{"req":"Office_Protect","rid":38,"para":{"Type":0,"PW":""}}
+Return: {"ret":0,"rid":38,"data":{"Ret":"0","Status":0}}
+Status returns document protection status, 1 is protected.
+
+39) Insert table, applicable to WPS Writer software
+RowNum number of rows ColumnNum number of columns
+{"req":"Office_InsertTable","rid":39,"para":{"RowNum":2,"ColumnNum":5}}
+Return: {"ret":0,"rid":39,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+40) Insert watermark, applicable to WPS Writer software
+Type watermark type Type default 0 system text watermark 1 custom text watermark 2 image watermark
+Content when type is 1, the content of the text watermark; when type is 2, the image file path or server watermark image download address. If there are non-English, special characters or symbols, UrlEncode encoding is required.
+Insert "TestWaterMark" custom text watermark TextEffect text effect (refer to MsoPresetTextEffect definition) FontSize font size default 36
+FontBold whether bold FontItalic whether italic FontName font name (need UrlEncode encoding first) FillColor fill color default RGB(192, 192, 192) Transparency default 0.5 Rotation angle default 0
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":1,"Content":"TestWaterMark","TextEffect":0,"FontSize":1,"FontBold":1,"FontItalic":1,"FontName":"%E7%AD%89%E7%BA%BF","FillColor":"#C0C0C0","Transparency":0.5,"Rotation":0}}
+Insert image watermark from server Width display width (unit: cm) Height display height (unit: cm)
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":2,"Content":"http://www.yuanofficer.com/uploads/allimg/20230407/1-23040G51633X9.jpg","Width":15,"Height":18}}
+Insert local image watermark Width display width (unit: cm) Height display height (unit: cm)
+{"req":"Office_InsertWaterMark","rid":40,"para":{"Type":2,"Content":"C:/Users/administrator/Pictures/TestWaterMark.jpg","Width":15,"Height":18}}
+
+Return: {"ret":0,"rid":40,"data":{"Ret":"0"}}
+
+41) Remove all existing watermarks, applicable to WPS Writer software
+{"req":"Office_DelWaterMark","rid":41,"para":{}}
+Return: {"ret":0,"rid":41,"data":{"Ret":"0"}}
+
+42) Set upload/download address, needed for upload/download function in PageHi, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+The upload/download function in PageHi requires the Edit mask value in the Web node of the startup command to be increased by 512 to open.
+DownUrl document download address
+AsynDown whether asynchronous download
+DownFileSize download file size
+DownMD5 download file MD5
+DownCookie download Cookie
+DownAuth download Auth
+UploadUrl document server save address
+AsynUp whether asynchronous upload
+UpCookie upload Cookie
+UpAuth upload Auth
+UpPara upload parameters
+{"req":"Office_PutNetUrl","rid":42,"para":{"DownUrl":"http://www.yuanmaster.com/Files/template.doc","UploadUrl":"http://zorrosoft.com/wp-admin/admin-ajax.php","AsynDown":1,"AsynUp":0,"DownCookie":"","UpCookie":"","DownAuth":"","UpAuth":"","UpPara":{}}}
+Return: {"ret":0,"rid":42,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+43) Request to hide or show the content of the specified serial number bookmark or specified name, applicable to WPS Writer software
+Index is the bookmark serial number Name is the bookmark name. Use one of the two.
+Show whether to show 0 hide 1 show
+{"req":"Office_ShowMarkContent","rid":43,"para":{"Index":"1","Show":"0"}}
+{"req":"Office_ShowMarkContent","rid":43,"para":{"Name":"Caption","Show":"0"}}
+Return: {"ret":0,"rid":43,"data":{"Ret":"0"}}
+
+44) Request to find and replace specified text content, applicable to WPS Writer software
+Find: Content to be replaced Replace: Replacement content. Both need UrlEncode encoding before passing in.
+Case: Whether case-sensitive default 0 1 represents case-sensitive Corresponds to the "Match case" checkbox in the "Find and Replace" dialog box ("Edit" menu)
+Forward: Default 1 search forward (towards the end of the document) 0 search backward, towards the initial position of the document.
+WholeWord: Whether exact match default 0 Specify 1 to only find matching complete words, not text that is part of a long word. Equivalent to the "Find whole words only" checkbox in the "Edit" menu "Find and Replace" dialog box.
+Wildcards: Whether to specify wildcards and other advanced search conditions, default 0. Specify 1 for "*(ing)" will find all words ending with "ing". Corresponds to the "Use wildcards" checkbox in the find and replace dialog box.
+Type: Replace type 2: wdReplaceAll (replace all matches, default) 1: wdReplaceOne (replace the first match encountered) 0: wdReplaceNone (replace no matches)
+Wrap: Action type after search ends 2: wdFindAsk (After searching the selected content or area, WPS Writer will display a message asking whether to search other parts of the document)
+	1: wdFindContinue (When the start or end of the search area is reached, continue the search operation) 0: wdFindStop (When the start or end of the search range is reached, stop the search operation, default)
+{"req":"Office_Replace","rid":44,"para":{"Find":"test","Replace":"test content","Case":1,"WholeWord":1,"Wildcards":1}}
+Return: {"ret":0,"rid":44,"data":{"Ret":"0"}}
+
+45) Insert bookmark, applicable to WPS Writer software
+Start bookmark start position
+End bookmark end position. If Start and End are not specified, the inserted bookmark position is the current cursor position or selected content area.
+Name bookmark name, cannot be empty. Bookmark name has specific naming requirements: It must only contain letters A-Z, a-z, Arabic numerals 0-9, and underscore _. And must start with a letter. If it contains Chinese or other special characters, UrlEncode encoding must be done.
+Content inserted bookmark content, optional parameter. If it contains Chinese or other special characters, UrlEncode encoding must be done.
+{"req":"Office_InsertMark","rid":45,"para":{"Name":"Test","Content":"[InsertMark]","Start":0,"End":0}}
+Return: {"ret":0,"rid":45,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+46) Request to delete specified bookmark, applicable to WPS Writer software
+Name is the bookmark name
+Encode default 0, 1 represents the bookmark name uses UrlEncode encoding
+DelContent whether to delete bookmark content simultaneously, default 0 do not delete.
+{"req":"Office_DelMark","rid":46,"para":{"Name":"Test","DelContent":0}}
+Return: {"ret":0,"rid":46,"data":{"Ret":"0"}}
+
+47) Get revision information for specified serial number, applicable to WPS Writer software
+Index is the revision serial number, default 1. Total number obtained through Office_GetRevisionsCount. Specifying 0 represents returning all revision data.
+When Index is specified as 0, you can specify Type revision type, default 0 returns all types.
+{"req":"Office_GetRevisionInfo","rid":47,"para":{"Index":1}}
+Return: {"ret":0,"rid":47,"data":{"Ret":"0","Revisions":[]}}
+
+48) Get number of comments, applicable to WPS Writer software
+{"req":"Office_GetCommentCount","rid":48,"para":{}}
+Return: {"ret":0,"rid":48,"data":{"Ret":"0","Count":0}}
+
+49) Get comment information for specified serial number, applicable to WPS Writer software
+Index is the comment serial number, default 1. Total number obtained through Office_GetCommentCount. Specifying 0 represents returning all comment data.
+{"req":"Office_GetCommentInfo","rid":49,"para":{"Index":1}}
+Return: {"ret":0,"rid":49,"data":{"Ret":"0","Comments":[]}}
+
+50) Request to perform red templating operation on the current document, applicable to WPS Writer software
+Position the position where the red template body starts. Please set bookmark name or jump number of lines. If not set or specified bookmark not found, start from the second line position of the document.
+File is the red template file. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+Template file is local {"req":"Office_RedTemplate","rid":50,"para":{"Position":"Content","File":"D:/Zorro/template.doc"}}
+Template file is on server {"req":"Office_RedTemplate","rid":50,"para":{"Position":"Content","File":"http://www.yuanmaster.com/Files/template.doc"}}
+Return: {"ret":0,"rid":50,"data":{"Ret":"0"}}
+
+51) Call built-in macro procedure (Sub) or function (Function) in VBA, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software. Need to enable macro code in the software options trust center macro settings.
+Name the Sub or Function name to call
+Para1-Para7 parameter 1-7. If no parameter is needed, do not pass. Currently supports up to 7 parameters. If more parameters are needed, please contact us.
+Example 1: {"req":"Office_CallMacro","rid":51,"para":{"Name":"SetMyFont"}}
+Return: {"ret":0,"rid":51,"data":{"Ret":"0"}}
+Example 2: {"req":"Office_CallMacro","rid":51,"para":{"Name":"SetFontFunc","Para1":"宋体"}}
+Return 2: {"ret":0,"rid":51,"data":{"Ret":"0","Val":"宋体"}}
+Macro code example:
+function SetFontFunc(MyFont)
+{
+	return MyFont
+}
+function SetMyFont()
+{
+	SetFontFunc("宋体")
+}
+
+52) Request to pop up a message dialog box within the embedded window area, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Title is the popup title. If Chinese or special symbols, UrlEncode first.
+Content is the popup content. If Chinese or special symbols, UrlEncode first.
+Wait is the number of seconds to wait before automatically disappearing. 0 means does not disappear automatically.
+Type represents popup type 0 is MB_OK, see Windows SDK definition for specifics.
+{"req":"Office_MsgBox","rid":52,"para":{"Title":"Alert","Content":"This is a test message","Wait":5,"Type":0}}
+Return: {"ret":0,"rid":52,"data":{"Ret":"0"}}
+
+53) Insert hyperlink, applicable to WPS Writer, WPS Spreadsheets software
+Address hyperlink address
+SubAddress sub-address
+ScreenTip screen tip
+TextToDisplay whether text displays to screen
+{"req":"Office_InsertHyperlink","rid":53,"para":{"Address":"Test","SubAddress":"Sheet1!A1","ScreenTip":"","TextToDisplay":"Sheet1!A1"}}
+Return: {"ret":0,"rid":53,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+54) Request to get the number of hyperlinks in the current document, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Slide specifies slide serial number, defaults to current slide if not specified. Not needed for WPS Writer, WPS Spreadsheets.
+{"req":"Office_HyperlinkCount","rid":54,"para":{}}
+Return: {"ret":0,"rid":54,"data":{"Ret":"0"}}
+
+55) Request to determine if the current hyperlink exists, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Name is the hyperlink name, WPS Presentation does not support Name
+Address is the address
+Slide specifies slide serial number, defaults to current slide if not specified. Not needed for WPS Writer, WPS Spreadsheets.
+{"req":"Office_HyperlinkIsExist","rid":55,"para":{"Name":"Caption"}}
+Return: {"ret":0,"rid":55,"data":{"Ret":"0"}}
+
+56) Request to get all hyperlinks in the current document, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Slide specifies slide serial number, defaults to current slide if not specified. Not needed for WPS Writer, WPS Spreadsheets.
+{"req":"Office_AllHyperlink","rid":56,"para":{}}
+Return: {"ret":0,"rid":56,"data":{"Ret":[{"Name":"Caption","Text":"[请输入标题]"},{"Name":"Content","Text":"[公文内容]"},{"Name":"Description","Text":"[公文说明或描叙]"},{"Name":"Sec","Text":"[公文密级]"},{"Name":"Subject","Text":"[公文主题词]"]}]}}
+
+57) Request the hyperlink of the specified serial number or the text content of the specified name, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Index is the hyperlink serial number
+Name is the hyperlink name, WPS Presentation does not support Name
+Address is the address, WPS Writer does not support
+Slide specifies slide serial number, defaults to current slide if not specified. Not needed for WPS Writer, WPS Spreadsheets.
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Index":"1"}}
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Name":"Caption"}}
+{"req":"Office_GetHyperlinkInfo","rid":57,"para":{"Address":"http://www.yuanmaster.com"}}
+Return: {"ret":0,"rid":57,"data":{"Ret":"0"}}
+
+58) Request to replace the content of the specified hyperlink name, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Name is the hyperlink name, WPS Presentation does not support Name
+Text hyperlink content
+Slide specifies slide serial number, defaults to current slide if not specified. Not needed for WPS Writer, WPS Spreadsheets.
+WPS Writer, WPS Spreadsheets: {"req":"Office_PutHyperlinkText","rid":58,"para":{"Hyperlinks":[{"Name":"http://www.yuanmaster.com","Text":{"Address":"http://www.yuanmaster.com","ScreenTip":"zorrosoft"}}]}}
+WPS Presentation: {"req":"Office_PutHyperlinkText","rid":58,"para":{"Slide":1,"Hyperlinks":[{"Address":"http://www.yuanmaster.com","Text":{"Address":"http://www.yuanmaster.com","ScreenTip":"zorrosoft"}}]}}
+
+Return: {"ret":0,"rid":58,"data":{"Ret":"0"}}
+
+59) Request to delete specified hyperlink, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Name is the hyperlink name, WPS Presentation does not support Name
+Addr is the hyperlink address
+Index is the serial number, only PPT supports Index
+{"req":"Office_DelHyperlink","rid":59,"para":{"Name":"Test"}}
+{"req":"Office_DelHyperlink","rid":59,"para":{"Address":"http://www.yuanmaster.com"}}
+{"req":"Office_DelHyperlink","rid":59,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":59,"data":{"Ret":"0"}}
+
+60) Request to get the number of fields in the current document, applicable to WPS Writer software
+{"req":"Office_FieldCount","rid":60,"para":{}}
+Return: {"ret":0,"rid":60,"data":{"Ret":"0"}}
+
+61) Request to determine if the current field exists, applicable to WPS Writer software
+Type is the field type
+Code is the field code
+{"req":"Office_FieldIsExist","rid":61,"para":{"Type":"3","Code":"REF%20%20Caption%20"}}
+Return: {"ret":0,"rid":61,"data":{"Ret":"0"}}
+
+62) Request to get all fields in the current document, applicable to WPS Writer software
+{"req":"Office_AllField","rid":62,"para":{}}
+Return: {"ret":0,"rid":62,"data":{"Ret":[{"Index":1,"Type":1,"Data":"","Code":"","Result":"","Kind":1,"Locked":0,"ShowCodes":0}]}}
+
+63) Request field information for specified serial number, applicable to WPS Writer software
+Index is the Field serial number
+{"req":"Office_GetFieldInfo","rid":63,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":63,"data":{"Ret":{"Index":1,"Type":1,"Data":"","Code":"","Result":"","Kind":1,"Locked":0,"ShowCodes":0}}}
+
+64) Request to replace specified field content, applicable to WPS Writer software
+Data field data needs UrlEncode first
+Code field code needs UrlEncode first
+Result result needs UrlEncode first
+Locked whether locked
+ShowCodes whether to show codes
+Example: {"req":"Office_PutFieldInfo","rid":64,"para":{"Fields":[{"Index":1,"Code":"REF%20%20Caption%20","Locked":0,"ShowCodes":0}]}}
+Return: {"ret":0,"rid":64,"data":{"Ret":"0"}}
+
+65) Insert field at current position, applicable to WPS Writer software
+Text field text needs UrlEncode encoding first
+Type field type definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdfieldtype
+PreserveFormatting whether to preserve formatting
+Example, insert page number: {"req":"Office_InsertField","rid":65,"para":{"Text":"SECTIONPAGES","Type":"-1","PreserveFormatting":1}}
+Return: {"ret":0,"rid":65,"data":{"Ret":"0"}}
+Ret returns 0 for success.
+
+66) Request to delete field of specified serial number, applicable to WPS Writer software
+Index is the serial number
+{"req":"Office_DelField","rid":66,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":66,"data":{"Ret":"0"}}
+
+67) Request to get current view mode, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Regarding the definition of view mode ViewType, please search and refer to the definitions of WdViewType, XlWindowView, PpViewType respectively.
+{"req":"Office_GetViewType","rid":67,"para":{}}
+Return: {"ret":0,"rid":67,"data":{"Ret":"0","ViewType":"0"}}
+
+68) Request to set view mode, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+ViewType view mode
+{"req":"Office_SetViewType","rid":68,"para":{"ViewType":"1"}}
+Return: {"ret":0,"rid":68,"data":{"Ret":"0"}}
+
+69) Request to highlight or unhighlight specified bookmark content, applicable to WPS Writer software
+Index is the bookmark serial number Name is the bookmark name. Use one of the two.
+Color highlight color, set 0 to unhighlight, highlight default 7: wdYellow Detailed definition: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdcolorindex
+{"req":"Office_HighLight","rid":69,"para":{"Name":"Caption","Color":7}}
+Return: {"ret":0,"rid":69,"data":{"Ret":"0"}}
+
+70) Specify ID window overlays rendering content in the webpage, Windows 8 and above operating systems support normally, this machine needs to install Microsoft Edge WebView2 Runtime
+Url is the transparent webpage address. If there are special symbols, please perform UrlEncode first. Set to empty string to cancel overlay.
+Alpha transparency (0-255) default 255 opaque, Windows 7 and below systems do not support transparency.
+Rect node sets overlay window position and size. If not set, represents the entire area. E represents margin default 1, X/Y/W/H represent the starting point and width/height of the overlay window displayed in the split window respectively. P is the display position type. When greater than 0, replaces X and Y, 1 top-left 2 top-right 3 bottom-left 4 bottom-right.
+{"req":"Office_FloatWebInfo","rid":70,"para":{"Url":"https://output.jsbin.com/dopavun"}}
+{"req":"Office_FloatWebInfo","rid":70,"para":{"Url":"https://output.jsbin.com/dopavun","Rect":{"X":0,"Y":0,"P":0,"W":300,"H":300}}}
+Return: {"ret":0,"rid":70,"data":{"Ret":0}}
+
+71) Specify ID window overlay webpage inject script to run
+Script is the script content, please perform UrlEncode first. Set to empty string to cancel overlay.
+Init initialize
+{"req":"Office_FloatWebInjectScript","rid":71,"para":{"Init":0,"Script":"window.getComputedStyle(document.body).backgroundColor"}}
+Return: {"ret":0,"rid":71,"data":{"Ret":0}}
+
+72) Request to control revision display content, applicable to WPS Writer software
+Mode revision display mode https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsmode
+View view type https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsview
+Markup markup type https://learn.microsoft.com/zh-cn/office/vba/api/word.wdrevisionsmarkup
+The above parameters can be set individually. If not set, it means get this parameter value.
+Can also directly set Toggle to 1, representing toggle (show or hide) all revisions including comments and revisions in the document.
+{"req":"Office_RevisionsFilter","rid":72,"para":{"Mode":0,"Markup":2,"View":0}}
+Return: {"ret":0,"rid":72,"data":{"Ret":0,"Mode":0,"Markup":2,"View":0}}
+
+73) Request to get local document information, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+File local file full path. If no path is specified, take the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+{"req":"Office_FileInfo","rid":73,"para":{"File":"C:/OfficeDoc/test.doc"}}
+Return: {"ret":0,"rid":73,"data":{"Ret":"0","Size":92095,"MD5":"B28B987EC70E1E7853F89A52CEDE68F0","Attribute":32,"CreateTime":"2020-10-07 13:07:20","LastWriteTime":"2020-07-14 10:09:43","Ver":"","CorpName":"","Desc":""}}
+If it's an image, also returns the image width and height values.
+
+74) Request to get local document properties, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+File local file full path. If no path is specified, take the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+Class property type, 1 built-in properties 2 custom properties 1+2 get built-in and custom properties.
+{"req":"Office_GetDocProp","rid":74,"para":{"File":"C:/OfficeDoc/test.doc","Class":3}}
+Return: {"ret":0,"rid":74,"data":[]}
+
+75) Request to operate local document properties, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+File local file full path. If no path is specified, take the document in the specified or default path. Needs UrlEncode encoding before passing. If this parameter is not passed, it means get the currently opened document.
+Props properties group that needs operation, supports batch operation.
+Name property name
+Val property value needs UrlEncode encoding before passing.
+Class property type, 1 built-in property 2 custom property
+Type property type definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/office.msodocproperties
+LinkTo whether to link to source
+Source source needs UrlEncode encoding before passing.
+Opt operation type 1 set, add if not exists, built-in properties cannot be added. 2 delete, can only delete custom properties, built-in properties cannot be deleted.
+{"req":"Office_SetDocProp","rid":75,"para":{"File":"C:/OfficeDoc/test.doc","Props":[{"Class":1,"Type":4,"Name":"Title","Val":"test","Opt":1}]}}
+Return: {"ret":0,"rid":75,"data":{"Ret":"0"}}
+
+76) Get document style count, applicable to WPS Writer software
+Base whether to get style basic information, default 0 do not get, set 1 to get, information returned to Styles node.
+{"req":"Office_GetStyleCount","rid":76,"para":{"Base":0}}
+Return: {"ret":0,"rid":76,"data":{"Ret":"0","Count":0,"Styles":[]}}
+
+77) Get specified style information of the document, applicable to WPS Writer software
+Type built-in style type, detailed definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index style serial number, supports custom styles, serial number starts from 1.
+Name style name. Use one of type, serial number, or name. Supports custom style names. Custom styles only support getting by name. To get multiple styles, separate names with |.
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Type":-1}}
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Index":1}}
+{"req":"Office_GetStyleInfo","rid":77,"para":{"Name":"HTML 打字机|HTML 样本"}}
+Return: {"ret":0,"rid":77,"data":{"Ret":"0","Styles":[{"Type":2,"Name":"HTML 打字机","Desc":"%E5%AD%97%E4%BD%93%3A%20(%E9%BB%98%E8%AE%A4)%20Courier%20New,%2010%20%E7%A3%85%5Cr%20%20%20%20%E5%9F%BA%E4%BA%8E%3A%20%E9%BB%98%E8%AE%A4%E6%AE%B5%E8%90%BD%E5%AD%97%E4%BD%93","BuiltIn":1,"InUse":0,"Hidden":0,"Locked":0,"Visibility":0,"Linked":0,"AutoUpdate":0,"UnhideWhenUsed":0,"QuickStyle":0,"NoSpace":0,"FontInfo":{"Name":"Courier New","Size":10.000,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":10.000,"NameFarEast":"+中文正文","NameAscii":"Courier New","NameOther":"Courier New","NameBi":"Courier New","DisableCharacterSpaceGrid":0},"ParagraphFormat":{}},{"Type":2,"Name":"HTML 样本","Desc":"%E5%AD%97%E4%BD%93%3A%20(%E9%BB%98%E8%AE%A4)%20Courier%20New%5Cr%20%20%20%20%E5%9F%BA%E4%BA%8E%3A%20%E9%BB%98%E8%AE%A4%E6%AE%B5%E8%90%BD%E5%AD%97%E4%BD%93","BuiltIn":1,"InUse":0,"Hidden":0,"Locked":0,"Visibility":0,"Linked":0,"AutoUpdate":0,"UnhideWhenUsed":0,"QuickStyle":0,"NoSpace":0,"FontInfo":{"Name":"Courier New","Size":10.500,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":12.000,"NameFarEast":"+中文正文","NameAscii":"Courier New","NameOther":"Courier New","NameBi":"Courier New","DisableCharacterSpaceGrid":0},"ParagraphFormat":{}}]}}
+The Type definition in the returned Styles node, refer to https://learn.microsoft.com/zh-cn/office/vba/api/word.wdstyletype
+
+78) Set document style information, applicable to WPS Writer software
+Type built-in style type, detailed definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index style serial number, supports custom styles, serial number starts from 1.
+Name style name. Use one of type, serial number, or name. Supports custom style names. Custom styles only support setting by name. If the custom style name does not exist yet, it will be added automatically. If it doesn't exist, you can set CopyName, representing copying from the style of the specified name and then setting some parameters.
+Para style parameters
+{"req":"Office_SetStyleInfo","rid":78,"para":{"Name":"TestStyle","CreateType":2,"CopyName":"标题 1","Para":{"Hidden":0,"Locked":0,"Visibility":1,"AutoUpdate":0,"UnhideWhenUsed":1,"QuickStyle":1,"NoSpace":0,"FontInfo":{"Name":"Calibri Light","Size":10.500,"Spacing":0.000,"Bold":0,"Color":-16777216,"Italic":0,"Hidden":0,"SmallCaps":0,"AllCaps":0,"Position":0,"Scaling":100,"Emboss":0,"Shadow":0,"Outline":0,"Subscript":0,"Superscript":0,"StrikeThrough":0,"DoubleStrikeThrough":0,"Engrave":0,"BoldBi":0,"ItalicBi":0,"ColorIndex":0,"Underline":0,"Animation":0,"EmphasisMark":0,"DiacriticColor":-16777216,"UnderlineColor":-16777216,"ColorIndexBi":0,"Kerning":1.000,"SizeBi":10.500,"DisableCharacterSpaceGrid":0},"ParagraphFormat":{"WordWrap":-1,"KeepTogether":-1,"KeepWithNext":-1,"PageBreakBefore":0,"NoLineNumber":0,"Hyphenation":-1,"WidowControl":0,"FarEastLineBreakControl":-1,"HangingPunctuation":-1,"HalfWidthPunctuationOnTopOfLine":0,"AddSpaceBetweenFarEastAndAlpha":-1,"AddSpaceBetweenFarEastAndDigit":-1,"MirrorIndents":0,"AutoAdjustRightIndent":-1,"DisableLineHeightGrid":0,"SpaceBeforeAuto":0,"SpaceAfterAuto":0,"RightIndent":0.0,"LeftIndent":0.0,"FirstLineIndent":0.0,"LineSpacing":16.0,"SpaceBefore":12.0,"SpaceAfter":3.2,"CharacterUnitRightIndent":0.0,"LineUnitBefore,":0.0,"LineUnitAfter":0.0,"CharacterUnitLeftIndent":0.0,"CharacterUnitFirstLineIndent":0.0,"Alignment":3,"LineSpacingRule":5,"BaselineAlignment":4,"OutlineLevel":9,"ReadingOrder":1,"TextboxTightWrap":0}}}}
+Return: {"ret":0,"rid":78,"data":{"Ret":"0"}}
+
+79) Delete document custom style, applicable to WPS Writer software
+Index style serial number, only supports custom styles, serial number starts from 1. Must first call Office_GetStyleCount and set Base to 1 to get the ID.
+Name style name, only supports custom style name. Use one of the two. To delete multiple styles, separate names with |.
+{"req":"Office_DelStyle","rid":79,"para":{"Name":"TestStyle"}}
+Return: {"ret":0,"rid":79,"data":{"Ret":"0"}}
+
+80) Request to start playing slides, applicable to WPS Presentation software
+Slide specifies the starting slide serial number. If not set, starts from beginning. -1 starts from current slide.
+FullScreen default full-screen play, 0 play within window.
+{"req":"Office_BeginPlay","rid":80,"para":{"Slide":1,"FullScreen":1}}
+Return: {"ret":0,"rid":80,"data":{"Ret":"0"}}
+
+81) Request to exit slide play, applicable to WPS Presentation software
+{"req":"Office_EndPlay","rid":81,"para":{}}
+Return: {"ret":0,"rid":81,"data":{"Ret":"0"}}
+
+82) Request to insert multimedia in slide, applicable to WPS Presentation software
+Link is 1 then only link to file (network path does not support 1)
+Save whether to automatically save to document after insertion.
+Slide specifies slide serial number, defaults to current if not set.
+MediaFile needs UrlEncode encoding. If not a full path, unless the data file directory DataPath is specified at startup, the middleware program's Data subdirectory is used as the root directory by default.
+Specify the position and size for displaying the inserted multimedia Left, Top, Width, Height. If not specified, Left and Top default to 0, Width and Height must be specified.
+{"req":"Office_InsertMedia","rid":81,"para":{"Slide":1,"MediaFile":"d:/zorro/test.mp4","Width":300,"Height":300}}
+Return: {"ret":0,"rid":81,"data":{"Ret":"0"}}
+
+83) Request to set or get page display scale and view settings, applicable to WPS Writer software
+Scall display scale
+Fit fit method https://learn.microsoft.com/zh-cn/office/vba/api/word.wdpagefit
+Setting either of the above 2 parameters represents setting. Not passing parameters represents getting.
+{"req":"Office_PageZoom","rid":83,"para":{"Scall":"100"}}
+Return: {"ret":0,"rid":83,"data":{"Ret":"0","Scall":"100","Fit":"3"}}
+
+85) Request link jump, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+Name is the hyperlink name PPT does not support Name
+Addr is the hyperlink address
+Index is the serial number, only PPT supports Index
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Name":"Test"}}
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Address":"http://www.yuanmaster.com"}}
+{"req":"Office_HyperlinkFollow","rid":85,"para":{"Index":"1"}}
+Return: {"ret":0,"rid":85,"data":{"Ret":"0"}}
+
+86) Request to get current form content, applicable to WPS Spreadsheets software
+{"req":"Office_GetCurCell","rid":86,"para":{}}
+Return: {"ret":0,"rid":86,"data":{"Ret":"0","Addr":"C1","Val":""}}
+
+87) Request to set current form content, applicable to WPS Spreadsheets software
+Formula set formula
+Formula set value
+{"req":"Office_SetCurCell","rid":87,"para":{"Formula":"A1=1","Val":"test1"}}
+Return: {"ret":0,"rid":87,"data":{"Ret":"0"}}
+
+88) Request to get form content, applicable to WPS Spreadsheets software
+{"req":"Office_GetCellData","rid":88,"para":["A1","A2","B1","C3"]}
+Return: {"ret":0,"rid":88,"data":{"Ret":"0","Data":[]}}
+
+89) Request to set form content, applicable to WPS Spreadsheets software
+Addr form address
+Formula set formula
+Formula set value
+{"req":"Office_PutCellData","rid":89,"para":[{"Addr":"C1","Val":"test1","Formula":"A1=1"},{"Addr":"C1","Val":"test1"}]}
+Return: {"ret":0,"rid":89,"data":{"Ret":"0"}}
+
+90) Set the style of the selected content in the document, applicable to Yong WPS Writer software
+Type built-in style type, detailed definition reference: https://learn.microsoft.com/zh-cn/office/vba/api/word.wdbuiltinstyle
+Index style serial number, supports custom styles, serial number starts from 1.
+Name style name. Use one of type, serial number, or name. Supports custom style names. Custom styles only support setting by name.
+{"req":"Office_SetSelectStyle","rid":90,"para":{"Style":"TestStyle"}}
+Return: {"ret":0,"rid":90,"data":{"Ret":"0"}}
+
+91) Request to get auto-save mark when closing, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+{"req":"Office_GetAutoSave","rid":91,"para":{}}
+Return: {"ret":0,"rid":91,"data":{"Ret":"0","AutoSave":0}}
+
+92) Request to set auto-save mark when closing, applicable to WPS Writer, WPS Spreadsheets, WPS Presentation software
+{"req":"Office_SetAutoSave","rid":92,"para":{"AutoSave":1}}
+Return: {"ret":0,"rid":92,"data":{"Ret":"0","AutoSave":1}}
+
+93) Request to insert chart in table, applicable to WPS Writer software
+File specifies Excel form file path, needs UrlEncode encoding. Supports download address of server path.
+SheetName form name, default Sheet1
+Index, chart serial number, default 1. Not setting represents all.
+{"req":"Office_InsertChart","rid":93,"para":{"File":"d:/Zorro/Chart.xlsx","Index":1}}
+{"req":"Office_InsertChart","rid":93,"para":{"File":"http://test.yuanmaster.com/Files/Chart.xlsx","SheetName":"Dashboard","Index":1}}
+Return: {"ret":0,"rid":93,"data":{"Ret":"0"}}
+
+The following are general request methods for functions not individually encapsulated in VBA interfaces.
+100) Request to get property value
+Name specifies the property name Application default as the top-level. If encountering a sub-interface, the name adds the sub-interface name, supports multiple levels. For example, to get the name of the current document, use ActiveDocument.Name. Same below.
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Version"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"ActiveDocument.Name"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Text"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Start"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.End"}}
+{"req":"Office_GetProperty","rid":100,"para":{"Name":"Selection.Information","Para1":"2"}}
+Return: {"ret":0,"rid":100,"data":{"Ret":0,"Val":""}}
+
+101) Request to set property
+Name specifies the property name. If encountering a sub-interface, the name adds the sub-interface name, supports multiple levels.
+Set application window visibility
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"Visible","Val":"-1"}}
+Set WORD document saved status
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"ActiveDocument.Saved","Val":"-1"}}
+Set PPT presentation playback interface to enable laser pointer
+{"req":"Office_PutProperty","rid":101,"para":{"Name":"ActivePresentation.SlideShowWindow.View.PointerType","Val":"2"}}
+Return: {"ret":0,"rid":101,"data":{"Ret":0}}
+
+102) Request method with no input parameters
+Name specifies the method name. If encountering a sub-interface, the name adds the sub-interface name, supports multiple levels. For example, the current document print preview name uses ActiveDocument.PrintPreview. Same below.
+DID can also specify method serial number.
+{"req":"Office_Invoke0","rid":102,"para":{"Name":"ActiveDocument.PrintPreview"}}
+Return: {"ret":0,"rid":102,"data":{"Ret":0,"Val":""}}
+
+103) Request method with only 1 input parameter
+Name specifies the method name. If encountering a sub-interface, the name adds the sub-interface name, supports multiple levels. For example, call the current document compatibility mode name uses ActiveDocument.SetCompatibilityMode. Same below.
+DID can also specify method serial number.
+Para1 corresponding parameter value
+{"req":"Office_Invoke1","rid":103,"para":{"Name":"ActiveDocument.SetCompatibilityMode","Para1":"15"}}
+Return: {"ret":0,"rid":103,"data":{"Ret":0,"Val":""}}
+
+104) Request method with only 2 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1 and Para2 correspond to parameter 1 and 2 values respectively. If a value can be omitted, it can be omitted, such as only passing Para1. Same below.
+{"req":"Office_Invoke2","rid":104,"para":{"Name":"ActiveDocument.Range","Para1":"1","Para2":"5"}}
+Return: {"ret":0,"rid":104,"data":{"Ret":0,"Val":""}}
+
+105) Request method with only 3 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3 correspond to parameter 1, 2, and 3 values respectively.
+{"req":"Office_Invoke3","rid":105,"para":{"Name":"","Para1":"","Para2":"","Para3":""}}
+Return: {"ret":0,"rid":105,"data":{"Ret":0,"Val":""}}
+
+106) Request method with only 4 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4 correspond to parameter 1, 2, 3, and 4 values respectively.
+{"req":"Office_Invoke4","rid":106,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":""}}
+Return: {"ret":0,"rid":106,"data":{"Ret":0,"Val":""}}
+
+107) Request method with only 5 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5 correspond to parameter 1, 2, 3, 4, and 5 values respectively.
+{"req":"Office_Invoke5","rid":107,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":""}}
+Return: {"ret":0,"rid":107,"data":{"Ret":0,"Val":""}}
+
+108) Request method with only 6 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6 correspond to parameter 1, 2, 3, 4, 5, and 6 values respectively.
+{"req":"Office_Invoke6","rid":108,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":""}}
+Return: {"ret":0,"rid":108,"data":{"Ret":0,"Val":""}}
+
+109) Request method with only 7 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7 correspond to parameter 1, 2, 3, 4, 5, 6, and 7 values respectively.
+{"req":"Office_Invoke7","rid":109,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":""}}
+Return: {"ret":0,"rid":109,"data":{"Ret":0,"Val":""}}
+
+110) Request method with only 8 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8 correspond to parameter 1, 2, 3, 4, 5, 6, 7, and 8 values respectively.
+{"req":"Office_Invoke8","rid":110,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":""}}
+Return: {"ret":0,"rid":110,"data":{"Ret":0,"Val":""}}
+
+111) Request method with only 9 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, and 9 values respectively.
+{"req":"Office_Invoke9","rid":111,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":""}}
+Return: {"ret":0,"rid":111,"data":{"Ret":0,"Val":""}}
+
+112) Request method with only 10 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10 values respectively.
+{"req":"Office_InvokeA","rid":112,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":""}}
+Return: {"ret":0,"rid":112,"data":{"Ret":0,"Val":""}}
+
+113) Request method with only 11 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, and 11 values respectively.
+{"req":"Office_InvokeB","rid":113,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":""}}
+Return: {"ret":0,"rid":113,"data":{"Ret":0,"Val":""}}
+
+114) Request method with only 12 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, and 12 values respectively.
+{"req":"Office_InvokeC","rid":114,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":""}}
+Return: {"ret":0,"rid":114,"data":{"Ret":0,"Val":""}}
+
+115) Request method with only 13 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, and 13 values respectively.
+{"req":"Office_InvokeD","rid":115,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":""}}
+Return: {"ret":0,"rid":115,"data":{"Ret":0,"Val":""}}
+
+116) Request method with only 14 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, and 14 values respectively.
+{"req":"Office_InvokeE","rid":116,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":""}}
+Return: {"ret":0,"rid":116,"data":{"Ret":0,"Val":""}}
+
+117) Request method with only 15 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, and 15 values respectively.
+{"req":"Office_InvokeF","rid":117,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":""}}
+Return: {"ret":0,"rid":117,"data":{"Ret":0,"Val":""}}
+
+118) Request method with only 16 input parameters
+Name specifies the method name
+DID can also specify method serial number.
+Para1, Para2, Para3, Para4, Para5, Para6, Para7, Para8, Para9, Para10, Para11, Para12, Para13, Para14, Para15, Para16 correspond to parameter 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, and 16 values respectively.
+{"req":"Office_InvokeG","rid":118,"para":{"Name":"","Para1":"","Para2":"","Para3":"","Para4":"","Para5":"","Para6":"","Para7":"","Para8":"","Para9":"","Para10":"","Para11":"","Para12":"","Para13":"","Para14":"","Para15":"","Para16":""}}
+Return: {"ret":0,"rid":118,"data":{"Ret":0,"Val":""}}
+
+5. Event notifications:
+A. The following are WPS Writer program notifications
+
+B. Supported event notifications:
+
+1) Whether the web component responded to the hotkey full screen
+The following are full-screen event notifications for WPS Writer, WPS Spreadsheets, WPS Presentation programs respectively.
+{"event":"WORD_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full-screen mark
+{"event":"EXCEL_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full-screen mark
+{"event":"PPT_FullScreen","data":{"FullScreen":0}} FullScreen is the current whether full-screen mark
+
+2) Wrl_AppletExit web component exit notification
+{"event":"Wrl_AppletExit","data":{"ID":1}}
+
+3) Document loading complete notification
+File local opened file path
+Type open or create
+{"event":"WORD_LoadOK","data":{"File":"","Type":1}}
+{"event":"EXCEL_LoadOK","data":{"File":"","Type":1}}
+{"event":"PPT_LoadOK","data":{"File":"","Type":1}}
+
+4) Document save notification
+Type 0 save 1 save as
+Flag 0 or 1 success greater than 1 save failed -1 modified but not saved when exiting
+{"event":"WORD_Save","data":{"File":"","Type":0,"Flag":0}}
+{"event":"EXCEL_Save","data":{"File":"","Type":0,"Flag":0}}
+{"event":"PPT_Save","data":{"File":"","Type":0,"Flag":0}}
+
+5) Document open failure notification
+File local opened file path
+Err error code
+{"event":"WORD_LoadError","data":{"File":"","Err":0}}
+{"event":"EXCEL_LoadError","data":{"File":"","Err":0}}
+{"event":"PPT_LoadError","data":{"File":"","Err":0}}
+
+6) Server document download progress notification
+Url download address
+Percent progress percentage
+{"event":"OFFICE_NetPercent","data":{"Url":"","Percent":0}}
+
+7) Server document download error notification
+Url download address
+Code error code
+Desc error description
+{"event":"OFFICE_NetError","data":{"Url":"","Code":0,"Desc":""}}
+
+6. Other
+The JSON data packet of the request parameters, please ensure it is UTF-8 encoding without BOM.
+More interface request instructions, please refer to the document TestWrl.txt in the installation directory, "Middleware Developer Manual.pdf" and "Middleware Security Solution.pdf" in the SDK package.
+[file content end]
